@@ -1,45 +1,13 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi IA con Gemini</title>
-    <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
-        button { background: #4285f4; color: white; border: none; padding: 10px 20px; cursor: pointer; }
-        #output { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; }
-    </style>
-</head>
-<body>
-    <h1>Pregúntale a Gemini</h1>
-    <textarea id="prompt" placeholder="Escribe algo aquí..."></textarea>
-    <button onclick="askAI()">Enviar</button>
-    <div id="output">La respuesta aparecerá aquí...</div>
-
-    <!-- Cargamos el SDK de Google AI -->
-    <script type="module">
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
-        // Usaremos una variable que configuraremos en Vercel después
-        const API_KEY = "AIzaSyAY7phlLASRHpsmRPSPqbhVE8PtJEecTfQ"; 
-
-        async function askAI() {
-            const prompt = document.getElementById('prompt').value;
-            const output = document.getElementById('output');
-            output.innerText = "Pensando...";
-
-            try {
-                const genAI = new GoogleGenerativeAI(API_KEY);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                output.innerText = response.text();
-            } catch (error) {
-                output.innerText = "Error: " + error.message;
-            }
-        }
-        window.askAI = askAI;
-    </script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sabor Abanquino</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
+

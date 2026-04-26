@@ -1,0 +1,364 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState } from 'react';
+import { AppProvider, useApp } from './AppContext.tsx';
+import Layout from './components/Layout.tsx';
+import { MeseroView } from './components/MeseroView.tsx';
+import { PedidosView } from './components/PedidosView.tsx';
+import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
+import { CustomersView } from './components/CustomersView.tsx';
+import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X } from 'lucide-react';
+
+const AdminPanel = () => {
+  const { resetStock, currentMenu, products, addProduct, updateProduct, deleteProduct, mesas, addMesa, toggleProductInMenu, requestConfirmation } = useApp();
+  const [newMesaName, setNewMesaName] = useState('');
+  const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ' as any, tipo: 'SEGUNDO' as any, precio: 9 });
+  const [activeCategory, setActiveCategory] = useState<'MENÚ' | 'EXTRA' | 'BEBIDA'>('MENÚ');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<any>(null);
+
+  const handleAddMesa = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMesaName.trim()) {
+      const id = (mesas.length + 1).toString();
+      addMesa(id, newMesaName);
+      setNewMesaName('');
+    }
+  };
+
+  const handleAddProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newProduct.nombre.trim()) {
+      addProduct(newProduct);
+      setNewProduct({ nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 });
+    }
+  };
+
+  const startEdit = (product: any) => {
+    setEditingId(product.id);
+    setEditForm({ ...product });
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingId && editForm) {
+      updateProduct(editingId, editForm);
+      setEditingId(null);
+      setEditForm(null);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-6xl space-y-8 md:space-y-12 pb-20">
+       {/* 1. Master Dish Management */}
+       <section className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <Utensils className="w-6 h-6 text-orange-600" />
+              <h3 className="text-xl font-black text-slate-800 uppercase tracking-wider">Maestro de Platos</h3>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[32px] md:rounded-[40px] p-6 md:p-8 shadow-xl border border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+            {/* Add Dish Form */}
+            <form onSubmit={handleAddProduct} className="space-y-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Nuevo Plato / Bebida</p>
+              <div className="grid gap-3">
+                <input 
+                  type="text" 
+                  value={newProduct.nombre}
+                  onChange={(e) => setNewProduct({...newProduct, nombre: e.target.value})}
+                  placeholder="Nombre del plato..."
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-orange-500 outline-none transition-all"
+                />
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
+                   <select 
+                    value={newProduct.categoria}
+                    onChange={(e) => setNewProduct({...newProduct, categoria: e.target.value as any})}
+                    className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                   >
+                     <option value="MENÚ">Menú (9.00)</option>
+                     <option value="EXTRA">Extra</option>
+                     <option value="BEBIDA">Bebida</option>
+                   </select>
+                   <input 
+                    type="number" 
+                    value={newProduct.precio}
+                    onChange={(e) => setNewProduct({...newProduct, precio: parseFloat(e.target.value)})}
+                    placeholder="Precio..."
+                    className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                   />
+                </div>
+                {newProduct.categoria === 'MENÚ' && (
+                   <select 
+                    value={newProduct.tipo}
+                    onChange={(e) => setNewProduct({...newProduct, tipo: e.target.value as any})}
+                    className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                   >
+                     <option value="SEGUNDO">Segundo</option>
+                     <option value="SOPA">Sopa / Entrada</option>
+                   </select>
+                )}
+                <button 
+                  type="submit"
+                  className="w-full py-4 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-100 hover:bg-orange-700 transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Registrar Plato
+                </button>
+              </div>
+            </form>
+
+            {/* List Table */}
+            <div className="space-y-4">
+              <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-2xl">
+                 {(['MENÚ', 'EXTRA', 'BEBIDA'] as const).map(cat => (
+                   <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                      activeCategory === cat ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                   >
+                     {cat}
+                   </button>
+                 ))}
+              </div>
+              
+              {editingId && editForm ? (
+                <form onSubmit={handleUpdate} className="bg-orange-50 p-4 rounded-2xl border-2 border-orange-200 space-y-3 animate-in fade-in slide-in-from-top-1">
+                   <div className="flex justify-between items-center mb-1">
+                      <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest">Editando Producto</p>
+                      <button onClick={() => setEditingId(null)} className="text-orange-400 hover:text-orange-600"><X className="w-4 h-4" /></button>
+                   </div>
+                   <input 
+                    type="text" 
+                    value={editForm.nombre}
+                    onChange={(e) => setEditForm({...editForm, nombre: e.target.value})}
+                    className="w-full bg-white border border-orange-100 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                   />
+                   <div className="grid grid-cols-2 gap-2">
+                      <input 
+                        type="number" 
+                        value={editForm.precio}
+                        onChange={(e) => setEditForm({...editForm, precio: parseFloat(e.target.value)})}
+                        className="w-full bg-white border border-orange-100 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                      />
+                      <button type="submit" className="bg-orange-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest">Guardar</button>
+                   </div>
+                </form>
+              ) : (
+                <div className="max-h-[300px] overflow-auto pr-2 no-scrollbar space-y-2">
+                   {products.filter(p => p.categoria === activeCategory).map(p => (
+                     <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
+                       <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-800 text-xs truncate">{p.nombre}</p>
+                          <div className="flex items-center gap-2">
+                             <p className="text-xs font-black text-orange-500">S/ {p.precio.toFixed(2)}</p>
+                             {p.tipo && <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">[{p.tipo}]</p>}
+                          </div>
+                       </div>
+                       <div className="flex gap-1">
+                          <button 
+                            onClick={() => startEdit(p)}
+                            className="p-2 text-slate-300 hover:text-orange-600 hover:bg-white rounded-lg transition-all"
+                            title="Editar"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => deleteProduct(p.id)}
+                            className="p-2 text-slate-300 hover:text-rose-600 hover:bg-white rounded-lg transition-all"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                       </div>
+                     </div>
+                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+       </section>
+
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          {/* 2. Menu Selection */}
+          <div className="space-y-6">
+              <div className="flex items-center gap-2 px-2">
+                <Utensils className="w-5 h-5 text-amber-600" />
+                <h3 className="text-lg font-black text-slate-800 uppercase tracking-wider">Menú del Día</h3>
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 px-2 uppercase tracking-widest leading-relaxed">
+                Selecciona los platos que estarán disponibles hoy.
+              </p>
+              <div className="grid gap-2 max-h-[500px] overflow-auto pr-2 no-scrollbar">
+                {products.map(product => {
+                  const isInMenu = currentMenu.some(m => m.productoId === product.id);
+                  const menuItem = currentMenu.find(m => m.productoId === product.id);
+                  const { updateMenuItemStock } = useApp();
+
+                  return (
+                    <div key={product.id} className="space-y-2">
+                         <button
+                        onClick={() => toggleProductInMenu(product.id)}
+                        className={`w-full flex items-center justify-between p-3 md:p-4 rounded-2xl border-2 transition-all group ${
+                          isInMenu 
+                            ? 'bg-orange-50 border-orange-500 shadow-md translate-x-1' 
+                            : 'bg-white border-slate-100 hover:border-slate-200'
+                        }`}
+                      >
+                        <div className="text-left flex items-center gap-3">
+                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${
+                              product.categoria === 'MENÚ' ? 'bg-amber-100 text-amber-600' :
+                              product.categoria === 'EXTRA' ? 'bg-rose-100 text-rose-600' : 'bg-orange-100 text-orange-600'
+                           }`}>
+                             {product.categoria[0]}
+                           </div>
+                           <div>
+                              <p className="font-bold text-slate-800 text-sm group-hover:text-orange-600 transition-colors truncate max-w-[120px] sm:max-w-none">{product.nombre}</p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                                 {product.tipo || product.categoria} • S/ {product.precio.toFixed(2)}
+                              </p>
+                           </div>
+                        </div>
+                        {isInMenu ? (
+                          <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-orange-600" />
+                        ) : (
+                          <Circle className="w-5 h-5 md:w-6 md:h-6 text-slate-100" />
+                        )}
+                      </button>
+
+                      {isInMenu && (
+                        <div className="mx-2 md:mx-4 flex items-center gap-4 bg-white p-3 rounded-2xl border border-orange-100 shadow-sm animate-in zoom-in-95 duration-200">
+                          <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+                            {product.categoria === 'BEBIDA' ? 'Stock' : 'Stock Inicial'}
+                          </span>
+                          <div className="flex-1 flex items-center gap-2">
+                             <input 
+                               type="number"
+                               value={menuItem?.stockInicial}
+                               onChange={(e) => {
+                                 const val = parseInt(e.target.value) || 0;
+                                 if (product.categoria === 'BEBIDA') {
+                                    updateMenuItemStock(product.id, val, val);
+                                 } else {
+                                    updateMenuItemStock(product.id, val);
+                                 }
+                               }}
+                               className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-orange-400 transition-all text-center"
+                             />
+                             <span className="text-[9px] md:text-[10px] font-bold text-slate-400 underline decoration-orange-200">UND</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+          </div>
+
+          {/* 3. Table and System Management */}
+          <div className="space-y-12">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 px-2">
+                <Users className="w-5 h-5 text-emerald-600" />
+                <h3 className="text-lg font-black text-slate-800 uppercase tracking-wider">Mesas</h3>
+              </div>
+              
+              <form onSubmit={handleAddMesa} className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={newMesaName}
+                  onChange={(e) => setNewMesaName(e.target.value)}
+                  placeholder="Nombre..."
+                  className="flex-1 bg-white border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-orange-500 outline-none transition-all shadow-sm"
+                />
+                <button 
+                  type="submit"
+                  className="bg-orange-600 text-white p-3.5 rounded-2xl shadow-lg shadow-orange-100 hover:bg-orange-700 transition-all active:scale-95"
+                >
+                  <Plus className="w-6 h-6" />
+                </button>
+              </form>
+
+              <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-2 gap-2 max-h-[250px] overflow-auto pr-2 no-scrollbar">
+                {mesas.map(mesa => (
+                  <div key={mesa.id} className="bg-white border border-slate-100 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <span className="font-bold text-slate-700 text-[11px] truncate mr-1">{mesa.nombre}</span>
+                    <div className={`shrink-0 w-2 h-2 rounded-full ${mesa.estado === 'OCUPADA' ? 'bg-amber-400' : 'bg-emerald-400'}`}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4 space-y-4">
+              <div className="flex items-center gap-2 px-2">
+                  <Database className="w-5 h-5 text-slate-600" />
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-wider">Control de Jornada</h3>
+              </div>
+              
+              <div className="bg-rose-50 p-6 md:p-8 rounded-[40px] border border-rose-100 flex flex-col gap-6 shadow-sm">
+                <div className="text-center sm:text-left">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 mb-1">Cierre de Día</p>
+                  <p className="text-[11px] text-rose-400 font-medium italic leading-tight">Precaución: Esto borrará todos los pedidos, reiniciará el stock y ELIMINARÁ el historial y saldos de clientes.</p>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    requestConfirmation(
+                      'Reiniciar Jornada',
+                      '¿Deseas REINICIAR LA JORNADA? Esto borrará pedidos, stock, caja y TODO el historial/saldos de clientes.',
+                      () => resetStock()
+                    );
+                  }}
+                  className="w-full py-6 bg-rose-600 text-white rounded-[30px] font-black uppercase tracking-[0.2em] text-xs md:text-sm shadow-2xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95 flex items-center justify-center text-center"
+                >
+                  REINICIAR JORNADA Y DETALLES
+                </button>
+              </div>
+            </div>
+          </div>
+       </div>
+    </div>
+  );
+};
+
+const AppContent = () => {
+  const { role } = useApp();
+
+  return (
+    <Layout>
+      {role === 'MESERO' && <MeseroView />}
+      {role === 'PEDIDOS' && <PedidosView />}
+      {role === 'COCINA' && <CocinaView />}
+      {role === 'CAJA' && <CajaView />}
+      {role === 'CUENTAS' && <CustomersView />}
+      {role === 'ADMIN' && (
+        <div className="flex flex-col items-center justify-start p-4 md:p-8 space-y-8 min-h-full">
+          <div className="text-center space-y-2">
+            <div className="w-20 h-20 bg-orange-100 rounded-[32px] flex items-center justify-center shadow-xl shadow-orange-50 border-2 border-orange-100 mx-auto">
+               <Database className="w-8 h-8 text-orange-600" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Gestión del Día</h2>
+            <p className="text-slate-400 text-sm font-medium">Control de inventario y cierre de caja.</p>
+          </div>
+          
+          <AdminPanel />
+        </div>
+      )}
+    </Layout>
+  );
+};
+
+
+export default function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  );
+}
+
