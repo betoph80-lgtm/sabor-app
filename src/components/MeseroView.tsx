@@ -45,7 +45,7 @@ export const MeseroView: React.FC = () => {
               className={`relative aspect-square rounded-2xl border-2 flex flex-col items-center justify-center transition-all group ${
                 isOccupied
                   ? mesa.id === '13' 
-                    ? 'bg-orange-500 border-orange-600 text-white shadow-lg shadow-orange-100 -translate-y-1' 
+                    ? 'bg-violet-500 border-violet-600 text-white shadow-lg shadow-violet-100 -translate-y-1' 
                     : 'bg-red-600 border-red-700 text-white shadow-lg shadow-red-200 -translate-y-1'
                   : 'bg-emerald-500 border-emerald-600 text-white shadow-md shadow-emerald-100'
               }`}
@@ -66,11 +66,11 @@ export const MeseroView: React.FC = () => {
                    {mesaActiveOrders[0]?.items.map((item, idx) => (
                       <div 
                         key={idx} 
-                        className={`w-1.5 h-1.5 rounded-full ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-amber-400 animate-pulse'}`} 
+                        className={`w-1.5 h-1.5 rounded-full ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-violet-400 animate-pulse'}`} 
                       />
                    ))}
                    {mesaActiveOrders.length > 1 && (
-                      <div className="text-[8px] font-bold text-orange-600 bg-orange-50 px-1 rounded ml-1">
+                      <div className="text-[8px] font-bold text-violet-600 bg-violet-50 px-1 rounded ml-1">
                         +{mesaActiveOrders.length - 1}
                       </div>
                    )}
@@ -99,11 +99,11 @@ export const MeseroView: React.FC = () => {
                 key={activeOrder.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[32px] md:rounded-3xl p-5 md:p-8 shadow-2xl shadow-slate-200 border border-orange-50 space-y-5 md:space-y-6"
+                className="bg-white rounded-[32px] md:rounded-3xl p-5 md:p-8 shadow-2xl shadow-slate-200 border border-violet-50 space-y-5 md:space-y-6"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-orange-600 text-white rounded-2xl flex items-center justify-center text-xl md:text-2xl font-bold shadow-xl shadow-orange-200">
+                    <div className="w-12 h-12 md:w-16 md:h-16 bg-violet-600 text-white rounded-2xl flex items-center justify-center text-xl md:text-2xl font-bold shadow-xl shadow-violet-200">
                       {selectedMesa}
                     </div>
                     <div>
@@ -137,12 +137,12 @@ export const MeseroView: React.FC = () => {
                         className={`flex items-center justify-between p-3 md:p-4 rounded-2xl border transition-all ${
                           isServed 
                             ? 'bg-emerald-50 border-emerald-100' 
-                            : 'bg-white border-amber-200 border-2 border-dashed'
+                            : 'bg-white border-violet-200 border-2 border-dashed'
                         }`}
                       >
                         <div className="flex items-center gap-3 md:gap-4 min-w-0">
                           <div className={`shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center ${
-                            isServed ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white shadow-lg shadow-amber-100 animate-pulse'
+                            isServed ? 'bg-emerald-500 text-white' : 'bg-violet-500 text-white shadow-lg shadow-violet-100 animate-pulse'
                           }`}>
                             {product?.tipo === 'SOPA' ? <Soup className="w-4 h-4 md:w-5 md:h-5" /> : <Meal className="w-4 h-4 md:w-5 md:h-5" />}
                           </div>
@@ -156,7 +156,7 @@ export const MeseroView: React.FC = () => {
                                )}
                             </div>
                             <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest ${
-                              isServed ? 'text-emerald-600' : 'text-amber-600'
+                              isServed ? 'text-emerald-600' : 'text-violet-600'
                             }`}>
                               {isServed ? 'SERVIDO' : 'EN COCINA'}
                             </span>
@@ -166,7 +166,7 @@ export const MeseroView: React.FC = () => {
                         {!isServed ? (
                           <button
                             onClick={() => updateItemStatus(activeOrder.id, item.id, 'SERVIDO')}
-                            className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest shadow-md transition-all active:scale-95"
+                            className="shrink-0 bg-violet-500 hover:bg-violet-600 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest shadow-md transition-all active:scale-95"
                           >
                             Servir
                           </button>
@@ -183,7 +183,7 @@ export const MeseroView: React.FC = () => {
                 <div className="pt-5 md:pt-6 border-t border-slate-100 flex flex-col xs:flex-row gap-4 items-center justify-between">
                   <div className="flex flex-col items-center xs:items-start">
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Monto Total</span>
-                    <p className="text-2xl md:text-3xl font-black text-orange-900 leading-none">S/ {activeOrder.total.toFixed(2)}</p>
+                    <p className="text-2xl md:text-3xl font-black text-violet-900 leading-none">S/ {activeOrder.total.toFixed(2)}</p>
                   </div>
                   <div className="flex gap-2 w-full xs:w-auto">
                     <button
@@ -197,7 +197,7 @@ export const MeseroView: React.FC = () => {
                       Añadir
                     </button>
                     <button
-                      className="flex-1 xs:flex-none py-3.5 px-6 bg-orange-600 text-white text-xs font-bold rounded-2xl hover:bg-orange-700 transition-all shadow-xl shadow-orange-100"
+                      className="flex-1 xs:flex-none py-3.5 px-6 bg-violet-600 text-white text-xs font-bold rounded-2xl hover:bg-violet-700 transition-all shadow-xl shadow-violet-100"
                     >
                       Cobrar Ticket
                     </button>

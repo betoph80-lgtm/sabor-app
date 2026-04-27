@@ -11,14 +11,18 @@ import { motion, AnimatePresence } from 'motion/react';
 const OrderTimer: React.FC<{ timestamp: number; isCompleted?: boolean; className?: string }> = ({ timestamp, isCompleted, className }) => {
   const [elapsed, setElapsed] = useState('');
 
+  const [isDelayed, setIsDelayed] = useState(false);
+
   useEffect(() => {
     if (isCompleted) {
       setElapsed('--:--');
+      setIsDelayed(false);
       return;
     }
 
     const interval = setInterval(() => {
       const diff = Date.now() - timestamp;
+      setIsDelayed(diff > 900000); // 15 minutes in ms
       const hours = Math.floor(diff / 3600000);
       const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
@@ -35,10 +39,15 @@ const OrderTimer: React.FC<{ timestamp: number; isCompleted?: boolean; className
   }, [timestamp, isCompleted]);
 
   return (
-    <div className={className || "flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10"}>
-      <Timer className="w-3.5 h-3.5 text-orange-300" />
+    <motion.div 
+      animate={isDelayed ? { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 2 } } : {}}
+      className={className || `flex items-center gap-1.5 px-3 py-1 rounded-lg backdrop-blur-sm border transition-colors ${
+        isDelayed ? 'bg-rose-600 border-rose-400 shadow-lg shadow-rose-200' : 'bg-white/10 border-white/10'
+      }`}
+    >
+      <Timer className={`w-3.5 h-3.5 ${isDelayed ? 'text-white' : 'text-violet-300'}`} />
       <span className="font-mono font-bold text-sm tracking-tighter text-white">{elapsed}</span>
-    </div>
+    </motion.div>
   );
 };
 
@@ -127,7 +136,7 @@ export const CocinaView: React.FC = () => {
     <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
         <h2 className="text-xl font-bold text-slate-800 tracking-tight">Comandas por Mesa</h2>
-        <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+        <span className="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
           {itemsToPrepare.length} Ítems Total
         </span>
       </div>
@@ -143,7 +152,7 @@ export const CocinaView: React.FC = () => {
             <div key={item.id} className="flex flex-col bg-slate-50 px-4 py-3 rounded-2xl border border-slate-100 min-w-[120px] flex-1">
               <span className="text-[10px] font-black text-slate-400 uppercase truncate max-w-[150px]">{item.nombre}</span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className={`text-2xl font-black ${item.stockActual < 5 ? 'text-rose-600' : 'text-orange-900'}`}>
+                <span className={`text-2xl font-black ${item.stockActual < 5 ? 'text-rose-600' : 'text-violet-900'}`}>
                   {item.stockActual}
                 </span>
                 <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">disponibles</span>
@@ -155,11 +164,11 @@ export const CocinaView: React.FC = () => {
         {/* Preparation Summary */}
         <div className="lg:col-span-2 bg-slate-900 rounded-[32px] p-6 text-white shadow-2xl flex flex-wrap gap-4 h-fit font-sans">
           <div className="w-full mb-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">Total a Cocinar</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-500">Total a Cocinar</p>
           </div>
           {Object.entries(summary).map(([name, qty]) => (
             <div key={name} className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
-              <span className="text-2xl font-black text-amber-400">{qty}</span>
+              <span className="text-2xl font-black text-violet-400">{qty}</span>
               <span className="text-xs font-bold uppercase tracking-tight text-slate-300">{name}</span>
             </div>
           ))}
@@ -176,9 +185,9 @@ export const CocinaView: React.FC = () => {
               key={key} 
               className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden flex flex-col"
             >
-            <div className="bg-orange-600 px-6 py-4 flex justify-between items-center text-white">
+            <div className="bg-violet-600 px-6 py-4 flex justify-between items-center text-white">
                <div className="flex flex-col">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-orange-200 leading-none mb-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-violet-100 leading-none mb-1">
                     {items[0].orderId} • Orden de Servicio
                   </span>
                   <h3 className="text-xl font-black leading-none">{mesaId === '13' ? 'PARA LLEVAR' : `MESA ${mesaId}`}</h3>
@@ -220,7 +229,7 @@ export const CocinaView: React.FC = () => {
                     <div key={item.id} className="flex items-center justify-between group py-1">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg shadow-inner ${
-                          isSoup ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-orange-50 text-orange-600 border border-orange-100'
+                          isSoup ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-violet-50 text-violet-600 border border-violet-100'
                         }`}>
                           {item.cantidad}
                         </div>
@@ -269,7 +278,9 @@ export const CajaView: React.FC = () => {
     .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
   const directPaidOrders = orders.filter(o => o.estado === 'PAGADO' && o.fecha === today);
-  const totalDirecto = directPaidOrders.reduce((acc, o) => acc + o.total, 0);
+  const totalEfectivo = directPaidOrders.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
+  const totalYape = directPaidOrders.filter(o => o.metodoPago === 'YAPE').reduce((acc, o) => acc + o.total, 0);
+  const totalDirecto = totalEfectivo + totalYape;
 
   // Calcular cobros a clientes hoy (Depósitos y Pagos de crédito)
   const customerPaymentsToday = customers.flatMap(c => 
@@ -302,13 +313,18 @@ export const CajaView: React.FC = () => {
           </div>
           <div className="flex gap-4 mt-6">
             <div className="text-center">
-              <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Efectivo/Ventas</p>
-              <p className="font-bold text-emerald-700 text-sm">S/ {totalDirecto.toFixed(2)}</p>
+              <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Efectivo</p>
+              <p className="font-bold text-emerald-700 text-xs">S/ {totalEfectivo.toFixed(2)}</p>
+            </div>
+            <div className="w-px bg-emerald-200"></div>
+            <div className="text-center">
+              <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Yape</p>
+              <p className="font-bold text-emerald-700 text-xs">S/ {totalYape.toFixed(2)}</p>
             </div>
             <div className="w-px bg-emerald-200"></div>
             <div className="text-center">
               <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Cobros Clientes</p>
-              <p className="font-bold text-emerald-700 text-sm">S/ {totalCustomerPayments.toFixed(2)}</p>
+              <p className="font-bold text-emerald-700 text-xs">S/ {totalCustomerPayments.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -385,9 +401,9 @@ export const CajaView: React.FC = () => {
                        <p className="text-3xl font-extrabold text-slate-800 tracking-tighter leading-none">{order.total.toFixed(2)}</p>
                     </div>
                     {!isReadyToPay && (
-                       <div className="flex items-center gap-1.5 mt-2 bg-amber-50 px-2 py-1 rounded-lg w-fit">
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
-                          <span className="text-[8px] text-amber-600 font-bold uppercase tracking-wider">Cocinando</span>
+                       <div className="flex items-center gap-1.5 mt-2 bg-violet-50 px-2 py-1 rounded-lg w-fit">
+                          <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></div>
+                          <span className="text-[8px] text-violet-600 font-bold uppercase tracking-wider">Cocinando</span>
                        </div>
                     )}
                   </div>
@@ -414,24 +430,36 @@ export const CajaView: React.FC = () => {
 
                   {/* Right: Buttons (Ultra Compact) */}
                   <div className="flex flex-row md:flex-col gap-2 shrink-0 md:w-[140px] pt-3 md:pt-0">
-                    <button
-                      onClick={() => payOrder(order.id)}
-                      disabled={!isReadyToPay}
-                      className={`flex-1 px-2 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all shadow-sm active:scale-95 text-center flex flex-col justify-center leading-tight ${
-                        isReadyToPay 
-                          ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-100' 
-                          : 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200'
-                      }`}
-                    >
-                      <span>EFECTIVO</span>
-                      <span className="opacity-60 text-[7px]">/ YAPE</span>
-                    </button>
+                    <div className="flex flex-row md:flex-col gap-2 flex-1">
+                      <button
+                        onClick={() => payOrder(order.id, 'EFECTIVO')}
+                        disabled={!isReadyToPay}
+                        className={`flex-1 px-2 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all shadow-sm active:scale-95 text-center flex flex-col justify-center leading-tight ${
+                          isReadyToPay 
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-100' 
+                            : 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200'
+                        }`}
+                      >
+                        EFECTIVO
+                      </button>
+                      <button
+                        onClick={() => payOrder(order.id, 'YAPE')}
+                        disabled={!isReadyToPay}
+                        className={`flex-1 px-2 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all shadow-sm active:scale-95 text-center flex flex-col justify-center leading-tight ${
+                          isReadyToPay 
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100' 
+                            : 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200'
+                        }`}
+                      >
+                        YAPE
+                      </button>
+                    </div>
                     <button
                       onClick={() => setSelectingCustomerFor(order.id)}
                       disabled={!isReadyToPay}
                       className={`flex-1 px-2 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all shadow-sm active:scale-95 text-center flex flex-col justify-center leading-tight ${
                         isReadyToPay 
-                          ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-orange-100' 
+                          ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-violet-100' 
                           : 'bg-slate-100 text-slate-300 cursor-not-allowed border border-slate-200'
                       }`}
                     >
@@ -469,7 +497,7 @@ export const CajaView: React.FC = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input 
                       autoFocus
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-orange-500 outline-none transition-all"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:border-violet-500 outline-none transition-all"
                       placeholder="Buscar cliente por nombre..."
                       value={customerSearch}
                       onChange={(e) => setCustomerSearch(e.target.value)}
@@ -483,17 +511,17 @@ export const CajaView: React.FC = () => {
                          <button
                           key={customer.id}
                           onClick={() => {
-                            payOrder(selectingCustomerFor, true, customer.id);
+                            payOrder(selectingCustomerFor, 'CREDITO', customer.id);
                             setSelectingCustomerFor(null);
                             setCustomerSearch('');
                           }}
-                          className="w-full p-4 bg-white border-2 border-slate-50 rounded-2xl flex justify-between items-center hover:border-orange-500 hover:shadow-md transition-all group"
+                          className="w-full p-4 bg-white border-2 border-slate-50 rounded-2xl flex justify-between items-center hover:border-violet-500 hover:shadow-md transition-all group"
                         >
                           <div className="text-left">
-                            <p className="font-bold text-slate-800 group-hover:text-orange-600">{customer.nombre}</p>
+                            <p className="font-bold text-slate-800 group-hover:text-violet-600">{customer.nombre}</p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">S/ {customer.saldo.toFixed(2)} Saldo</p>
                           </div>
-                          <Plus className="w-5 h-5 text-orange-200 group-hover:text-orange-500" />
+                          <Plus className="w-5 h-5 text-violet-200 group-hover:text-violet-500" />
                         </button>
                       ))}
                     {customers.filter(c => c.nombre.toLowerCase().includes(customerSearch.toLowerCase())).length === 0 && (
@@ -544,13 +572,13 @@ export const CajaView: React.FC = () => {
                    <td className="px-6 py-4 text-xs font-black text-slate-800">
                       {order.mesaId === '13' ? 'PARA LLEVAR' : `${order.mesaId}`}
                    </td>
-                   <td className="px-6 py-4 text-xs font-bold text-slate-800 uppercase">{order.cliente}</td>
-                   <td className="px-6 py-4 text-xs font-black text-orange-600 text-center">{order.items.length}</td>
+                   <td className="px-6 py-4 text-xs font-black text-slate-800 uppercase">{order.cliente}</td>
+                   <td className="px-6 py-4 text-xs font-black text-violet-600 text-center">{order.items.length}</td>
                    <td className="px-6 py-4 text-xs font-black text-slate-800">S/ {order.total.toFixed(2)}</td>
                    <td className="px-6 py-4">
                      <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-tighter ${
                        order.estado === 'PAGADO' ? 'bg-emerald-100 text-emerald-600' : 
-                       order.estado === 'CREDITO' ? 'bg-orange-100 text-orange-600' : 'bg-amber-100 text-amber-600'
+                       order.estado === 'CREDITO' ? 'bg-violet-100 text-violet-600' : 'bg-violet-50 text-violet-500'
                      }`}>
                        {order.estado}
                      </span>

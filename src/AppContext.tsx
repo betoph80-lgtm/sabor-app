@@ -22,7 +22,7 @@ interface AppContextType {
   updateItemStatus: (orderId: string, itemId: string, status: ItemStatus) => void;
   deleteItemFromOrder: (orderId: string, itemId: string) => void;
   updateItemQuantity: (orderId: string, itemId: string, newQty: number) => void;
-  payOrder: (orderId: string, payWithCredit?: boolean, customerId?: string) => void;
+  payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', customerId?: string) => void;
   addItemsToOrder: (orderId: string, items: Partial<OrderItem>[]) => void;
   updateOrderInfo: (orderId: string, updates: Partial<Order>) => void;
   updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number) => void;
@@ -320,7 +320,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const payOrder = (orderId: string, payWithCredit: boolean = false, customerId?: string) => {
+  const payOrder = (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', customerId?: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order || order.estado !== 'ABIERTO') return;
 
@@ -328,7 +328,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMesas(mPrev => mPrev.map(m => m.id === order.mesaId ? { ...m, estado: 'LIBRE' } : m));
 
     // 2. Procesamos transacción si es crédito
-    if (payWithCredit) {
+    if (method === 'CREDITO') {
       const customer = customerId 
         ? customers.find(c => c.id === customerId)
         : customers.find(c => c.nombre.toLowerCase() === order.cliente.toLowerCase());
@@ -345,7 +345,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 3. Actualizamos estado del pedido
     setOrders(prev => prev.map(o => o.id === orderId 
-      ? { ...o, estado: payWithCredit ? 'CREDITO' : 'PAGADO' } 
+      ? { ...o, estado: method === 'CREDITO' ? 'CREDITO' : 'PAGADO', metodoPago: method } 
       : o
     ));
   };

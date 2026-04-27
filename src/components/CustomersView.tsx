@@ -98,7 +98,7 @@ export const CustomersView: React.FC = () => {
         </div>
         <button 
           onClick={() => setShowAddCustomer(true)}
-          className="flex items-center justify-center gap-2 bg-orange-600 text-white px-6 py-3.5 md:py-3 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest shadow-lg shadow-orange-100 hover:bg-orange-700 transition-all active:scale-95"
+          className="flex items-center justify-center gap-2 bg-violet-600 text-white px-6 py-3.5 md:py-3 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
           Nuevo Cliente
@@ -115,7 +115,7 @@ export const CustomersView: React.FC = () => {
               placeholder="Buscar cliente..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 md:py-3 pl-12 pr-4 text-sm font-bold shadow-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+              className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 md:py-3 pl-12 pr-4 text-sm font-bold shadow-sm focus:ring-2 focus:ring-violet-500 outline-none transition-all"
             />
           </div>
 
@@ -132,7 +132,7 @@ export const CustomersView: React.FC = () => {
                   onClick={() => setSelectedCustomer(customer)}
                   className={`w-full text-left p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${
                     selectedCustomer?.id === customer.id 
-                      ? 'bg-orange-50 border-orange-500 shadow-md translate-x-1' 
+                      ? 'bg-violet-50 border-violet-500 shadow-md translate-x-1' 
                       : 'bg-white border-transparent hover:border-slate-100 shadow-sm'
                   }`}
                 >
@@ -249,7 +249,7 @@ export const CustomersView: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <p className="text-[9px] md:text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Saldo Actual</p>
+                      <p className="text-[9px] md:text-[10px] font-black text-violet-500 uppercase tracking-widest mb-1">Saldo Actual</p>
                       <p className={`text-2xl md:text-3xl font-black ${selectedCustomer.saldo >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         S/ {selectedCustomer.saldo.toFixed(2)}
                       </p>
@@ -263,7 +263,7 @@ export const CustomersView: React.FC = () => {
                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Movimientos</h4>
                    <button 
                     onClick={() => setShowAddTransaction(true)}
-                    className="w-full sm:w-auto py-3 px-4 bg-orange-50 sm:bg-transparent rounded-xl text-[10px] md:text-xs font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto py-3 px-4 bg-violet-50 sm:bg-transparent rounded-xl text-[10px] md:text-xs font-black text-violet-600 uppercase tracking-widest hover:text-violet-700 transition-colors flex items-center justify-center gap-2"
                    >
                      <Plus className="w-3.5 h-3.5" /> Agregar Saldo / Pago
                    </button>
@@ -341,7 +341,7 @@ export const CustomersView: React.FC = () => {
                       value={newCustomer.nombre}
                       onChange={(e) => setNewCustomer(prev => ({ ...prev, nombre: e.target.value }))}
                       placeholder="Ej. Juan Pérez"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-violet-500 transition-all"
                     />
                   </div>
                   <div className="space-y-1">
@@ -351,7 +351,7 @@ export const CustomersView: React.FC = () => {
                       value={newCustomer.documento}
                       onChange={(e) => setNewCustomer(prev => ({ ...prev, documento: e.target.value }))}
                       placeholder="8 dígitos / 11 dígitos"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-violet-500 transition-all"
                     />
                   </div>
                   <div className="space-y-1">
@@ -361,14 +361,14 @@ export const CustomersView: React.FC = () => {
                       value={newCustomer.telefono}
                       onChange={(e) => setNewCustomer(prev => ({ ...prev, telefono: e.target.value }))}
                       placeholder="999 999 999"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-violet-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <button 
                   type="submit"
-                  className="w-full py-4 bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-orange-100 hover:bg-orange-700 transition-all"
+                  className="w-full py-4 bg-violet-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-violet-100 hover:bg-violet-700 transition-all"
                 >
                   Registrar Cliente
                 </button>
@@ -391,7 +391,7 @@ export const CustomersView: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-2xl font-black text-slate-800 tracking-tight">Agregar Movimiento</h3>
-                  <p className="text-[10px] font-black text-orange-500 tracking-widest uppercase">{selectedCustomer.nombre}</p>
+                  <p className="text-[10px] font-black text-violet-500 tracking-widest uppercase">{selectedCustomer.nombre}</p>
                 </div>
                 <button onClick={() => setShowAddTransaction(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                   <X className="w-6 h-6 text-slate-400" />
@@ -419,7 +419,7 @@ export const CustomersView: React.FC = () => {
                         onClick={() => setNewTransaction(prev => ({ ...prev, type: 'PAGO_CREDITO' }))}
                         className={`py-3 rounded-xl border-2 font-black text-[10px] uppercase tracking-widest transition-all ${
                           newTransaction.type === 'PAGO_CREDITO' 
-                            ? 'bg-orange-50 border-orange-500 text-orange-600'
+                            ? 'bg-violet-50 border-violet-500 text-violet-600'
                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
                         }`}
                        >
@@ -437,7 +437,7 @@ export const CustomersView: React.FC = () => {
                       value={newTransaction.amount || ''}
                       onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
                       placeholder="0.00"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-violet-500 transition-all"
                     />
                   </div>
                   <div className="space-y-1">
@@ -447,14 +447,14 @@ export const CustomersView: React.FC = () => {
                       value={newTransaction.description}
                       onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Opcional..."
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-3 px-4 text-sm font-bold outline-none focus:border-violet-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <button 
                   type="submit"
-                  className="w-full py-4 bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-orange-100 hover:bg-orange-700 transition-all"
+                  className="w-full py-4 bg-violet-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-violet-100 hover:bg-violet-700 transition-all"
                 >
                   Registrar Movimiento
                 </button>

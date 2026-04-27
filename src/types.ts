@@ -64,6 +64,7 @@ export interface Order {
   items: OrderItem[];
   estado: OrderStatus;
   total: number;
+  metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO';
   usuarioId: string;
   fecha: string;
   hora: string;

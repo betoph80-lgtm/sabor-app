@@ -41,37 +41,37 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col h-screen bg-slate-100 text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="h-16 md:h-20 bg-orange-600 text-white flex items-center justify-between px-4 md:px-8 shadow-md shrink-0 z-20">
+      <nav className="h-16 md:h-20 bg-violet-600 text-white flex items-center justify-between px-4 md:px-8 shadow-md shrink-0 z-20">
         <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center font-bold text-orange-600 overflow-hidden border-2 border-orange-200 rotate-3 shadow-lg">
-            <Flower2 className="w-6 h-6 md:w-8 md:h-8 text-orange-500" />
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center font-bold text-violet-600 overflow-hidden border-2 border-violet-200 rotate-3 shadow-lg">
+            <Flower2 className="w-6 h-6 md:w-8 md:h-8 text-violet-500" />
           </div>
           <div className="flex flex-col">
             <h1 className="text-lg md:text-xl font-black tracking-tighter hidden sm:block uppercase italic leading-none">Sabor Abanquino</h1>
-            <p className="text-[7px] md:text-[8px] font-black text-orange-200 tracking-[0.3em] uppercase hidden sm:block">Gastronomía & Tradición</p>
+            <p className="text-[7px] md:text-[8px] font-black text-violet-100 tracking-[0.3em] uppercase hidden sm:block">Gastronomía & Tradición</p>
           </div>
           <h1 className="text-xl font-black tracking-tighter block sm:hidden uppercase italic">SA</h1>
         </div>
 
         <div className="flex gap-2 sm:gap-6 items-center overflow-x-auto no-scrollbar ml-4">
           <div className="text-right shrink-0">
-            <p className="text-[7px] md:text-[9px] text-orange-200 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Sopa</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalSoupStock} <span className="text-orange-200">/</span> {totalSoupInitial}</p>
+            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Sopa</p>
+            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalSoupStock} <span className="text-violet-200">/</span> {totalSoupInitial}</p>
           </div>
-          <div className="text-right border-l border-orange-400/50 pl-2 md:pl-4 shrink-0">
-            <p className="text-[7px] md:text-[9px] text-orange-200 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Segund.</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalMainStock} <span className="text-orange-200">/</span> {totalMainInitial}</p>
+          <div className="text-right border-l border-violet-400/50 pl-2 md:pl-4 shrink-0">
+            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Segund.</p>
+            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalMainStock} <span className="text-violet-200">/</span> {totalMainInitial}</p>
           </div>
-          <div className="text-right border-l border-orange-400/50 pl-2 md:pl-4 shrink-0">
-            <p className="text-[7px] md:text-[9px] text-orange-200 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Extra</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalExtraStock} <span className="text-orange-200">/</span> {totalExtraInitial}</p>
+          <div className="text-right border-l border-violet-400/50 pl-2 md:pl-4 shrink-0">
+            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Extra</p>
+            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalExtraStock} <span className="text-violet-200">/</span> {totalExtraInitial}</p>
           </div>
-          <div className="hidden xs:block text-right border-l border-orange-400/50 pl-2 md:pl-4 shrink-0">
-            <p className="text-[7px] md:text-[9px] text-orange-200 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Bebida</p>
+          <div className="hidden xs:block text-right border-l border-violet-400/50 pl-2 md:pl-4 shrink-0">
+            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Bebida</p>
             <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalDrinkStock}</p>
           </div>
-          <div className="hidden lg:flex flex-col items-end border-l border-orange-400 pl-6">
-            <p className="text-[10px] text-orange-200 uppercase font-bold tracking-widest leading-none mb-1">Rol Actual</p>
+          <div className="hidden lg:flex flex-col items-end border-l border-violet-400 pl-6">
+            <p className="text-[10px] text-violet-100 uppercase font-bold tracking-widest leading-none mb-1">Rol Actual</p>
             <p className="text-xs font-mono text-emerald-400 uppercase">{role}</p>
           </div>
         </div>
@@ -83,9 +83,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <section>
             <h2 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">Resumen de Sala</h2>
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                <span className="font-semibold text-sm text-orange-900">Pedidos Activos</span>
-                <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-bold">{String(activeOrdersCount).padStart(2, '0')}</span>
+              <div className="flex justify-between items-center p-3 bg-violet-50 rounded-xl border border-violet-100">
+                <span className="font-semibold text-sm text-violet-900">Pedidos Activos</span>
+                <span className="bg-violet-500 text-white px-2 py-0.5 rounded text-xs font-bold">{String(activeOrdersCount).padStart(2, '0')}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200 opacity-60">
                 <span className="font-semibold text-sm text-slate-600 font-medium">Mesas en Espera</span>
@@ -130,7 +130,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   key={item.id}
                   onClick={() => setRole(item.id)}
                   className={`flex flex-col items-center justify-center w-full py-2 transition-all duration-300 relative ${
-                    isActive ? 'text-orange-500' : 'text-slate-400 hover:text-slate-600'
+                    isActive ? 'text-violet-500' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   <Icon className={`w-5 h-5 mb-1 ${isActive ? 'scale-110' : ''} transition-transform`} />
@@ -138,7 +138,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute -top-1 w-10 h-1 bg-orange-500 rounded-full"
+                      className="absolute -top-1 w-10 h-1 bg-violet-500 rounded-full"
                     />
                   )}
                 </button>
@@ -159,7 +159,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     key={item.id}
                     onClick={() => setRole(item.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                      isActive ? 'bg-orange-50 text-orange-700 shadow-sm' : 'text-slate-400 hover:bg-slate-50'
+                      isActive ? 'bg-violet-50 text-violet-700 shadow-sm' : 'text-slate-400 hover:bg-slate-50'
                     }`}
                   >
                     <Icon className="w-4 h-4" />

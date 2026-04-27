@@ -95,7 +95,7 @@ export const PedidosView: React.FC = () => {
           <button
             onClick={() => setView('ACTIVOS')}
             className={`flex-1 md:px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              view === 'ACTIVOS' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400'
+              view === 'ACTIVOS' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400'
             }`}
           >
             Activos
@@ -103,7 +103,7 @@ export const PedidosView: React.FC = () => {
           <button
             onClick={() => setView('HISTORIAL')}
             className={`flex-1 md:px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              view === 'HISTORIAL' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400'
+              view === 'HISTORIAL' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400'
             }`}
           >
             Historial
@@ -140,7 +140,7 @@ export const PedidosView: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white ${
-                          view === 'HISTORIAL' ? 'bg-slate-500' : 'bg-orange-600 shadow-lg shadow-orange-100'
+                          view === 'HISTORIAL' ? 'bg-slate-500' : 'bg-violet-600 shadow-lg shadow-violet-100'
                         }`}>
                           {order.mesaId === '13' ? 'PL' : order.mesaId}
                         </div>
@@ -208,10 +208,10 @@ export const PedidosView: React.FC = () => {
                         {view === 'ACTIVOS' && (
                           <button
                             onClick={() => setEditingOrder(order.id)}
-                            className="p-2.5 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all"
+                            className="p-2.5 bg-violet-50 hover:bg-violet-100 rounded-xl transition-all"
                             title="Editar Pedido"
                           >
-                            <Edit2 className="w-4 h-4 text-orange-600" />
+                            <Edit2 className="w-4 h-4 text-violet-600" />
                           </button>
                         )}
                         <button
