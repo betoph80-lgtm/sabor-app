@@ -5,11 +5,12 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { role, setRole, orders, currentMenu, products } = useApp();
+  const { role, setRole, orders, currentMenu, products, selectedDate, setSelectedDate } = useApp();
+  const today = new Date().toLocaleDateString();
 
   const navigation = [
     { id: 'MESERO', label: 'Mesas', icon: LayoutDashboard },
@@ -20,15 +21,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { id: 'ADMIN', label: 'Admin', icon: UserIcon },
   ];
 
+  // Logic to handle date change from <input type="date">
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value; // yyyy-mm-dd
+    if (rawValue) {
+      const [y, m, d] = rawValue.split('-');
+      const formattedDate = `${parseInt(d)}/${parseInt(m)}/${y}`;
+      setSelectedDate(formattedDate);
+    }
+  };
+
+  // Convert "d/m/yyyy" to "yyyy-mm-dd" for the input value
+  const toInputDate = (dateStr: string) => {
+    const [d, m, y] = dateStr.split('/');
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  };
+
   // Calculate stats for sidebar
-  const activeOrdersCount = orders.filter(o => o.estado === 'ABIERTO').length;
-  const totalRevenue = orders.filter(o => o.estado === 'PAGADO').reduce((acc, o) => acc + o.total, 0);
+  const activeOrdersCount = orders.filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate).length;
+  const totalRevenue = orders.filter(o => o.estado === 'PAGADO' && o.fecha === selectedDate).reduce((acc, o) => acc + o.total, 0);
   
   // Calculate stock summaries
-  const soupStock = currentMenu.filter(m => products.find(p => p.id === m.productoId)?.tipo === 'SOPA');
-  const mainStock = currentMenu.filter(m => products.find(p => p.id === m.productoId)?.tipo === 'SEGUNDO');
-  const extraStock = currentMenu.filter(m => products.find(p => p.id === m.productoId)?.categoria === 'EXTRA');
-  const drinkStock = currentMenu.filter(m => products.find(p => p.id === m.productoId)?.categoria === 'BEBIDA');
+  const dailyMenu = currentMenu.filter(m => m.fecha === selectedDate);
+  const soupStock = dailyMenu.filter(m => products.find(p => p.id === m.productoId)?.tipo === 'SOPA');
+  const mainStock = dailyMenu.filter(m => products.find(p => p.id === m.productoId)?.tipo === 'SEGUNDO');
+  const extraStock = dailyMenu.filter(m => products.find(p => p.id === m.productoId)?.categoria === 'EXTRA');
+  const drinkStock = dailyMenu.filter(m => products.find(p => p.id === m.productoId)?.categoria === 'BEBIDA');
   
   const totalSoupStock = soupStock.reduce((acc, m) => acc + m.stockActual, 0);
   const totalSoupInitial = soupStock.reduce((acc, m) => acc + m.stockInicial, 0);
@@ -39,66 +57,113 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const totalDrinkStock = drinkStock.reduce((acc, m) => acc + m.stockActual, 0);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 text-slate-800 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="h-16 md:h-20 bg-violet-600 text-white flex items-center justify-between px-4 md:px-8 shadow-md shrink-0 z-20">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center font-bold text-violet-600 overflow-hidden border-2 border-violet-200 rotate-3 shadow-lg">
-            <Flower2 className="w-6 h-6 md:w-8 md:h-8 text-violet-500" />
+      <nav className="h-28 bg-white border-b border-slate-100 flex items-center justify-between px-8 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center gap-10 shrink-0 group cursor-pointer">
+          <div className="relative">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-500/20 to-emerald-400/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+            <div className="relative w-20 h-20 bg-white rounded-[28px] flex items-center justify-center overflow-hidden soft-shadow border border-slate-50 p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
+              <img 
+                src="/logo.png" 
+                alt="Sabor Abanquino" 
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement?.classList.add('bg-brand-50');
+                }}
+              />
+            </div>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-lg md:text-xl font-black tracking-tighter hidden sm:block uppercase italic leading-none">Sabor Abanquino</h1>
-            <p className="text-[7px] md:text-[8px] font-black text-violet-100 tracking-[0.3em] uppercase hidden sm:block">Gastronomía & Tradición</p>
+            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight hidden sm:block uppercase italic leading-none text-slate-900 group-hover:text-brand-600 transition-colors duration-300">
+              Sabor <span className="text-brand-600">Abanquino</span>
+            </h1>
+            <div className="flex items-center gap-3 mt-2">
+              <span className="w-8 h-px bg-brand-400 hidden sm:block"></span>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-600 tracking-[0.4em] uppercase hidden sm:block">Gastronomía & Tradición</p>
+            </div>
           </div>
-          <h1 className="text-xl font-black tracking-tighter block sm:hidden uppercase italic">SA</h1>
+          <h1 className="text-xl font-display font-bold tracking-tighter block sm:hidden uppercase italic text-brand-600">SA</h1>
         </div>
 
-        <div className="flex gap-2 sm:gap-6 items-center overflow-x-auto no-scrollbar ml-4">
-          <div className="text-right shrink-0">
-            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Sopa</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalSoupStock} <span className="text-violet-200">/</span> {totalSoupInitial}</p>
+        <div className="hidden lg:flex items-center gap-6 bg-slate-50/50 px-8 py-4 rounded-[32px] border border-slate-100/80 shadow-inner">
+           <div className="flex items-center gap-4">
+              <Calendar className="w-5 h-5 text-brand-500" />
+              <input 
+                type="date" 
+                value={toInputDate(selectedDate)}
+                onChange={handleDateChange}
+                className="bg-transparent text-sm font-display font-bold text-slate-700 outline-none cursor-pointer hover:text-brand-600 transition-colors"
+              />
+           </div>
+           {selectedDate !== today && (
+              <button 
+                onClick={() => setSelectedDate(today)}
+                className="px-5 py-2 bg-brand-600 text-white text-[10px] rounded-full font-bold uppercase tracking-widest hover:bg-brand-700 transition-all active:scale-95 soft-shadow"
+              >
+                Hoy
+              </button>
+           )}
+        </div>
+
+        <div className="flex gap-6 sm:gap-10 items-center ml-auto">
+          <div className="flex items-center gap-8 pr-12 border-r border-slate-100">
+            <div className="text-right shrink-0 group">
+              <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Sopa</p>
+              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 soft-shadow-sm group-hover:border-brand-200 group-hover:scale-105 transition-all duration-300">
+                <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
+                   {totalSoupStock} <span className="text-brand-500">/</span> <span className="text-slate-500">{totalSoupInitial}</span>
+                </p>
+              </div>
+            </div>
+            <div className="text-right shrink-0 group">
+              <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Segundo</p>
+              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 soft-shadow-sm group-hover:border-brand-200 group-hover:scale-105 transition-all duration-300">
+                <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
+                  {totalMainStock} <span className="text-brand-500">/</span> <span className="text-slate-500">{totalMainInitial}</span>
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="text-right border-l border-violet-400/50 pl-2 md:pl-4 shrink-0">
-            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Segund.</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalMainStock} <span className="text-violet-200">/</span> {totalMainInitial}</p>
-          </div>
-          <div className="text-right border-l border-violet-400/50 pl-2 md:pl-4 shrink-0">
-            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Extra</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalExtraStock} <span className="text-violet-200">/</span> {totalExtraInitial}</p>
-          </div>
-          <div className="hidden xs:block text-right border-l border-violet-400/50 pl-2 md:pl-4 shrink-0">
-            <p className="text-[7px] md:text-[9px] text-violet-100 uppercase font-black tracking-widest leading-none mb-0.5 md:mb-1">Bebida</p>
-            <p className="text-xs md:text-sm leading-tight font-mono whitespace-nowrap">{totalDrinkStock}</p>
-          </div>
-          <div className="hidden lg:flex flex-col items-end border-l border-violet-400 pl-6">
-            <p className="text-[10px] text-violet-100 uppercase font-bold tracking-widest leading-none mb-1">Rol Actual</p>
-            <p className="text-xs font-mono text-emerald-400 uppercase">{role}</p>
+          
+          <div className="hidden xl:flex items-center gap-5 pl-4 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-400 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <div className="relative w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-emerald-600 border border-emerald-100 soft-shadow-sm group-hover:scale-105 transition-transform duration-300">
+                <ChefHat className="w-8 h-8" />
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-none mb-1.5">Acceso</p>
+              <p className="text-base font-display font-bold text-slate-900 uppercase tracking-tight">{role}</p>
+            </div>
           </div>
         </div>
       </nav>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Aside (Simplified for mobile, full on desktop) */}
-        <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200 p-6 flex-col gap-8 shrink-0">
+        <aside className="hidden lg:flex w-72 bg-white border-r border-slate-100 p-8 flex-col gap-10 shrink-0">
           <section>
-            <h2 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">Resumen de Sala</h2>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-violet-50 rounded-xl border border-violet-100">
-                <span className="font-semibold text-sm text-violet-900">Pedidos Activos</span>
-                <span className="bg-violet-500 text-white px-2 py-0.5 rounded text-xs font-bold">{String(activeOrdersCount).padStart(2, '0')}</span>
+            <h2 className="text-[10px] font-bold text-slate-400 uppercase mb-5 tracking-[0.2em]">Visión General</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-brand-50 rounded-[24px] border border-brand-100/50 soft-shadow">
+                <span className="font-semibold text-sm text-brand-900">Comandas en Curso</span>
+                <span className="bg-brand-600 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">{String(activeOrdersCount).padStart(2, '0')}</span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200 opacity-60">
-                <span className="font-semibold text-sm text-slate-600 font-medium">Mesas en Espera</span>
-                <span className="bg-slate-400 text-white px-2 py-0.5 rounded text-xs font-bold">00</span>
+              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-[24px] border border-slate-100 opacity-60">
+                <span className="font-semibold text-sm text-slate-600">Mesas Libres</span>
+                <span className="bg-slate-300 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">00</span>
               </div>
             </div>
           </section>
 
           <section className="mt-auto">
-            <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-200 shadow-sm shadow-emerald-50">
-              <p className="text-[10px] text-emerald-600 font-bold uppercase mb-2 tracking-wider">Caja Estimada</p>
-              <p className="text-3xl font-bold text-emerald-800 leading-none">S/ {totalRevenue.toFixed(2)}</p>
-              <p className="text-[10px] text-emerald-600 mt-2 font-medium">Actualizado hace un momento</p>
+            <div className="bg-emerald-50/50 p-6 rounded-[32px] border border-emerald-100/50 soft-shadow">
+              <p className="text-[10px] text-emerald-600 font-bold uppercase mb-2 tracking-widest">Caja Total</p>
+              <p className="text-4xl font-display font-bold text-emerald-800 tracking-tight leading-none">S/ {totalRevenue.toFixed(2)}</p>
+              <p className="text-[10px] text-emerald-500 mt-3 font-medium opacity-80">Cierre sincronizado</p>
             </div>
           </section>
         </aside>
@@ -121,7 +186,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
 
           {/* Mobile Bottom Navigation */}
-          <nav className="lg:hidden bg-white border-t border-slate-200 flex justify-around items-center px-2 py-1 shrink-0 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+          <nav className="lg:hidden bg-white border-t border-slate-200 flex justify-around items-center px-2 py-2 shrink-0 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = role === item.id;
@@ -130,15 +195,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   key={item.id}
                   onClick={() => setRole(item.id)}
                   className={`flex flex-col items-center justify-center w-full py-2 transition-all duration-300 relative ${
-                    isActive ? 'text-violet-500' : 'text-slate-400 hover:text-slate-600'
+                    isActive ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 mb-1 ${isActive ? 'scale-110' : ''} transition-transform`} />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">{item.label}</span>
+                  <Icon className={`w-6 h-6 mb-1 ${isActive ? 'scale-110 drop-shadow-sm' : ''} transition-all`} />
+                  <span className={`text-[9px] font-bold uppercase tracking-[0.1em] ${isActive ? 'opacity-100' : 'opacity-80'}`}>{item.label}</span>
                   {isActive && (
                     <motion.div
-                      layoutId="activeTab"
-                      className="absolute -top-1 w-10 h-1 bg-violet-500 rounded-full"
+                      layoutId="activeTabMobile"
+                      className="absolute -top-1 w-10 h-1 bg-brand-600 rounded-full"
                     />
                   )}
                 </button>
@@ -146,11 +211,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             })}
           </nav>
           
-          {/* Desktop Footer (Navigation included here too or separate rail?) */}
-          {/* The design uses icons on the left for navigation in some dashboards, 
-              but the Professional Polish layout has a footer. 
-              Let's keep the nav button logic but stylized. */}
-          <div className="hidden lg:flex flex-row justify-around border-t border-slate-200 bg-white p-2">
+          <div className="hidden lg:flex flex-row justify-center gap-2 border-t border-slate-200 bg-white/80 backdrop-blur-md p-3">
              {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = role === item.id;
@@ -158,12 +219,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <button
                     key={item.id}
                     onClick={() => setRole(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                      isActive ? 'bg-violet-50 text-violet-700 shadow-sm' : 'text-slate-400 hover:bg-slate-50'
+                    className={`flex items-center gap-3 px-6 py-3 rounded-[18px] transition-all duration-300 ${
+                      isActive ? 'bg-brand-50 text-brand-700 soft-shadow ring-1 ring-brand-100' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-widest">{item.label}</span>
+                    <Icon className={`w-4.5 h-4.5 ${isActive ? 'scale-110' : ''}`} />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]">{item.label}</span>
                   </button>
                 );
              })}

@@ -14,7 +14,12 @@ import { CustomersView } from './components/CustomersView.tsx';
 import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3 } from 'lucide-react';
 
 const AdminPanel = () => {
-  const { resetStock, currentMenu, products, addProduct, updateProduct, deleteProduct, mesas, addMesa, toggleProductInMenu, requestConfirmation } = useApp();
+  const { 
+    resetStock, currentMenu, products, addProduct, updateProduct, 
+    deleteProduct, mesas, addMesa, toggleProductInMenu, 
+    requestConfirmation, isTodaySelected, orders, selectedDate,
+    updateMenuItemStock, customers
+  } = useApp();
   const [showReport, setShowReport] = useState(false);
   const [newMesaName, setNewMesaName] = useState('');
   const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ' as any, tipo: 'SEGUNDO' as any, precio: 9 });
@@ -164,20 +169,20 @@ const AdminPanel = () => {
                           </div>
                        </div>
                        <div className="flex gap-1">
-                          <button 
-                            onClick={() => startEdit(p)}
-                            className="p-2 text-slate-300 hover:text-violet-600 hover:bg-white rounded-lg transition-all"
-                            title="Editar"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => deleteProduct(p.id)}
-                            className="p-2 text-slate-300 hover:text-rose-600 hover:bg-white rounded-lg transition-all"
-                            title="Eliminar"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                              <button 
+                                onClick={() => startEdit(p)}
+                                className="p-2 text-slate-300 hover:text-violet-600 hover:bg-white rounded-lg transition-all"
+                                title="Editar"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => deleteProduct(p.id)}
+                                className="p-2 text-slate-300 hover:text-rose-600 hover:bg-white rounded-lg transition-all"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                        </div>
                      </div>
                    ))}
@@ -199,9 +204,9 @@ const AdminPanel = () => {
               </p>
               <div className="grid gap-2 max-h-[500px] overflow-auto pr-2 no-scrollbar">
                 {products.map(product => {
-                  const isInMenu = currentMenu.some(m => m.productoId === product.id);
-                  const menuItem = currentMenu.find(m => m.productoId === product.id);
-                  const { updateMenuItemStock } = useApp();
+                  const dailyMenu = currentMenu.filter(m => m.fecha === selectedDate);
+                  const isInMenu = dailyMenu.some(m => m.productoId === product.id);
+                  const menuItem = dailyMenu.find(m => m.productoId === product.id);
 
                   return (
                     <div key={product.id} className="space-y-2">
@@ -235,25 +240,46 @@ const AdminPanel = () => {
                       </button>
 
                       {isInMenu && (
-                        <div className="mx-2 md:mx-4 flex items-center gap-4 bg-white p-3 rounded-2xl border border-violet-100 shadow-sm animate-in zoom-in-95 duration-200">
-                          <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
-                            {product.categoria === 'BEBIDA' ? 'Stock' : 'Stock Inicial'}
-                          </span>
-                          <div className="flex-1 flex items-center gap-2">
-                             <input 
-                               type="number"
-                               value={menuItem?.stockInicial}
-                               onChange={(e) => {
-                                 const val = parseInt(e.target.value) || 0;
-                                 if (product.categoria === 'BEBIDA') {
-                                    updateMenuItemStock(product.id, val, val);
-                                 } else {
-                                    updateMenuItemStock(product.id, val);
-                                 }
-                               }}
-                               className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-violet-400 transition-all text-center"
-                             />
-                             <span className="text-[9px] md:text-[10px] font-bold text-slate-400 underline decoration-violet-200">UND</span>
+                        <div className="mx-2 md:mx-4 space-y-2 bg-white p-3 rounded-2xl border border-violet-100 shadow-sm animate-in zoom-in-95 duration-200">
+                          <div className="flex items-center gap-4">
+                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+                              {product.categoria === 'BEBIDA' ? 'Stock' : 'Stock Inicial'}
+                            </span>
+                            <div className="flex-1 flex items-center gap-2">
+                               <input 
+                                 type="number"
+                                 value={menuItem?.stockInicial}
+                                 onChange={(e) => {
+                                   const val = parseInt(e.target.value) || 0;
+                                   if (product.categoria === 'BEBIDA') {
+                                      updateMenuItemStock(product.id, val, val);
+                                   } else {
+                                      updateMenuItemStock(product.id, val);
+                                   }
+                                 }}
+                                 className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-violet-400 transition-all text-center"
+                               />
+                               <span className="text-[9px] md:text-[10px] font-bold text-slate-400 underline decoration-violet-200">UND</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+                              Stock Mínimo
+                            </span>
+                            <div className="flex-1 flex items-center gap-2">
+                               <input 
+                                 type="number"
+                                 value={menuItem?.stockMinimo || 0}
+                                 onChange={(e) => {
+                                   const val = parseInt(e.target.value) || 0;
+                                   const existing = currentMenu.find(m => m.productoId === product.id && m.fecha === selectedDate);
+                                   if (existing) {
+                                      updateMenuItemStock(product.id, existing.stockInicial, existing.stockActual, val);
+                                   }
+                                 }}
+                                 className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-violet-400 transition-all text-center"
+                               />
+                            </div>
                           </div>
                         </div>
                       )}
@@ -288,12 +314,15 @@ const AdminPanel = () => {
               </form>
 
               <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-2 gap-2 max-h-[250px] overflow-auto pr-2 no-scrollbar">
-                {mesas.map(mesa => (
-                  <div key={mesa.id} className="bg-white border border-slate-100 p-3 rounded-xl flex items-center justify-between shadow-sm">
-                    <span className="font-bold text-slate-700 text-[11px] truncate mr-1">{mesa.nombre}</span>
-                    <div className={`shrink-0 w-2 h-2 rounded-full ${mesa.estado === 'OCUPADA' ? 'bg-violet-400' : 'bg-emerald-400'}`}></div>
-                  </div>
-                ))}
+                {mesas.map(mesa => {
+                  const isOccupied = orders.some(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
+                  return (
+                    <div key={mesa.id} className="bg-white border border-slate-100 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                      <span className="font-bold text-slate-700 text-[11px] truncate mr-1">{mesa.nombre}</span>
+                      <div className={`shrink-0 w-2 h-2 rounded-full ${isOccupied ? 'bg-violet-400' : 'bg-emerald-400'}`}></div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -315,14 +344,14 @@ const AdminPanel = () => {
               <div className="bg-rose-50 p-6 md:p-8 rounded-[40px] border border-rose-100 flex flex-col gap-6 shadow-sm">
                 <div className="text-center sm:text-left">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 mb-1">Cierre de Día</p>
-                  <p className="text-[11px] text-rose-400 font-medium italic leading-tight">Precaución: Esto borrará todos los pedidos, reiniciará el stock y ELIMINARÁ el historial y saldos de clientes.</p>
+                  <p className="text-[11px] text-rose-400 font-medium italic leading-tight">Precaución: Esto borrará los pedidos de la fecha {selectedDate} y reiniciará el stock general. Los clientes registrados se mantienen.</p>
                 </div>
                 
                 <button 
                   onClick={() => {
                     requestConfirmation(
-                      'Reiniciar Jornada',
-                      '¿Deseas REINICIAR LA JORNADA? Esto borrará pedidos, stock, caja y TODO el historial/saldos de clientes.',
+                      `Reiniciar Jornada (${selectedDate})`,
+                      `¿Deseas REINICIAR LA JORNADA de la fecha ${selectedDate}? Esto borrará sus pedidos y reiniciará el stock. Los clientes registrados se mantienen.`,
                       () => resetStock()
                     );
                   }}
@@ -352,93 +381,90 @@ const AdminPanel = () => {
              exit={{ opacity: 0, scale: 0.9, y: 20 }}
              className="relative bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
            >
-             <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-               <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
-                   <BarChart3 className="w-6 h-6" />
-                 </div>
-                 <div>
-                   <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Reporte de Ventas</h3>
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date().toLocaleDateString()}</p>
-                 </div>
-               </div>
-               <button onClick={() => setShowReport(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                 <X className="w-6 h-6 text-slate-400" />
-               </button>
-             </div>
+              <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Reporte de Ventas</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedDate}</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowReport(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
 
-             <div className="p-8 space-y-6 overflow-y-auto no-scrollbar">
-               {(() => {
-                 const { orders, customers } = useApp();
-                 const today = new Date().toLocaleDateString();
-                 
-                 const salesToday = orders.filter(o => o.fecha === today);
-                 
-                 const efectivo = salesToday.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
-                 const yape = salesToday.filter(o => o.metodoPago === 'YAPE').reduce((acc, o) => acc + o.total, 0);
-                 const creditoVendido = salesToday.filter(o => o.estado === 'CREDITO').reduce((acc, o) => acc + o.total, 0);
-                 
-                 const customerPaymentsToday = customers.flatMap(c => 
-                    c.historial.filter(t => t.fecha === today && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
-                 ).reduce((acc, t) => acc + t.monto, 0);
+              <div className="p-8 space-y-6 overflow-y-auto no-scrollbar">
+                {(() => {
+                  const salesToday = orders.filter(o => o.fecha === selectedDate);
+                  
+                  const efectivo = salesToday.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
+                  const yape = salesToday.filter(o => o.metodoPago === 'YAPE').reduce((acc, o) => acc + o.total, 0);
+                  const creditoVendido = salesToday.filter(o => o.estado === 'CREDITO').reduce((acc, o) => acc + o.total, 0);
+                  
+                  const customerPaymentsToday = customers.flatMap(c => 
+                     c.historial.filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
+                  ).reduce((acc, t) => acc + t.monto, 0);
 
-                 const totalFinal = efectivo + yape + customerPaymentsToday;
+                  const totalFinal = efectivo + yape + customerPaymentsToday;
 
-                 return (
-                   <div className="space-y-6">
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
-                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Efectivo Total</p>
-                          <p className="text-2xl font-black text-emerald-900 leading-none">S/ {efectivo.toFixed(2)}</p>
-                        </div>
-                        <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
-                          <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Yape Total</p>
-                          <p className="text-2xl font-black text-blue-900 leading-none">S/ {yape.toFixed(2)}</p>
-                        </div>
-                        <div className="bg-violet-50 p-6 rounded-3xl border border-violet-100">
-                          <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1">Cobros Clientes</p>
-                          <p className="text-2xl font-black text-violet-900 leading-none">S/ {customerPaymentsToday.toFixed(2)}</p>
-                        </div>
-                        <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100">
-                          <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Ventas a Crédito</p>
-                          <p className="text-2xl font-black text-rose-900 leading-none">S/ {creditoVendido.toFixed(2)}</p>
-                          <p className="text-[8px] text-rose-400 font-bold uppercase mt-1">* Por cobrar todavía</p>
-                        </div>
-                     </div>
+                  return (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+                           <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Efectivo Total</p>
+                           <p className="text-2xl font-black text-emerald-900 leading-none">S/ {efectivo.toFixed(2)}</p>
+                         </div>
+                         <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                           <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Yape Total</p>
+                           <p className="text-2xl font-black text-blue-900 leading-none">S/ {yape.toFixed(2)}</p>
+                         </div>
+                         <div className="bg-violet-50 p-6 rounded-3xl border border-violet-100">
+                           <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1">Cobros Clientes</p>
+                           <p className="text-2xl font-black text-violet-900 leading-none">S/ {customerPaymentsToday.toFixed(2)}</p>
+                         </div>
+                         <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100">
+                           <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Ventas a Crédito</p>
+                           <p className="text-2xl font-black text-rose-900 leading-none">S/ {creditoVendido.toFixed(2)}</p>
+                           <p className="text-[8px] text-rose-400 font-bold uppercase mt-1">* Por cobrar todavía</p>
+                         </div>
+                      </div>
 
-                     <div className="bg-slate-900 p-8 rounded-[32px] text-center shadow-xl">
-                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">Total Recaudado Real (Caja)</p>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-violet-400 font-bold text-xl">S/</span>
-                          <span className="text-5xl font-black text-white tracking-tighter">
-                            {totalFinal.toFixed(2)}
-                          </span>
-                        </div>
-                        <p className="text-[9px] text-slate-500 font-bold uppercase mt-4">
-                          Suma de Efectivo + Yape + Cobros del Día
-                        </p>
-                     </div>
+                      <div className="bg-slate-900 p-8 rounded-[32px] text-center shadow-xl">
+                         <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">Total Recaudado Real (Caja)</p>
+                         <div className="flex items-baseline justify-center gap-1">
+                           <span className="text-violet-400 font-bold text-xl">S/</span>
+                           <span className="text-5xl font-black text-white tracking-tighter">
+                             {totalFinal.toFixed(2)}
+                           </span>
+                         </div>
+                         <p className="text-[9px] text-slate-500 font-bold uppercase mt-4">
+                           Suma de Efectivo + Yape + Cobros del Día
+                         </p>
+                      </div>
 
-                     <div className="space-y-3">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Resumen de Comandas</h4>
-                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
-                           <div className="flex justify-between text-xs">
-                              <span className="text-slate-500 font-bold">Total Pedidos:</span>
-                              <span className="font-black text-slate-800">{salesToday.length}</span>
-                           </div>
-                           <div className="flex justify-between text-xs">
-                              <span className="text-slate-500 font-bold">Pedidos Pagados:</span>
-                              <span className="font-black text-emerald-600">{salesToday.filter(o => o.estado === 'PAGADO').length}</span>
-                           </div>
-                           <div className="flex justify-between text-xs">
-                              <span className="text-slate-500 font-bold">Pedidos a Cuenta:</span>
-                              <span className="font-black text-violet-600">{salesToday.filter(o => o.estado === 'CREDITO').length}</span>
-                           </div>
-                        </div>
-                     </div>
-                   </div>
-                 );
-               })()}
+                      <div className="space-y-3">
+                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Resumen de Comandas</h4>
+                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
+                            <div className="flex justify-between text-xs">
+                               <span className="text-slate-500 font-bold">Total Pedidos:</span>
+                               <span className="font-black text-slate-800">{salesToday.length}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                               <span className="text-slate-500 font-bold">Pedidos Pagados:</span>
+                               <span className="font-black text-emerald-600">{salesToday.filter(o => o.estado === 'PAGADO').length}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                               <span className="text-slate-500 font-bold">Pedidos a Cuenta:</span>
+                               <span className="font-black text-violet-600">{salesToday.filter(o => o.estado === 'CREDITO').length}</span>
+                            </div>
+                         </div>
+                      </div>
+                    </div>
+                  );
+                })()}
             </div>
             
             <div className="p-8 pt-0">
@@ -470,8 +496,15 @@ const AppContent = () => {
       {role === 'ADMIN' && (
         <div className="flex flex-col items-center justify-start p-4 md:p-8 space-y-8 min-h-full">
           <div className="text-center space-y-2">
-            <div className="w-20 h-20 bg-violet-100 rounded-[32px] flex items-center justify-center shadow-xl shadow-violet-50 border-2 border-violet-100 mx-auto">
-               <Database className="w-8 h-8 text-violet-600" />
+            <div className="w-24 h-24 bg-white rounded-[40px] flex items-center justify-center shadow-xl shadow-slate-200 border-2 border-slate-100 mx-auto overflow-hidden p-2">
+               <img 
+                 src="/logo.png" 
+                 alt="Logo Sabor Abanquino" 
+                 className="w-full h-full object-contain"
+                 onError={(e) => {
+                   e.currentTarget.src = 'https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg';
+                 }}
+               />
             </div>
             <h2 className="text-2xl font-black text-slate-800 tracking-tight">Gestión del Día</h2>
             <p className="text-slate-400 text-sm font-medium">Control de inventario y cierre de caja.</p>

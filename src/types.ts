@@ -15,6 +15,7 @@ export interface CustomerTransaction {
   id: string;
   fecha: string;
   hora: string;
+  timestamp?: number;
   tipo: TransactionType;
   monto: number; // Positivo para depósitos/pagos, negativo para consumos (o manejar con tipo)
   descripcion: string;
@@ -44,6 +45,8 @@ export interface MenuItem {
   productoId: string;
   stockInicial: number;
   stockActual: number;
+  stockMinimo?: number;
+  estado: boolean;
   fecha: string;
 }
 
@@ -55,6 +58,7 @@ export interface OrderItem {
   estado: ItemStatus;
   notas?: string;
   horaPedido: string;
+  timestampPedido: number;
 }
 
 export interface Order {

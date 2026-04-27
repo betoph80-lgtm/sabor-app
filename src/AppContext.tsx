@@ -25,7 +25,7 @@ interface AppContextType {
   payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', customerId?: string) => void;
   addItemsToOrder: (orderId: string, items: Partial<OrderItem>[]) => void;
   updateOrderInfo: (orderId: string, updates: Partial<Order>) => void;
-  updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number) => void;
+  updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number, stockMinimo?: number) => void;
   deleteOrder: (orderId: string) => void;
   resetStock: () => void;
   addMesa: (id: string, nombre: string) => void;
@@ -45,12 +45,17 @@ interface AppContextType {
   };
   requestConfirmation: (title: string, message: string, onConfirm: () => void) => void;
   closeConfirmation: () => void;
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+  isTodaySelected: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRole] = useState('MESERO');
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString());
+  const isTodaySelected = selectedDate === new Date().toLocaleDateString();
   const [confirmAction, setConfirmAction] = useState({
     isOpen: false,
     title: '',
@@ -75,22 +80,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const closeConfirmation = () => {
     setConfirmAction(prev => ({ ...prev, isOpen: false }));
   };
-  const [orderCounter, setOrderCounter] = useState(() => {
-    const saved = localStorage.getItem('order_counter');
-    const savedDate = localStorage.getItem('order_counter_date');
-    const today = new Date().toLocaleDateString();
-
-    if (saved && savedDate === today) {
-      return parseInt(saved, 10);
-    }
-    return 0;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('order_counter', orderCounter.toString());
-    localStorage.setItem('order_counter_date', new Date().toLocaleDateString());
-  }, [orderCounter]);
-
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem('orders');
     return saved ? JSON.parse(saved) : [];
@@ -106,12 +95,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentMenu, setCurrentMenu] = useState<MenuItem[]>(() => {
     const saved = localStorage.getItem('currentMenu');
     if (saved) return JSON.parse(saved);
+    // Initial menu for today only
+    const today = new Date().toLocaleDateString();
     return PRODUCTOS_BASE.map(p => ({
-      id: `menu-${p.id}`,
+      id: Math.random().toString(36).substr(2, 9),
       productoId: p.id,
-      stockInicial: 0,
-      stockActual: 0,
-      fecha: new Date().toISOString().split('T')[0]
+      stockInicial: p.categoria === 'MENÚ' ? 25 : 0,
+      stockActual: p.categoria === 'MENÚ' ? 25 : 0,
+      estado: true,
+      fecha: today
     }));
   });
 
@@ -153,8 +145,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createOrder = (mesaId: string, cliente: string, itemData: Partial<OrderItem>[]) => {
-    const nextCount = orderCounter + 1;
-    setOrderCounter(nextCount);
+    const dailyOrders = orders.filter(o => o.fecha === selectedDate);
+    const lastNum = dailyOrders.reduce((max, o) => {
+      const num = parseInt(o.id.split('-')[1]);
+      return isNaN(num) ? max : Math.max(max, num);
+    }, 0);
+    const nextCount = lastNum + 1;
     const orderId = `PEDIDO-${nextCount.toString().padStart(3, '0')}`;
 
     const newItems: OrderItem[] = itemData.map(item => ({
@@ -164,6 +160,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       precioUnitario: products.find(p => p.id === item.productoId)?.precio || 0,
       estado: 'PEDIDO',
       horaPedido: new Date().toLocaleTimeString(),
+      timestampPedido: Date.now(),
       ...item
     }));
 
@@ -177,13 +174,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       estado: 'ABIERTO',
       total,
       usuarioId: 'user-1',
-      fecha: new Date().toLocaleDateString(),
+      fecha: selectedDate,
       hora: new Date().toLocaleTimeString(),
       timestamp: Date.now()
     };
 
     // Deduct stock
     setCurrentMenu(prev => prev.map(m => {
+      if (m.fecha !== selectedDate) return m;
       const orderItem = newItems.find(oi => oi.productoId === m.productoId);
       if (orderItem) {
         return { ...m, stockActual: Math.max(0, m.stockActual - orderItem.cantidad) };
@@ -192,12 +190,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     setOrders(prev => [...prev, newOrder]);
-    setMesas(prev => prev.map(m => m.id === mesaId ? { ...m, estado: 'OCUPADA' } : m));
   };
 
   const updateItemStatus = (orderId: string, itemId: string, status: ItemStatus) => {
     setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
+      if (order.id === orderId && order.fecha === selectedDate) {
         return {
           ...order,
           items: order.items.map(item => item.id === itemId ? { ...item, estado: status } : item)
@@ -210,7 +207,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteItemFromOrder = (orderId: string, itemId: string) => {
     setOrders(prev => {
       const updatedOrders = prev.map(order => {
-        if (order.id !== orderId) return order;
+        if (order.id !== orderId || order.fecha !== selectedDate) return order;
         
         const itemToDelete = order.items.find(i => i.id === itemId);
         if (!itemToDelete) return order;
@@ -220,7 +217,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         // Return stock
         setCurrentMenu(mPrev => mPrev.map(m => 
-          m.productoId === itemToDelete.productoId 
+          (m.productoId === itemToDelete.productoId && m.fecha === selectedDate)
             ? { ...m, stockActual: m.stockActual + itemToDelete.cantidad } 
             : m
         ));
@@ -232,12 +229,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       }).filter(order => order.items.length > 0);
 
-      // Reset mesa if no more active orders for it
-      const mesaId = prev.find(o => o.id === orderId)?.mesaId;
-      if (mesaId && !updatedOrders.some(o => o.mesaId === mesaId && o.estado === 'ABIERTO')) {
-        setMesas(mPrev => mPrev.map(m => m.id === mesaId ? { ...m, estado: 'LIBRE' } : m));
-      }
-
+      // Reset mesa check was here
       return updatedOrders;
     });
   };
@@ -245,7 +237,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateItemQuantity = (orderId: string, itemId: string, newQty: number) => {
     if (newQty < 1) return;
     setOrders(prev => prev.map(order => {
-      if (order.id !== orderId) return order;
+      if (order.id !== orderId || order.fecha !== selectedDate) return order;
       
       const item = order.items.find(i => i.id === itemId);
       if (!item) return order;
@@ -256,7 +248,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // Adjust stock
       setCurrentMenu(mPrev => mPrev.map(m => 
-        m.productoId === item.productoId 
+        (m.productoId === item.productoId && m.fecha === selectedDate)
           ? { ...m, stockActual: Math.max(0, m.stockActual - diff) } 
           : m
       ));
@@ -308,8 +300,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const newTransaction: CustomerTransaction = {
         ...transactionData,
         id: Math.random().toString(36).substr(2, 9),
-        fecha: new Date().toLocaleDateString(),
+        fecha: selectedDate,
         hora: new Date().toLocaleTimeString(),
+        timestamp: Date.now(),
       };
 
       return {
@@ -321,12 +314,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const payOrder = (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', customerId?: string) => {
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find(o => o.id === orderId && o.fecha === selectedDate);
     if (!order || order.estado !== 'ABIERTO') return;
 
-    // 1. Libramos la mesa
-    setMesas(mPrev => mPrev.map(m => m.id === order.mesaId ? { ...m, estado: 'LIBRE' } : m));
-
+    // 1. Libramos la mesa check removed as it is derived from orders
+    
     // 2. Procesamos transacción si es crédito
     if (method === 'CREDITO') {
       const customer = customerId 
@@ -358,13 +350,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       precioUnitario: products.find(p => p.id === item.productoId)?.precio || 0,
       estado: 'PEDIDO',
       horaPedido: new Date().toLocaleTimeString(),
+      timestampPedido: Date.now(),
       ...item
     }));
 
     const addedTotal = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
 
     setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
+      if (order.id === orderId && order.fecha === selectedDate) {
         return {
           ...order,
           items: [...order.items, ...newItems],
@@ -376,6 +369,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Deduct stock
     setCurrentMenu(prev => prev.map(m => {
+      if (m.fecha !== selectedDate) return m;
       const orderItem = newItems.find(oi => oi.productoId === m.productoId);
       if (orderItem) {
         return { ...m, stockActual: Math.max(0, m.stockActual - orderItem.cantidad) };
@@ -386,30 +380,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateOrderInfo = (orderId: string, updates: Partial<Order>) => {
     setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, ...updates } : order
+      (order.id === orderId && order.fecha === selectedDate) ? { ...order, ...updates } : order
     ));
   };
 
-  const updateMenuItemStock = (productId: string, stockInicial: number, stockActual?: number) => {
-    setCurrentMenu(prev => prev.map(m => {
-      if (m.productoId === productId) {
-        return { 
-          ...m, 
-          stockInicial, 
-          stockActual: stockActual !== undefined ? stockActual : stockInicial 
-        };
+  const updateMenuItemStock = (productId: string, stockInicial: number, stockActual?: number, stockMinimo?: number) => {
+    setCurrentMenu(prev => {
+      const exists = prev.find(m => m.productoId === productId && m.fecha === selectedDate);
+      if (!exists) {
+        // If it doesn't exist for this date, create it
+        return [...prev, {
+          id: Math.random().toString(36).substr(2, 9),
+          productoId: productId,
+          stockInicial,
+          stockActual: stockActual !== undefined ? stockActual : stockInicial,
+          stockMinimo: stockMinimo !== undefined ? stockMinimo : 0,
+          estado: true,
+          fecha: selectedDate
+        }];
       }
-      return m;
-    }));
+      return prev.map(m => {
+        if (m.productoId === productId && m.fecha === selectedDate) {
+          return { 
+            ...m, 
+            stockInicial, 
+            stockActual: stockActual !== undefined ? stockActual : stockInicial,
+            stockMinimo: stockMinimo !== undefined ? stockMinimo : m.stockMinimo
+          };
+        }
+        return m;
+      });
+    });
   };
 
   const deleteOrder = (orderId: string) => {
     setOrders(prev => {
-      const orderToDelete = prev.find(o => o.id === orderId);
+      const orderToDelete = prev.find(o => o.id === orderId && o.fecha === selectedDate);
       if (!orderToDelete) return prev;
 
       // 1. Return stock for all items in the deleted order
       setCurrentMenu(mPrev => mPrev.map(m => {
+        if (m.fecha !== selectedDate) return m;
         const itemsOfThisProduct = orderToDelete.items.filter(i => i.productoId === m.productoId);
         if (itemsOfThisProduct.length > 0) {
           const qtyToReturn = itemsOfThisProduct.reduce((acc, current) => acc + current.cantidad, 0);
@@ -418,50 +429,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return m;
       }));
 
-      // 2. Free mesa if it was active
-      if (orderToDelete.estado === 'ABIERTO') {
-        setMesas(mesasPrev => mesasPrev.map(m => 
-          m.id === orderToDelete.mesaId ? { ...m, estado: 'LIBRE' } : m
-        ));
-      }
-
-      // 3. Remove the order
+      // 2. Remove the order
       return prev.filter(o => o.id !== orderId);
     });
   };
 
   const resetStock = () => {
-    // 1. Clear daily localStorage items synchronously
-    localStorage.removeItem('orders');
-    localStorage.removeItem('order_counter');
-    localStorage.removeItem('order_counter_date');
-    localStorage.removeItem('currentMenu');
-    localStorage.removeItem('mesas');
+    // 1. Filter out orders for the selected date
+    setOrders(prev => prev.filter(o => o.fecha !== selectedDate));
     
-    // Reset customers (clear history and balance)
-    const resetCustomers = customers.map(c => ({ ...c, saldo: 0, historial: [] }));
-    localStorage.setItem('customers', JSON.stringify(resetCustomers));
-    
-    // Also clear any other potential daily keys
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('order') || key.includes('menu') || key.includes('mesa'))) {
-            localStorage.removeItem(key);
-            i--; // Adjust index after removal
-        }
-    }
+    // 2. Clear order-related transactions from customer history for the selected date
+    setCustomers(prev => prev.map(customer => {
+      const filteredHistorial = customer.historial.filter(t => 
+        !(t.fecha === selectedDate && t.tipo === 'CONSUMO')
+      );
+      
+      // Recalculate balance based on remaining transactions
+      const newSaldo = filteredHistorial.reduce((acc, t) => acc + t.monto, 0);
+      
+      return {
+        ...customer,
+        historial: filteredHistorial,
+        saldo: newSaldo
+      };
+    }));
 
-    console.log('Jornada reset. Reloading...');
-
-    // 2. Clear states in memory
-    setOrders([]);
-    setOrderCounter(0);
+    // 3. Reset mesas state to initial (all LIBRE)
     setMesas(MESAS);
-    setCurrentMenu(prev => prev.map(m => ({ ...m, stockInicial: 0, stockActual: 0 })));
-    setCustomers(resetCustomers);
-    
-    // 3. Force reload to ensure everything starts from clean state
-    window.location.reload();
+
+    console.log(`Jornada del ${selectedDate} reiniciada en memoria.`);
   };
 
   const addMesa = (id: string, nombre: string) => {
@@ -470,16 +466,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleProductInMenu = (productId: string) => {
     setCurrentMenu(prev => {
-      const exists = prev.find(m => m.productoId === productId);
+      const exists = prev.find(m => m.productoId === productId && m.fecha === selectedDate);
       if (exists) {
-        return prev.filter(m => m.productoId !== productId);
+        return prev.filter(m => !(m.productoId === productId && m.fecha === selectedDate));
       }
       return [...prev, {
-        id: `menu-${productId}`,
+        id: Math.random().toString(36).substr(2, 9),
         productoId: productId,
         stockInicial: 25,
         stockActual: 25,
-        fecha: new Date().toISOString().split('T')[0]
+        estado: true,
+        fecha: selectedDate
       }];
     });
   };
@@ -489,7 +486,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       role, setRole, orders, setOrders, products, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
       createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction,
-      confirmAction, requestConfirmation, closeConfirmation
+      confirmAction, requestConfirmation, closeConfirmation,
+      selectedDate, setSelectedDate, isTodaySelected
     }}>
       {children}
       <ConfirmModal 
