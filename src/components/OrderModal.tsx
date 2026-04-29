@@ -65,19 +65,19 @@ export const OrderModal: React.FC<{
           <div className="text-[10px] text-brand-600 font-bold bg-white px-2 py-1 rounded-lg soft-shadow shrink-0">S/ {p.precio}</div>
         </div>
         
-        <div className="flex items-center justify-between mt-3 bg-white/60 backdrop-blur-sm rounded-2xl p-1 border border-white/20 soft-shadow">
+        <div className="flex items-center justify-between mt-3 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 border border-white/20 soft-shadow">
           <button
             onClick={() => updateQuantity(p.id, -1)}
-            className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform shadow-sm hover:text-rose-500"
+            className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform shadow-sm hover:text-rose-500"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-5 h-5" />
           </button>
-          <span className="font-display font-bold text-brand-900 w-8 text-center text-lg">{qty}</span>
+          <span className="font-display font-bold text-brand-900 w-10 text-center text-xl">{qty}</span>
           <button
             onClick={() => updateQuantity(p.id, 1)}
-            className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
+            className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -116,7 +116,7 @@ export const OrderModal: React.FC<{
                   value={clienteName}
                   onChange={(e) => setClienteName(e.target.value)}
                   placeholder="Identificar pedido..."
-                  className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-300 text-base"
+                  className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 px-5 font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-300 text-base"
                 />
               </div>
             </div>
@@ -135,19 +135,19 @@ export const OrderModal: React.FC<{
                   <span className="font-display font-bold text-brand-900 uppercase tracking-tight text-lg leading-none">{p.nombre}</span>
                   <span className="text-[10px] font-bold text-brand-500 uppercase mt-2 tracking-widest">Acompañamiento del día</span>
                 </div>
-                <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-1.5 soft-shadow border border-white/40">
+                <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-2 soft-shadow border border-white/40">
                   <button
                     onClick={() => updateQuantity(p.id, -1)}
-                    className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
+                    className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-5 h-5" />
                   </button>
-                  <span className="font-display font-bold text-brand-900 w-8 text-center text-xl">{quantities[p.id] || 0}</span>
+                  <span className="font-display font-bold text-brand-900 w-10 text-center text-2xl">{quantities[p.id] || 0}</span>
                   <button
                     onClick={() => updateQuantity(p.id, 1)}
-                    className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow"
+                    className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-5 h-5" />
                   </button>
                 </div>
               </div>

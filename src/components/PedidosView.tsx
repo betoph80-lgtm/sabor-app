@@ -100,7 +100,7 @@ export const PedidosView: React.FC = () => {
         <div className="flex bg-slate-100/80 p-1.5 rounded-[24px] w-full lg:w-auto soft-shadow-sm border border-slate-200/50 backdrop-blur-sm self-center lg:self-auto">
           <button
             onClick={() => setView('ACTIVOS')}
-            className={`flex-1 lg:px-10 py-3.5 rounded-[20px] text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
+            className={`flex-1 lg:px-10 py-5 rounded-[22px] text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
               view === 'ACTIVOS' ? 'bg-white text-brand-600 soft-shadow scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
@@ -108,7 +108,7 @@ export const PedidosView: React.FC = () => {
           </button>
           <button
             onClick={() => setView('HISTORIAL')}
-            className={`flex-1 lg:px-10 py-3.5 rounded-[20px] text-[11px] font-bold uppercase tracking-widest transition-all duration-300 ${
+            className={`flex-1 lg:px-10 py-5 rounded-[22px] text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
               view === 'HISTORIAL' ? 'bg-white text-brand-600 soft-shadow scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
@@ -231,10 +231,10 @@ export const PedidosView: React.FC = () => {
                           {view === 'ACTIVOS' && (
                             <button
                               onClick={() => setEditingOrder(order.id)}
-                              className="w-10 h-10 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-[14px] transition-all soft-shadow-sm"
+                              className="w-12 h-12 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-[18px] transition-all soft-shadow-sm active:scale-90"
                               title="Editar Pedido"
                             >
-                              <Edit2 className="w-5 h-5" />
+                              <Edit2 className="w-5 h-5 md:w-6 md:h-6" />
                             </button>
                           )}
                           <button
@@ -245,10 +245,10 @@ export const PedidosView: React.FC = () => {
                                 () => deleteOrder(order.id)
                               );
                             }}
-                            className={`w-10 h-10 flex items-center justify-center ${view === 'HISTORIAL' ? 'bg-slate-100 hover:bg-slate-600 text-slate-400 hover:text-white' : 'bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white'} rounded-[14px] transition-all soft-shadow-sm`}
+                            className={`w-12 h-12 flex items-center justify-center ${view === 'HISTORIAL' ? 'bg-slate-100 hover:bg-slate-600 text-slate-400 hover:text-white' : 'bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white'} rounded-[18px] transition-all soft-shadow-sm active:scale-90`}
                             title="Eliminar Pedido"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                           </button>
                         </div>
                       ) : (

@@ -290,13 +290,19 @@ export const CustomersView: React.FC = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-4">
-                  {selectedCustomer.historial.filter(tx => tx.fecha === selectedDate).length === 0 ? (
+                  {selectedCustomer.historial.filter(tx => toSortableDate(tx.fecha) <= selectedDateVal).length === 0 ? (
                     <div className="text-center py-20 bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100">
-                      <p className="text-slate-300 font-bold uppercase text-[10px] tracking-widest">No hay registros para {selectedDate}</p>
+                      <p className="text-slate-300 font-bold uppercase text-[10px] tracking-widest">No hay movimientos hasta el {selectedDate}</p>
                     </div>
                   ) : (
-                    selectedCustomer.historial
-                      .filter(tx => tx.fecha === selectedDate)
+                    [...selectedCustomer.historial]
+                      .filter(tx => toSortableDate(tx.fecha) <= selectedDateVal)
+                      .sort((a, b) => {
+                        const dateA = toSortableDate(a.fecha);
+                        const dateB = toSortableDate(b.fecha);
+                        if (dateA !== dateB) return dateB - dateA;
+                        return (b.timestamp || 0) - (a.timestamp || 0);
+                      })
                       .map(tx => (
                       <div key={tx.id} className="flex items-center justify-between p-6 bg-slate-50/50 hover:bg-slate-50 rounded-[32px] border border-slate-100/50 transition-all group soft-shadow-sm">
                         <div className="flex items-center gap-6">

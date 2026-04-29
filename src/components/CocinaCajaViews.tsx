@@ -92,56 +92,52 @@ export const CocinaView: React.FC = () => {
   });
 
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-        <div>
-          <h2 className="text-2xl font-display font-bold text-slate-900 tracking-tight">Monitor de Cocina</h2>
-          <p className="text-slate-600 font-medium text-sm">Sigue el estado de las preparaciones en tiempo real.</p>
+    <div className="p-3 md:p-6 space-y-4 max-w-[1600px] mx-auto">
+      {/* Metrics Bar Compact */}
+      <div className="flex flex-col xl:flex-row gap-3">
+        <div className="flex-1 bg-white rounded-2xl p-4 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-4">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-slate-100 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+             <div className="w-1 h-1 rounded-full bg-brand-500" />
+             Stock Crítico
+          </p>
+          <div className="flex gap-4 overflow-x-auto no-scrollbar">
+            {menuStock.map(item => (
+              <div key={item.id} className="flex items-baseline gap-2 shrink-0">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[80px]">{item.nombre}</span>
+                <span className={`text-lg font-display font-bold ${item.stockActual < 5 ? 'text-rose-500' : 'text-slate-800'}`}>
+                  {item.stockActual}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <span className="bg-brand-50 text-brand-700 border border-brand-100 px-4 py-2 rounded-2xl text-[11px] font-bold uppercase tracking-widest soft-shadow">
-          {itemsToPrepare.length} Preparaciones Pendientes
+
+        <div className="bg-slate-900 rounded-2xl p-4 text-white shadow-lg flex flex-col md:flex-row md:items-center gap-4 min-w-fit">
+          <p className="text-[9px] font-black text-brand-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-white/10 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+             <Clock className="w-3 h-3" /> Pendientes hoy
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {Object.entries(summary).map(([name, qty]) => (
+              <div key={name} className="flex items-baseline gap-1.5 shrink-0">
+                <span className="text-lg font-display font-bold text-brand-400 leading-none">{qty}</span>
+                <span className="text-[9px] font-bold uppercase tracking-tight text-slate-300 leading-none">{name}</span>
+              </div>
+            ))}
+            {Object.entries(summary).length === 0 && (
+              <p className="text-[9px] text-slate-500 italic">No hay platos pendientes</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Preparation Count Floating Style */}
+      <div className="flex justify-end pr-2">
+        <span className="bg-brand-50 text-brand-700 border border-brand-100 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest soft-shadow">
+          {itemsToPrepare.length} Items en Proceso
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Real-time Stock of Segundos */}
-        <div className="lg:col-span-2 bg-white rounded-[40px] p-8 border border-slate-50 soft-shadow flex flex-wrap gap-5 h-fit">
-          <div className="w-full flex justify-between items-center mb-2">
-             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Stock para Almuerzos</p>
-             <div className="flex items-center gap-2">
-               <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">En Línea</span>
-               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-             </div>
-          </div>
-          {menuStock.map(item => (
-            <div key={item.id} className="flex flex-col bg-slate-50 p-5 rounded-[28px] border border-slate-100 min-w-[140px] flex-1 soft-shadow-sm">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{item.nombre}</span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className={`text-4xl font-display font-bold ${item.stockActual < 5 ? 'text-rose-500' : 'text-brand-900'}`}>
-                  {item.stockActual}
-                </span>
-                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">unidades</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Preparation Summary */}
-        <div className="lg:col-span-2 bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl flex flex-wrap gap-5 h-fit overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -translate-y-16 -translate-x-16" />
-          <div className="w-full mb-2 relative z-10">
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-400">Acumulado a Servir</p>
-          </div>
-          {Object.entries(summary).map(([name, qty]) => (
-            <div key={name} className="relative z-10 flex items-center gap-4 bg-white/10 backdrop-blur-md px-5 py-3 rounded-[24px] border border-white/10 soft-shadow">
-              <span className="text-3xl font-display font-bold text-brand-400">{qty}</span>
-              <span className="text-xs font-bold uppercase tracking-wide text-slate-200">{name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
         {sortedMesaKeys.map((key) => {
           const items = itemsByMesa[key];
           const mesaId = items[0].mesaId;
@@ -166,35 +162,34 @@ export const CocinaView: React.FC = () => {
                 elapsedMinutes >= 20 ? 'border-rose-300 ring-2 ring-rose-50' : 'border-slate-200'
               }`}
             >
-            <div className={`${headerColorClass} px-8 py-6 flex justify-between items-center text-white relative transition-colors duration-500`}>
+            <div className={`${headerColorClass} px-5 py-4 flex justify-between items-center text-white relative transition-colors duration-500`}>
                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -translate-y-8 translate-x-8" />
                <div className="flex flex-col relative z-10">
-                  <span className={`text-[10px] font-bold uppercase tracking-[0.3em] ${textColorClass} leading-none mb-2`}>
-                    PEDIDO-{items[0].orderId.split('-').pop()} • Ticket
+                  <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${textColorClass} leading-none mb-1.5`}>
+                    #{items[0].orderId.split('-').pop()} • Ticket
                   </span>
-                  <h3 className="text-2xl font-display font-bold leading-none">{mesaId === '13' ? 'PL (CLIENTE)' : `MESA ${mesaId}`}</h3>
+                  <h3 className="text-xl font-display font-bold leading-none">{mesaId === '13' ? 'PL (CLIENTE)' : `MESA ${mesaId}`}</h3>
                </div>
-               <div className="flex flex-col items-end gap-3 relative z-10">
-                  <OrderTimer timestamp={orderTimestamp} />
-                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest tabular-nums px-3 py-1 bg-black/30 rounded-xl backdrop-blur-sm border border-white/10">RECIBIDO A LAS {items[0].horaPedido}</p>
+               <div className="flex flex-col items-end gap-2 relative z-10">
+                  <OrderTimer timestamp={orderTimestamp} className="text-lg" />
+                  <p className="text-[8px] font-mono font-bold uppercase tracking-widest tabular-nums px-2 py-0.5 bg-black/20 rounded-lg backdrop-blur-sm border border-white/5">A las {items[0].horaPedido}</p>
                </div>
             </div>
 
-            <div className="p-4 space-y-4 flex-1">
+            <div className="p-4 space-y-3 flex-1 overflow-auto">
               {/* Items already served for this mesa in this order */}
               {(() => {
                 const orderId = items[0].orderId;
                 const servedItems = orders.find(o => o.id === orderId && o.fecha === selectedDate)?.items.filter(i => i.estado === 'SERVIDO') || [];
                 if (servedItems.length === 0) return null;
                 return (
-                  <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-50">
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest w-full mb-1">Ya servido:</span>
+                  <div className="flex flex-wrap gap-1.5 pb-3 border-b border-slate-50">
                     {servedItems.map(si => {
                       const p = products.find(prod => prod.id === si.productoId);
                       return (
-                        <div key={si.id} className="px-2 py-1 bg-slate-50 rounded-lg border border-slate-100 flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-500" />
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">{si.cantidad}x {p?.nombre}</span>
+                        <div key={si.id} className="px-2 py-0.5 bg-emerald-50/50 rounded-lg border border-emerald-100 flex items-center gap-1 opacity-60">
+                          <Check className="w-2.5 h-2.5 text-emerald-500" />
+                          <span className="text-[10px] font-bold text-emerald-700 uppercase">{si.cantidad}x {p?.nombre}</span>
                         </div>
                       );
                     })}
@@ -202,30 +197,30 @@ export const CocinaView: React.FC = () => {
                 );
               })()}
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {items.map((item) => {
                   const product = products.find(p => p.id === item.productoId);
                   const isSoup = product?.tipo === 'SOPA';
                   
                   return (
-                    <div key={item.id} className="flex items-center justify-between group py-1">
+                    <div key={item.id} className="flex items-center justify-between group py-1 border-b border-slate-50 last:border-0 pb-3 last:pb-1">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg shadow-inner ${
-                          isSoup ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-violet-50 text-violet-600 border border-violet-100'
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${
+                          isSoup ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-brand-50 text-brand-600 border border-brand-100'
                         }`}>
                           {item.cantidad}
                         </div>
                         <div className="flex flex-col">
-                           <p className="font-black text-slate-800 uppercase tracking-tight leading-none mb-1 text-sm">{product?.nombre}</p>
+                           <p className="font-bold text-slate-800 uppercase tracking-tight leading-tight mb-0.5 text-[13px]">{product?.nombre}</p>
                            <div className="flex items-center gap-2">
-                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                {isSoup ? 'Sopa' : 'Plato de Fondo'}
+                             <p className={`text-[8px] font-bold uppercase tracking-widest ${isSoup ? 'text-violet-400' : 'text-slate-400'}`}>
+                                {isSoup ? 'Entrada/Sopa' : 'Plato Fondo'}
                              </p>
                              {item.estado !== 'SERVIDO' && item.timestampPedido && (
                                <OrderTimer 
                                  timestamp={item.timestampPedido} 
                                  hideIcon
-                                 className="flex items-center gap-1 bg-black/60 px-1.5 py-0.5 rounded-lg border border-white/10 scale-90 origin-left ml-1 text-white"
+                                 className="flex items-center gap-1 bg-slate-900 px-1 py-0.5 rounded-md scale-90 origin-left ml-1 text-white text-[9px] font-mono"
                                />
                              )}
                            </div>
@@ -233,13 +228,13 @@ export const CocinaView: React.FC = () => {
                       </div>
 
                       {item.estado === 'SERVIDO' ? (
-                        <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-tight flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Servido
+                        <div className="text-emerald-500 p-2">
+                          <Check className="w-5 h-5" />
                         </div>
                       ) : (
                         <button
                           onClick={() => updateItemStatus(item.orderId, item.id, 'SERVIDO')}
-                          className="bg-white hover:bg-emerald-50 text-emerald-600 border border-emerald-100 hover:border-emerald-200 px-4 py-2 rounded-xl font-black uppercase text-[10px] tracking-tight transition-all active:scale-95 shadow-sm"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-100 flex items-center gap-2"
                         >
                           Listo
                         </button>
@@ -297,54 +292,47 @@ export const CajaView: React.FC = () => {
     });
 
   return (
-    <div className="p-4 md:p-8 space-y-10 max-w-7xl mx-auto">
-      {/* Daily Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div className="bg-emerald-50 p-10 rounded-[48px] border border-emerald-200 flex flex-col items-center justify-center text-center soft-shadow relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-200/20 rounded-full blur-3xl -translate-y-16 -translate-x-16" />
-          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-700 mb-4 relative z-10">Caja Real del Día</p>
-          <div className="flex items-baseline gap-2 relative z-10">
-            <span className="text-xl font-display font-bold text-emerald-700">S/</span>
-            <span className="text-6xl font-display font-bold text-emerald-900 tracking-tighter">{totalRecaudado.toFixed(2)}</span>
+    <div className="p-3 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Daily Summary Compact */}
+      <div className="flex flex-col xl:flex-row gap-4">
+        <div className="flex-1 bg-white rounded-3xl p-6 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-50 rounded-full blur-2xl -translate-y-8 -translate-x-8" />
+          <div className="shrink-0 relative z-10">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-1">Caja Real del Día</p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-display font-bold text-emerald-600">S/</span>
+              <span className="text-4xl font-display font-bold text-slate-900 tracking-tighter">{totalRecaudado.toFixed(2)}</span>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-10 relative z-10">
-            <div className="text-center bg-white/70 backdrop-blur-sm px-6 py-4 rounded-3xl border border-emerald-100 soft-shadow-sm">
-              <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1.5">Efectivo</p>
-              <p className="font-display font-bold text-emerald-900 text-xl">S/ {totalEfectivo.toFixed(2)}</p>
+          
+          <div className="h-px md:h-12 w-full md:w-px bg-slate-100 shrink-0" />
+
+          <div className="flex flex-wrap items-center gap-6 relative z-10">
+            <div className="flex flex-col">
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Efectivo</p>
+              <p className="font-display font-bold text-slate-800 text-lg">S/ {totalEfectivo.toFixed(2)}</p>
             </div>
-            <div className="text-center bg-white/70 backdrop-blur-sm px-6 py-4 rounded-3xl border border-emerald-100 soft-shadow-sm">
-              <p className="text-[9px] font-black text-brand-600 uppercase tracking-widest mb-1.5">Yape</p>
-              <p className="font-display font-bold text-brand-900 text-xl">S/ {totalYape.toFixed(2)}</p>
+            <div className="flex flex-col">
+              <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest mb-1">Yape</p>
+              <p className="font-display font-bold text-slate-800 text-lg">S/ {totalYape.toFixed(2)}</p>
             </div>
-            <div className="text-center bg-white/70 backdrop-blur-sm px-6 py-4 rounded-3xl border border-emerald-100 soft-shadow-sm">
-              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Recursos</p>
-              <p className="font-display font-bold text-slate-900 text-xl">S/ {totalCustomerPayments.toFixed(2)}</p>
+            <div className="flex flex-col">
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Depósitos/Créditos</p>
+              <p className="font-display font-bold text-slate-800 text-lg">S/ {totalCustomerPayments.toFixed(2)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-50 p-10 rounded-[48px] border border-slate-200 flex flex-col soft-shadow relative overflow-hidden h-full">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-slate-200/40 rounded-full blur-3xl -translate-y-16 translate-x-16" />
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-6 relative z-10">Flujo de Cobros Recientes</p>
-          <div className="space-y-3 overflow-y-auto max-h-[200px] no-scrollbar relative z-10">
+        <div className="xl:w-[400px] bg-slate-50 rounded-3xl p-5 border border-slate-200 flex flex-col soft-shadow-sm h-[100px] md:h-auto max-h-[160px]">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">Flujo Reciente</p>
+          <div className="space-y-2 overflow-y-auto no-scrollbar">
             {customerPaymentsToday.length === 0 ? (
-              <div className="flex flex-col items-center py-10 opacity-30">
-                <Clock className="w-8 h-8 mb-2" />
-                <p className="text-[10px] font-bold uppercase tracking-widest">Sin actividad reciente</p>
-              </div>
+              <p className="text-[9px] text-slate-400 font-bold uppercase py-2">Sin actividad reciente</p>
             ) : (
               customerPaymentsToday.map((t, idx) => (
-                <div key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 soft-shadow-sm group hover:border-emerald-200 transition-colors">
-                   <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
-                        <Check className="w-5 h-5" />
-                     </div>
-                     <div>
-                       <p className="text-xs font-bold text-slate-900 uppercase truncate max-w-[200px]">{t.cliente}</p>
-                       <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{t.tipo === 'DEPOSITO' ? 'Abono Directo' : 'Cancelación Deuda'}</p>
-                     </div>
-                   </div>
-                   <p className="text-base font-display font-bold text-emerald-600">+S/ {t.monto.toFixed(2)}</p>
+                <div key={idx} className="flex justify-between items-center bg-white/50 px-3 py-2 rounded-xl border border-white transition-colors">
+                  <p className="text-[10px] font-bold text-slate-700 truncate max-w-[150px] uppercase">{t.cliente}</p>
+                  <p className="text-[11px] font-display font-bold text-emerald-600">+S/ {t.monto.toFixed(2)}</p>
                 </div>
               ))
             )}
@@ -352,77 +340,92 @@ export const CajaView: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Cuentas por Liquidar</h2>
-          <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
-            {openOrders.length} Pendientes
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Cobros Pendientes</h2>
+          <span className="bg-brand-50 text-brand-700 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border border-brand-100">
+            {openOrders.length} por liquidar
           </span>
         </div>
 
         {openOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-slate-300 gap-4">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-               <AlertCircle className="w-8 h-8 opacity-20" />
-            </div>
-            <p className="font-bold uppercase tracking-widest text-[10px]">Sin cuentas pendientes</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-3 bg-white rounded-3xl border border-dashed border-slate-200">
+            <AlertCircle className="w-8 h-8 opacity-10" />
+            <p className="font-bold uppercase tracking-widest text-[10px]">Caja al día</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {openOrders.map((order) => {
               const isReadyToPay = order.items.every(i => i.estado === 'SERVIDO');
 
               return (
                 <div
                   key={order.id}
-                  className={`bg-white rounded-3xl p-4 shadow-sm border transition-all ${
+                  className={`bg-white rounded-[24px] p-5 shadow-sm border transition-all duration-300 relative overflow-hidden ${
                     isReadyToPay 
-                      ? 'border-emerald-200 ring-4 ring-emerald-50' 
-                      : 'border-slate-200'
-                  } flex flex-col md:flex-row gap-4 items-stretch md:items-start`}
+                      ? 'border-emerald-200 ring-4 ring-emerald-100/10 shadow-lg' 
+                      : 'border-slate-100'
+                  } flex flex-col sm:flex-row gap-5 lg:flex-col xl:flex-row`}
                 >
-                  {/* Left: Info */}
-                  <div className="w-full md:w-[130px] shrink-0">
-                    <div className="flex flex-col gap-3 mb-4 relative z-10">
-                      <span className="bg-slate-900 text-white px-4 py-1.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest w-fit soft-shadow">
-                        PEDIDO-{order.id.split('-').pop()}
-                      </span>
+                  {/* Visual Status Indicator */}
+                  {!isReadyToPay && (
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-200" />
+                  )}
+                  {isReadyToPay && (
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
+                  )}
+
+                  {/* Order Info & Total */}
+                  <div className="flex flex-col justify-between gap-4 min-w-[140px] shrink-0">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-slate-900 text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-[0.15em]">
+                          #{order.id.split('-').pop()}
+                        </span>
+                        {isReadyToPay ? (
+                          <span className="text-[8px] font-black text-emerald-600 uppercase">Listo</span>
+                        ) : (
+                          <span className="text-[8px] font-black text-amber-500 uppercase">Cocina</span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 bg-brand-50 text-brand-600 rounded-xl flex items-center justify-center font-display font-bold text-sm">
-                          {order.mesaId === '13' ? 'PL' : order.mesaId}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          {order.mesaId === '13' ? 'Llevar' : 'Comensal en Mesa'}
-                        </span>
+                         <div className="w-9 h-9 bg-brand-50 rounded-xl flex items-center justify-center border border-brand-100 shrink-0">
+                            <span className="font-display font-bold text-brand-600 text-sm">
+                              {order.mesaId === '13' ? 'PL' : order.mesaId}
+                            </span>
+                         </div>
+                         <h3 className="font-display font-bold text-slate-900 text-base uppercase leading-tight truncate max-w-[100px]">{order.cliente}</h3>
                       </div>
                     </div>
 
-                    <h3 className="font-display font-bold text-slate-900 text-lg truncate leading-tight uppercase relative z-10">{order.cliente}</h3>
-                    <div className="flex items-baseline gap-1 mt-4 relative z-10">
-                       <span className="text-lg font-display font-bold text-emerald-600">S/</span>
-                       <p className="text-4xl font-display font-bold text-slate-900 tracking-tighter leading-none">{order.total.toFixed(2)}</p>
-                    </div>
-                    {!isReadyToPay && (
-                       <div className="flex items-center gap-2 mt-4 bg-rose-50 px-3 py-1.5 rounded-xl w-fit border border-rose-100 relative z-10">
-                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
-                          <span className="text-[9px] text-rose-600 font-bold uppercase tracking-[0.2em]">Cocinando...</span>
+                    <div>
+                       <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total</p>
+                       <div className="flex items-baseline gap-1">
+                          <span className="text-base font-display font-bold text-emerald-600">S/</span>
+                          <p className="text-3xl font-display font-bold text-slate-900 tracking-tighter leading-none">{order.total.toFixed(2)}</p>
                        </div>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Middle: Items Detail (The "Platos") */}
-                  <div className="flex-1 py-3 md:py-0 md:px-6 md:border-x border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2">Detalle:</p>
-                    <div className="space-y-1.5">
+                  {/* Compact Detail Panel */}
+                  <div className="flex-1 bg-slate-50/50 rounded-xl p-3 border border-slate-100 flex flex-col">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 pb-1.5 border-b border-slate-100 flex justify-between">
+                      Consumo
+                      <span>{order.items.length} Platos</span>
+                    </p>
+                    <div className="space-y-1.5 overflow-y-auto max-h-[85px] pr-2 no-scrollbar">
                       {order.items.map((item) => {
                         const p = products.find(prod => prod.id === item.productoId);
                         return (
-                          <div key={item.id} className="flex justify-between items-start text-[11px] bg-slate-50/70 p-2 rounded-xl border border-slate-100">
-                            <span className="font-bold text-slate-700 uppercase leading-snug pr-2">
-                              {item.cantidad}× {p?.nombre || 'Producto'}
-                            </span>
-                            <span className="font-black text-slate-500 shrink-0 tabular-nums">
-                              S/ {(item.cantidad * item.precioUnitario).toFixed(2)}
+                          <div key={item.id} className="flex justify-between items-center text-[9px] py-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-lg bg-white shadow-sm flex items-center justify-center text-[8px] font-black text-slate-500 shrink-0">{item.cantidad}</span>
+                              <span className="font-bold text-slate-700 uppercase tracking-tight truncate max-w-[100px]">
+                                {p?.nombre}
+                              </span>
+                            </div>
+                            <span className="font-mono text-slate-400 text-[9px] tabular-nums">
+                              {(item.cantidad * item.precioUnitario).toFixed(2)}
                             </span>
                           </div>
                         );
@@ -430,44 +433,49 @@ export const CajaView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Right: Buttons (Ultra Compact) */}
-                  <div className="flex flex-row md:flex-col gap-3 shrink-0 md:w-[160px] pt-4 md:pt-0">
-                    <div className="flex flex-row md:flex-col gap-3 flex-1">
-                      <button
-                        onClick={() => payOrder(order.id, 'EFECTIVO')}
-                        disabled={!isReadyToPay}
-                        className={`flex-1 px-4 py-3 rounded-2xl font-bold uppercase tracking-[0.2em] text-[9px] transition-all soft-shadow active:scale-95 text-center flex flex-col justify-center leading-tight ${
-                          isReadyToPay 
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                            : 'bg-slate-50 text-slate-200 cursor-not-allowed border border-slate-100 grayscale'
-                        }`}
-                      >
-                        EN EFECTIVO
-                      </button>
-                      <button
-                        onClick={() => payOrder(order.id, 'YAPE')}
-                        disabled={!isReadyToPay}
-                        className={`flex-1 px-4 py-3 rounded-2xl font-bold uppercase tracking-[0.2em] text-[9px] transition-all soft-shadow active:scale-95 text-center flex flex-col justify-center leading-tight ${
-                          isReadyToPay 
-                            ? 'bg-brand-600 text-white hover:bg-brand-700' 
-                            : 'bg-slate-50 text-slate-200 cursor-not-allowed border border-slate-100 grayscale'
-                        }`}
-                      >
-                        VIA YAPE
-                      </button>
-                    </div>
+                  {/* Highly Compact Actions */}
+                  <div className="flex flex-col gap-2 min-w-[160px] justify-center">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 px-1">Pago</p>
+                    <button
+                      onClick={() => payOrder(order.id, 'EFECTIVO')}
+                      disabled={!isReadyToPay}
+                      className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all active:scale-95 border-2 ${
+                        isReadyToPay 
+                          ? 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600' 
+                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+                      }`}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-[0.1em]">Efectivo</span>
+                      <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${isReadyToPay ? 'bg-white/20' : 'bg-transparent'}`}>
+                        <Check className="w-3.5 h-3.5" />
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => payOrder(order.id, 'YAPE')}
+                      disabled={!isReadyToPay}
+                      className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all active:scale-95 border-2 ${
+                        isReadyToPay 
+                          ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
+                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+                      }`}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-[0.1em]">Via Yape</span>
+                      <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${isReadyToPay ? 'bg-white/20' : 'bg-transparent'}`}>
+                        <Plus className="w-3.5 h-3.5" />
+                      </div>
+                    </button>
+
                     <button
                       onClick={() => setSelectingCustomerFor(order.id)}
                       disabled={!isReadyToPay}
-                      className={`flex-1 px-4 py-3 rounded-2xl font-bold uppercase tracking-[0.2em] text-[9px] transition-all soft-shadow active:scale-95 text-center flex flex-col justify-center leading-tight ${
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl transition-all border-2 text-[8px] font-black uppercase tracking-widest ${
                         isReadyToPay 
-                          ? 'bg-slate-900 text-white hover:bg-slate-800' 
-                          : 'bg-slate-50 text-slate-200 cursor-not-allowed border border-slate-100 grayscale'
+                          ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800' 
+                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
                       }`}
                     >
-                      <span className="flex items-center justify-center gap-2">
-                        <Plus className="w-3 h-3" /> FIAR (CUENTA)
-                      </span>
+                      Fiar
                     </button>
                   </div>
                 </div>
@@ -547,69 +555,42 @@ export const CajaView: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* Orders Summary Table */}
+      {/* Orders Summary Table Compact */}
       <div className="space-y-4 pt-4">
         <div className="px-2">
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Registro de Comandas (Totales)</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Resumen consolidado por cada número de pedido
-          </p>
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Registro Histórico</h2>
         </div>
 
-        <div className="bg-white rounded-[48px] border border-slate-100 soft-shadow overflow-hidden overflow-x-auto no-scrollbar relative z-10">
-           <table className="w-full text-left border-collapse min-w-[800px]">
+        <div className="bg-white rounded-3xl border border-slate-100 soft-shadow overflow-hidden overflow-x-auto no-scrollbar">
+           <table className="w-full text-left border-collapse min-w-[700px]">
              <thead>
                <tr className="bg-slate-50/50 border-b border-slate-100">
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Orden</th>
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Registro</th>
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Ubicación</th>
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Comensal</th>
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] text-center">Cant.</th>
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Total</th>
-                 <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Estado Pago</th>
+                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">ID</th>
+                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Comensal</th>
+                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Cant.</th>
+                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</th>
+                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-slate-50">
                {orderSummary.map((order) => (
-                 <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
-                   <td className="px-8 py-5 text-[10px] font-bold text-slate-900 tracking-widest uppercase bg-slate-50/50 rounded-xl border border-slate-100">PEDIDO-{order.id.split('-').pop()}</td>
-                   <td className="px-8 py-5 text-xs font-bold text-slate-500">
-                      <div className="flex flex-col">
-                        <span className="text-slate-900">{order.fecha}</span>
-                        <span className="text-[10px] text-slate-400 font-medium">{order.hora}</span>
-                      </div>
+                 <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                   <td className="px-5 py-3 text-[9px] font-bold text-slate-400 tracking-widest font-mono">#{order.id.split('-').pop()}</td>
+                   <td className="px-5 py-3 text-xs font-bold text-slate-800 uppercase truncate max-w-[200px]">{order.cliente}</td>
+                   <td className="px-5 py-3 text-center">
+                     <span className="text-[10px] font-bold text-slate-400">{order.items.length}</span>
                    </td>
-                   <td className="px-8 py-5">
-                      <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest ${
-                        order.mesaId === '13' ? 'bg-orange-50 text-orange-600' : 'bg-brand-50 text-brand-600'
-                      }`}>
-                        {order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`}
-                      </span>
-                   </td>
-                   <td className="px-8 py-5 text-xs font-display font-bold text-slate-900 uppercase tracking-tight">{order.cliente}</td>
-                   <td className="px-8 py-5 text-center">
-                     <span className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-[10px] font-bold text-slate-600">
-                       {order.items.length}
-                     </span>
-                   </td>
-                   <td className="px-8 py-5 text-sm font-display font-bold text-slate-900 tracking-tight">S/ {order.total.toFixed(2)}</td>
-                   <td className="px-8 py-5">
-                     <span className={`text-[9px] font-bold px-3 py-1.5 rounded-xl uppercase tracking-widest soft-shadow-sm ${
+                   <td className="px-5 py-3 text-xs font-display font-bold text-slate-900 tracking-tight">S/ {order.total.toFixed(2)}</td>
+                   <td className="px-5 py-3">
+                     <span className={`text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest ${
                         order.estado === 'PAGADO' ? 'bg-emerald-50 text-emerald-600' : 
-                        order.estado === 'CREDITO' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500 border border-rose-100'
+                        order.estado === 'CREDITO' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500'
                       }`}>
-                        {order.estado === 'CREDITO' ? 'A Cuenta' : order.estado}
+                        {order.estado}
                       </span>
                    </td>
                  </tr>
                ))}
-               {orderSummary.length === 0 && (
-                 <tr>
-                    <td colSpan={7} className="px-6 py-20 text-center text-slate-300 font-bold uppercase text-[10px] tracking-widest italic">
-                      No hay pedidos registrados
-                    </td>
-                 </tr>
-               )}
              </tbody>
            </table>
         </div>
