@@ -252,9 +252,169 @@ export const CocinaView: React.FC = () => {
   );
 };
 
+interface PartialPaymentModalProps {
+  orderId: string;
+  orders: any[];
+  customers: any[];
+  addOrderPayment: (orderId: string, payment: any) => void;
+  onClose: () => void;
+  onSelectCustomer: (info: { orderId: string, amount: number }) => void;
+}
+
+const PartialPaymentModal: React.FC<PartialPaymentModalProps> = ({ 
+  orderId, 
+  orders, 
+  customers,
+  addOrderPayment, 
+  onClose,
+  onSelectCustomer
+}) => {
+  const { products } = useApp();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return null;
+
+  // Calculamos el total actual basado en los ítems (por si cambió)
+  const currentTotal = order.items.reduce((acc: number, item: any) => acc + (item.cantidad * item.precioUnitario), 0);
+  const totalPagado = (order.pagos || []).reduce((acc: number, p: any) => acc + p.monto, 0);
+  const balance = Math.max(0, currentTotal - totalPagado);
+
+  const [amount, setAmount] = useState<number>(0);
+
+  useEffect(() => {
+    if (balance > 0) {
+      setAmount(Number(balance.toFixed(2)));
+    } else {
+      setAmount(0);
+    }
+  }, [balance]);
+
+  const handleQuickAmount = (val: number) => {
+    setAmount(prev => Number((prev + val).toFixed(2)));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-[40px] w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <div>
+            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Abonar a Cuenta</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{order.cliente} • Orden #{order.id.split('-').pop()}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+            <X className="w-6 h-6 text-slate-400" />
+          </button>
+        </div>
+
+        <div className="p-8 space-y-6 flex-1 overflow-y-auto">
+          {/* Status Display */}
+          <div className="grid grid-cols-2 gap-4">
+             <div className="bg-slate-50 rounded-3xl p-4 border border-slate-100">
+               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pedido</p>
+               <p className="text-xl font-display font-bold text-slate-600">S/ {currentTotal.toFixed(2)}</p>
+             </div>
+             <div className="bg-emerald-50 rounded-3xl p-4 border border-emerald-100">
+               <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest mb-1">Saldo Pendiente</p>
+               <p className="text-2xl font-display font-bold text-emerald-700">S/ {balance.toFixed(2)}</p>
+             </div>
+          </div>
+
+          {/* Amount Input */}
+          <div className="space-y-4">
+             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Monto a Pagar</label>
+             <div className="relative">
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-display font-bold text-slate-400">S/</span>
+                <input 
+                  type="number"
+                  step="0.10"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-[28px] py-6 pl-16 pr-6 text-3xl font-display font-bold text-slate-900 focus:border-brand-500 focus:bg-white outline-none transition-all soft-shadow-inner appearance-none"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
+                />
+             </div>
+             
+             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                {[1, 5, 10, 20, 50].map(val => (
+                  <button 
+                    key={val}
+                    onClick={() => handleQuickAmount(val)}
+                    className="shrink-0 bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    +{val}
+                  </button>
+                ))}
+                <button 
+                  onClick={() => setAmount(Number(balance.toFixed(2)))}
+                  className="shrink-0 bg-brand-50 border border-brand-100 px-4 py-2 rounded-xl text-xs font-bold text-brand-600 hover:bg-brand-100 transition-colors"
+                >
+                  Total
+                </button>
+             </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="grid grid-cols-2 gap-3">
+             <button 
+               disabled={amount <= 0 || amount > balance + 0.01}
+               onClick={() => {
+                 addOrderPayment(order.id, { metodo: 'EFECTIVO', monto: amount });
+                 if (amount >= balance - 0.01) onClose();
+               }}
+               className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:grayscale text-white p-4 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+             >
+                Efectivo
+             </button>
+             <button 
+               disabled={amount <= 0 || amount > balance + 0.01}
+               onClick={() => {
+                 addOrderPayment(order.id, { metodo: 'YAPE', monto: amount });
+                 if (amount >= balance - 0.01) onClose();
+               }}
+               className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:grayscale text-white p-4 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+             >
+                Yape
+             </button>
+             <button 
+               disabled={amount <= 0 || amount > balance + 0.01}
+               onClick={() => onSelectCustomer({ orderId: order.id, amount })}
+               className="col-span-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:grayscale text-white p-4 rounded-3xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2"
+             >
+                Cargar a Cuenta (Fiado)
+             </button>
+          </div>
+
+          {/* Payments History */}
+          {(order.pagos || []).length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-slate-50">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2">Historial de Abonos</p>
+              <div className="space-y-2">
+                {(order.pagos || []).map((p: any) => (
+                  <div key={p.id} className="flex justify-between items-center bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">{p.metodo}</span>
+                      <span className="text-[8px] font-bold text-slate-400">{p.hora}</span>
+                    </div>
+                    <span className="text-sm font-display font-bold text-slate-800">S/ {p.monto.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 export const CajaView: React.FC = () => {
-  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected } = useApp();
-  const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
+  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, addOrderPayment, getOrderTotal } = useApp();
+  const [selectingCustomerFor, setSelectingCustomerFor] = useState<{orderId: string, amount: number} | null>(null);
+  const [partialPaymentOrderId, setPartialPaymentOrderId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
 
   const openOrders = [...orders]
@@ -267,9 +427,17 @@ export const CajaView: React.FC = () => {
       return (a.timestamp || 0) - (b.timestamp || 0);
     });
 
-  const directPaidOrders = orders.filter(o => o.estado === 'PAGADO' && o.fecha === selectedDate);
-  const totalEfectivo = directPaidOrders.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
-  const totalYape = directPaidOrders.filter(o => o.metodoPago === 'YAPE').reduce((acc, o) => acc + o.total, 0);
+  const allOrdersToday = orders.filter(o => o.fecha === selectedDate);
+  let totalEfectivo = 0;
+  let totalYape = 0;
+  
+  allOrdersToday.forEach(order => {
+    (order.pagos || []).forEach(p => {
+      if (p.metodo === 'EFECTIVO') totalEfectivo += p.monto;
+      else if (p.metodo === 'YAPE') totalYape += p.monto;
+    });
+  });
+
   const totalDirecto = totalEfectivo + totalYape;
 
   // Calcular cobros a clientes hoy (Depósitos y Pagos de crédito)
@@ -402,7 +570,7 @@ export const CajaView: React.FC = () => {
                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total</p>
                        <div className="flex items-baseline gap-1">
                           <span className="text-base font-display font-bold text-emerald-600">S/</span>
-                          <p className="text-3xl font-display font-bold text-slate-900 tracking-tighter leading-none">{order.total.toFixed(2)}</p>
+                          <p className="text-3xl font-display font-bold text-slate-900 tracking-tighter leading-none">{getOrderTotal(order).toFixed(2)}</p>
                        </div>
                     </div>
                   </div>
@@ -466,17 +634,39 @@ export const CajaView: React.FC = () => {
                       </div>
                     </button>
 
-                    <button
-                      onClick={() => setSelectingCustomerFor(order.id)}
-                      disabled={!isReadyToPay}
-                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl transition-all border-2 text-[8px] font-black uppercase tracking-widest ${
-                        isReadyToPay 
-                          ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800' 
-                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
-                      }`}
-                    >
-                      Fiar
-                    </button>
+                    {(() => {
+                      const total = getOrderTotal(order);
+                      const totalPaid = (order.pagos || []).reduce((acc: number, p: any) => acc + p.monto, 0);
+                      const remaining = total - totalPaid;
+                      
+                      return (
+                        <>
+                          <button
+                            onClick={() => setSelectingCustomerFor({ orderId: order.id, amount: remaining })}
+                            disabled={!isReadyToPay || remaining <= 0}
+                            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl transition-all border-2 text-[8px] font-black uppercase tracking-widest ${
+                              isReadyToPay && remaining > 0
+                                ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800' 
+                                : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+                            }`}
+                          >
+                            Fiar S/ {remaining.toFixed(2)}
+                          </button>
+
+                          <button
+                            onClick={() => setPartialPaymentOrderId(order.id)}
+                            disabled={!isReadyToPay || remaining <= 0}
+                            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl transition-all border-2 border-slate-100 text-[8px] font-black uppercase tracking-widest ${
+                              isReadyToPay && remaining > 0
+                                ? 'bg-white text-brand-600 hover:bg-slate-50 border-brand-100' 
+                                : 'bg-slate-50 text-slate-300 cursor-not-allowed'
+                            }`}
+                          >
+                            Abonar / Dividir
+                          </button>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -485,8 +675,21 @@ export const CajaView: React.FC = () => {
         )}
 
         <AnimatePresence>
+          {partialPaymentOrderId && (
+            <PartialPaymentModal 
+              orderId={partialPaymentOrderId} 
+              orders={orders}
+              customers={customers}
+              addOrderPayment={addOrderPayment}
+              onClose={() => setPartialPaymentOrderId(null)}
+              onSelectCustomer={(info) => {
+                setSelectingCustomerFor(info);
+                setPartialPaymentOrderId(null);
+              }}
+            />
+          )}
           {selectingCustomerFor && (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -522,7 +725,11 @@ export const CajaView: React.FC = () => {
                          <button
                           key={customer.id}
                           onClick={() => {
-                            payOrder(selectingCustomerFor, 'CREDITO', customer.id);
+                            addOrderPayment(selectingCustomerFor.orderId, { 
+                              metodo: 'CREDITO', 
+                              monto: selectingCustomerFor.amount, 
+                              customerId: customer.id 
+                            });
                             setSelectingCustomerFor(null);
                             setCustomerSearch('');
                           }}
@@ -573,24 +780,36 @@ export const CajaView: React.FC = () => {
                </tr>
              </thead>
              <tbody className="divide-y divide-slate-50">
-               {orderSummary.map((order) => (
-                 <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                   <td className="px-5 py-3 text-[9px] font-bold text-slate-400 tracking-widest font-mono">#{order.id.split('-').pop()}</td>
-                   <td className="px-5 py-3 text-xs font-bold text-slate-800 uppercase truncate max-w-[200px]">{order.cliente}</td>
-                   <td className="px-5 py-3 text-center">
-                     <span className="text-[10px] font-bold text-slate-400">{order.items.length}</span>
-                   </td>
-                   <td className="px-5 py-3 text-xs font-display font-bold text-slate-900 tracking-tight">S/ {order.total.toFixed(2)}</td>
-                   <td className="px-5 py-3">
-                     <span className={`text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest ${
-                        order.estado === 'PAGADO' ? 'bg-emerald-50 text-emerald-600' : 
-                        order.estado === 'CREDITO' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500'
-                      }`}>
-                        {order.estado}
-                      </span>
-                   </td>
-                 </tr>
-               ))}
+                {orderSummary.map((order) => {
+                 const total = getOrderTotal(order);
+                 const totalPaid = (order.pagos || []).reduce((acc: number, p: any) => acc + p.monto, 0);
+                 const isPartial = totalPaid > 0 && totalPaid < (total - 0.01);
+                 
+                 return (
+                   <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                     <td className="px-5 py-3 text-[9px] font-bold text-slate-400 tracking-widest font-mono">#{order.id.split('-').pop()}</td>
+                     <td className="px-5 py-3 text-xs font-bold text-slate-800 uppercase truncate max-w-[200px]">{order.cliente}</td>
+                     <td className="px-5 py-3 text-center">
+                       <span className="text-[10px] font-bold text-slate-400">{order.items.length}</span>
+                     </td>
+                     <td className="px-5 py-3 text-xs font-display font-bold text-slate-900 tracking-tight">S/ {total.toFixed(2)}</td>
+                     <td className="px-5 py-3">
+                       <div className="flex flex-col gap-1">
+                        <span className={`text-[8px] self-start font-black px-2 py-1 rounded-lg uppercase tracking-widest ${
+                            order.estado === 'PAGADO' ? 'bg-emerald-50 text-emerald-600' : 
+                            order.estado === 'CREDITO' ? 'bg-slate-900 text-white' : 
+                            isPartial ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-500'
+                          }`}>
+                            {order.estado === 'ABIERTO' && isPartial ? 'PARCIAL' : order.estado}
+                          </span>
+                          {isPartial && (
+                            <span className="text-[7px] font-bold text-slate-400">Pagado: S/ {totalPaid.toFixed(2)}</span>
+                          )}
+                       </div>
+                     </td>
+                   </tr>
+                 );
+               })}
              </tbody>
            </table>
         </div>

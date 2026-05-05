@@ -39,7 +39,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Calculate stats for sidebar
   const activeOrdersCount = orders.filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate).length;
-  const totalRevenue = orders.filter(o => o.estado === 'PAGADO' && o.fecha === selectedDate).reduce((acc, o) => acc + o.total, 0);
+  const totalRevenue = orders
+    .filter(o => o.fecha === selectedDate)
+    .reduce((acc, order) => {
+      const paidAmount = order.items
+        .filter(i => i.pagado && i.metodoPago !== 'CREDITO')
+        .reduce((sum, i) => sum + (i.precioUnitario * i.cantidad), 0);
+      return acc + paidAmount;
+    }, 0);
   
   // Calculate stock summaries
   const dailyMenu = currentMenu.filter(m => m.fecha === selectedDate);
@@ -59,48 +66,48 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="h-28 bg-white border-b border-slate-100 flex items-center justify-between px-8 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+      <nav className="h-28 bg-white border-b border-violet-100 flex items-center justify-between px-8 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
         <div className="flex items-center gap-10 shrink-0 group cursor-pointer">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-500/20 to-emerald-400/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-            <div className="relative w-20 h-20 bg-white rounded-[28px] flex items-center justify-center overflow-hidden soft-shadow border border-slate-50 p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-violet-500/20 to-brand-500/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+            <div className="relative w-20 h-20 bg-white rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
               <img 
                 src="/logo.png" 
                 alt="Sabor Abanquino" 
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement?.classList.add('bg-brand-50');
+                  e.currentTarget.parentElement?.classList.add('bg-violet-50');
                 }}
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight hidden sm:block uppercase italic leading-none text-slate-900 group-hover:text-brand-600 transition-colors duration-300">
-              Sabor <span className="text-brand-600">Abanquino</span>
+            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight hidden sm:block uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
+              Sabor <span className="text-violet-600">Abanquino</span>
             </h1>
             <div className="flex items-center gap-3 mt-2">
-              <span className="w-8 h-px bg-brand-400 hidden sm:block"></span>
-              <p className="text-[9px] md:text-[10px] font-black text-slate-600 tracking-[0.4em] uppercase hidden sm:block">Gastronomía & Tradición</p>
+              <span className="w-8 h-px bg-violet-200 hidden sm:block"></span>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase hidden sm:block">Gastronomía & Tradición</p>
             </div>
           </div>
-          <h1 className="text-xl font-display font-bold tracking-tighter block sm:hidden uppercase italic text-brand-600">SA</h1>
+          <h1 className="text-xl font-display font-bold tracking-tighter block sm:hidden uppercase italic text-violet-600">SA</h1>
         </div>
 
-        <div className="hidden lg:flex items-center gap-6 bg-slate-50/50 px-8 py-4 rounded-[32px] border border-slate-100/80 shadow-inner">
+        <div className="hidden lg:flex items-center gap-6 bg-violet-50/30 px-8 py-4 rounded-[32px] border border-violet-100/50">
            <div className="flex items-center gap-4">
-              <Calendar className="w-5 h-5 text-brand-500" />
+              <Calendar className="w-5 h-5 text-violet-500" />
               <input 
                 type="date" 
                 value={toInputDate(selectedDate)}
                 onChange={handleDateChange}
-                className="bg-transparent text-sm font-display font-bold text-slate-700 outline-none cursor-pointer hover:text-brand-600 transition-colors"
+                className="bg-transparent text-sm font-display font-bold text-slate-700 outline-none cursor-pointer hover:text-violet-600 transition-colors"
               />
            </div>
            {selectedDate !== today && (
               <button 
                 onClick={() => setSelectedDate(today)}
-                className="px-5 py-2 bg-brand-600 text-white text-[10px] rounded-full font-bold uppercase tracking-widest hover:bg-brand-700 transition-all active:scale-95 soft-shadow"
+                className="px-5 py-2 bg-violet-600 text-white text-[10px] rounded-full font-bold uppercase tracking-widest hover:bg-violet-700 transition-all active:scale-95 shadow-lg shadow-violet-100"
               >
                 Hoy
               </button>
@@ -108,24 +115,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         <div className="flex gap-6 sm:gap-10 items-center ml-auto">
-          <div className="flex items-center gap-8 pr-12 border-r border-slate-100">
+          <div className="flex items-center gap-8 pr-12 border-r border-violet-100">
             <div className="text-right shrink-0 group">
-              <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Sopa</p>
-              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 soft-shadow-sm group-hover:border-brand-200 group-hover:scale-105 transition-all duration-300">
+              <p className="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Sopa</p>
+              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm group-hover:border-violet-200 group-hover:scale-105 transition-all duration-300">
                 <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
-                   {totalSoupStock} <span className="text-brand-500">/</span> <span className="text-slate-500">{totalSoupInitial}</span>
+                   {totalSoupStock} <span className="text-violet-400">/</span> <span className="text-slate-400">{totalSoupInitial}</span>
                 </p>
               </div>
             </div>
             <div className="text-right shrink-0 group">
-              <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Segundo</p>
-              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 soft-shadow-sm group-hover:border-brand-200 group-hover:scale-105 transition-all duration-300">
+              <p className="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Segundo</p>
+              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm group-hover:border-violet-200 group-hover:scale-105 transition-all duration-300">
                 <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
-                  {totalMainStock} <span className="text-brand-500">/</span> <span className="text-slate-500">{totalMainInitial}</span>
+                  {totalMainStock} <span className="text-violet-400">/</span> <span className="text-slate-400">{totalMainInitial}</span>
                 </p>
               </div>
             </div>
-          </div>
+</div>
           
           <div className="hidden xl:flex items-center gap-5 pl-4 group">
             <div className="relative">
@@ -144,15 +151,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Aside (Simplified for mobile, full on desktop) */}
-        <aside className="hidden lg:flex w-72 bg-white border-r border-slate-100 p-8 flex-col gap-10 shrink-0">
+        <aside className="hidden lg:flex w-72 bg-white border-r border-violet-50 p-8 flex-col gap-10 shrink-0">
           <section>
             <h2 className="text-[10px] font-bold text-slate-400 uppercase mb-5 tracking-[0.2em]">Visión General</h2>
             <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-brand-50 rounded-[24px] border border-brand-100/50 soft-shadow">
-                <span className="font-semibold text-sm text-brand-900">Comandas en Curso</span>
-                <span className="bg-brand-600 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">{String(activeOrdersCount).padStart(2, '0')}</span>
+              <div className="flex justify-between items-center p-4 bg-violet-50/50 rounded-[24px] border border-violet-100/30 shadow-sm">
+                <span className="font-semibold text-sm text-violet-900">Comandas en Curso</span>
+                <span className="bg-violet-600 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">{String(activeOrdersCount).padStart(2, '0')}</span>
               </div>
-              <div className="flex justify-between items-center p-4 bg-slate-50 rounded-[24px] border border-slate-100 opacity-60">
+              <div className="flex justify-between items-center p-4 bg-slate-50/50 rounded-[24px] border border-slate-100 opacity-60">
                 <span className="font-semibold text-sm text-slate-600">Mesas Libres</span>
                 <span className="bg-slate-300 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">00</span>
               </div>
@@ -160,10 +167,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </section>
 
           <section className="mt-auto">
-            <div className="bg-emerald-50/50 p-6 rounded-[32px] border border-emerald-100/50 soft-shadow">
-              <p className="text-[10px] text-emerald-600 font-bold uppercase mb-2 tracking-widest">Caja Total</p>
-              <p className="text-4xl font-display font-bold text-emerald-800 tracking-tight leading-none">S/ {totalRevenue.toFixed(2)}</p>
-              <p className="text-[10px] text-emerald-500 mt-3 font-medium opacity-80">Cierre sincronizado</p>
+            <div className="bg-violet-50/50 p-6 rounded-[32px] border border-violet-100/50 shadow-sm">
+              <p className="text-[10px] text-violet-600 font-bold uppercase mb-2 tracking-widest">Caja Total</p>
+              <p className="text-4xl font-display font-bold text-violet-800 tracking-tight leading-none">S/ {totalRevenue.toFixed(2)}</p>
+              <p className="text-[10px] text-violet-400 mt-3 font-medium opacity-80">Cierre sincronizado</p>
             </div>
           </section>
         </aside>
@@ -211,7 +218,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             })}
           </nav>
           
-          <div className="hidden lg:flex flex-row justify-center gap-2 border-t border-slate-200 bg-white/80 backdrop-blur-md p-3">
+          <div className="hidden lg:flex flex-row justify-center gap-2 border-t border-violet-100 bg-white/80 backdrop-blur-md p-3">
              {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = role === item.id;
@@ -220,7 +227,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     key={item.id}
                     onClick={() => setRole(item.id)}
                     className={`flex items-center gap-3 px-6 py-3 rounded-[18px] transition-all duration-300 ${
-                      isActive ? 'bg-brand-50 text-brand-700 soft-shadow ring-1 ring-brand-100' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                      isActive ? 'bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                     }`}
                   >
                     <Icon className={`w-4.5 h-4.5 ${isActive ? 'scale-110' : ''}`} />

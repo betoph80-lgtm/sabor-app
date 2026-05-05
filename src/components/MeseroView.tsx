@@ -11,7 +11,7 @@ import { OrderItem, ItemStatus } from '../types';
 import { OrderModal } from './OrderModal.tsx';
 
 export const MeseroView: React.FC = () => {
-  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected } = useApp();
+  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, getOrderTotal } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
@@ -151,7 +151,7 @@ export const MeseroView: React.FC = () => {
 
                 <div className="relative z-10 pt-6 md:pt-10 border-t border-slate-50 flex flex-col xs:flex-row gap-5 items-center justify-between">
                   <div className="flex flex-col items-center xs:items-start">
-                    <p className="text-3xl md:text-4xl font-display font-bold text-brand-900 leading-none tracking-tight">S/ {activeOrder.total.toFixed(2)}</p>
+                    <p className="text-3xl md:text-4xl font-display font-bold text-brand-900 leading-none tracking-tight">S/ {getOrderTotal(activeOrder).toFixed(2)}</p>
                   </div>
                   <div className="flex gap-3 w-full xs:w-auto">
                     <button

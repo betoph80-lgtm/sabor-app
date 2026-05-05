@@ -45,7 +45,6 @@ export interface MenuItem {
   productoId: string;
   stockInicial: number;
   stockActual: number;
-  stockMinimo?: number;
   estado: boolean;
   fecha: string;
 }
@@ -59,6 +58,18 @@ export interface OrderItem {
   notas?: string;
   horaPedido: string;
   timestampPedido: number;
+  pagado?: boolean;
+  metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  customerId?: string;
+}
+
+export interface Payment {
+  id: string;
+  metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  monto: number;
+  customerId?: string;
+  fecha: string;
+  hora: string;
 }
 
 export interface Order {
@@ -67,8 +78,8 @@ export interface Order {
   cliente: string;
   items: OrderItem[];
   estado: OrderStatus;
-  total: number;
   metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  pagos?: Payment[];
   usuarioId: string;
   fecha: string;
   hora: string;

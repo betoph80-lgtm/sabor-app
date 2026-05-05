@@ -11,7 +11,8 @@ import { MeseroView } from './components/MeseroView.tsx';
 import { PedidosView } from './components/PedidosView.tsx';
 import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
-import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3 } from 'lucide-react';
+import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download } from 'lucide-react';
+import { exportToExcel } from './utils/exportUtils.ts';
 
 const AdminPanel = () => {
   const { 
@@ -20,6 +21,7 @@ const AdminPanel = () => {
     requestConfirmation, isTodaySelected, orders, selectedDate,
     updateMenuItemStock, customers
   } = useApp();
+  const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
   const [newMesaName, setNewMesaName] = useState('');
   const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ' as any, tipo: 'SEGUNDO' as any, precio: 9 });
@@ -58,11 +60,108 @@ const AdminPanel = () => {
     }
   };
 
+  const SchemaTable = ({ title, description, fields }: { title: string, description: string, fields: { name: string, type: string, desc: string }[] }) => (
+    <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm animate-in fade-in zoom-in-95 duration-300">
+      <div className="mb-4">
+        <h4 className="text-sm font-black text-violet-600 uppercase tracking-widest">{title}</h4>
+        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tighter">{description}</p>
+      </div>
+      <div className="space-y-2">
+        {fields.map(f => (
+          <div key={f.name} className="flex flex-col p-3 bg-violet-50/30 rounded-2xl border border-violet-100/50">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[11px] font-black text-slate-700 font-mono">{f.name}</span>
+              <span className="text-[9px] font-bold bg-violet-100 text-violet-600 px-2 py-0.5 rounded-lg">{f.type}</span>
+            </div>
+            <p className="text-[10px] text-slate-500 leading-tight font-medium">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <>
-    <div className="w-full max-w-6xl space-y-8 md:space-y-12 pb-20">
-       {/* 1. Master Dish Management */}
-       <section className="space-y-6">
+    <div className="w-full max-w-6xl space-y-8 pb-20">
+       <div className="flex bg-white/80 backdrop-blur-md p-1.5 rounded-3xl border border-slate-100 shadow-sm overflow-x-auto no-scrollbar mx-auto max-w-fit sticky top-4 z-40">
+          {(['PANEL', 'PRODUCTOS', 'MESAS', 'DATABASE'] as const).map(view => (
+            <button 
+              key={view}
+              onClick={() => setAdminView(view as any)}
+              className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                adminView === view 
+                  ? 'bg-violet-600 text-white shadow-lg shadow-violet-100' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {view === 'PANEL' ? 'Jornada' : view === 'DATABASE' ? 'Estructura DB' : view}
+            </button>
+          ))}
+       </div>
+       {adminView === 'DATABASE' && (
+         <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-violet-600 p-8 md:p-10 rounded-[48px] text-white shadow-xl relative overflow-hidden">
+               <Database className="absolute top-0 right-0 w-64 h-64 text-white/5 -translate-y-12 translate-x-12" />
+               <div className="relative z-10 space-y-2">
+                 <h2 className="text-2xl font-display font-bold">Arquitectura de Datos</h2>
+                 <p className="text-violet-100 text-sm max-w-2xl font-medium leading-relaxed">
+                   Esquema técnico de las tablas principales que gestionan la lógica del negocio.
+                   Diseñado para integridad relacional y alta disponibilidad.
+                 </p>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              <SchemaTable 
+                title="Table: Products"
+                description="Catálogo maestro de alimentos y bebidas."
+                fields={[
+                  { name: 'id', type: 'string', desc: 'UUID único del producto.' },
+                  { name: 'nombre', type: 'string', desc: 'Nombre descriptivo (Ej: Lomo Saltado).' },
+                  { name: 'precio', type: 'number', desc: 'Monto base de venta.' },
+                  { name: 'categoria', type: 'enum', desc: 'Segmento: MENÚ, EXTRA, BEBIDA.' },
+                  { name: 'tipo', type: 'enum', desc: 'Sub-tipo para Menú: SOPA, SEGUNDO.' }
+                ]}
+              />
+              <SchemaTable 
+                title="Table: Orders"
+                description="Registro transaccional de ventas y comandas."
+                fields={[
+                  { name: 'id', type: 'string', desc: 'ID correlativo (Ej: PEDIDO-001).' },
+                  { name: 'mesaId', type: 'string', desc: 'Referencia a Mesa o 13 (Para Llevar).' },
+                  { name: 'cliente', type: 'string', desc: 'Nombre del titular de la cuenta.' },
+                  { name: 'items', type: 'array', desc: 'Colección de productos y cantidades.' },
+                  { name: 'total', type: 'number', desc: 'Cálculo final de la orden.' },
+                  { name: 'estado', type: 'enum', desc: 'ABIERTO, PAGADO, CREDITO.' },
+                  { name: 'fecha', type: 'string', desc: 'Timestamp de creación (DD/MM/YYYY).' }
+                ]}
+              />
+              <SchemaTable 
+                title="Table: DailyInventory"
+                description="Control de existencias por jornada laboral."
+                fields={[
+                  { name: 'productoId', type: 'string', desc: 'FK que apunta a la tabla Products.' },
+                  { name: 'fecha', type: 'string', desc: 'Fecha de la sesión de trabajo.' },
+                  { name: 'stockInicial', type: 'number', desc: 'Asignación manual al inicio del día.' },
+                  { name: 'stockActual', type: 'number', desc: 'Balance calculado en tiempo real.' }
+                ]}
+              />
+              <SchemaTable 
+                title="Table: Customers"
+                description="Directorio de deudores y historial de pagos."
+                fields={[
+                  { name: 'id', type: 'string', desc: 'ID único del cliente.' },
+                  { name: 'nombre', type: 'string', desc: 'Nombre para facturación/crédito.' },
+                  { name: 'deuda', type: 'number', desc: 'Saldo neto a favor del restaurante.' },
+                  { name: 'historial', type: 'array', desc: 'Línea de tiempo de consumos y abonos.' }
+                ]}
+              />
+            </div>
+         </div>
+       )}
+
+       {adminView === 'PRODUCTOS' && (
+         <section className="space-y-6 animate-in fade-in duration-500">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <Utensils className="w-6 h-6 text-violet-600" />
@@ -190,9 +289,11 @@ const AdminPanel = () => {
               )}
             </div>
           </div>
-       </section>
+         </section>
+       )}
 
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+       {adminView === 'PANEL' && (
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 animate-in fade-in duration-500">
           {/* 2. Menu Selection */}
           <div className="space-y-6">
               <div className="flex items-center gap-2 px-2">
@@ -259,26 +360,7 @@ const AdminPanel = () => {
                                  }}
                                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-violet-400 transition-all text-center"
                                />
-                               <span className="text-[9px] md:text-[10px] font-bold text-slate-400 underline decoration-violet-200">UND</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
-                              Stock Mínimo
-                            </span>
-                            <div className="flex-1 flex items-center gap-2">
-                               <input 
-                                 type="number"
-                                 value={menuItem?.stockMinimo || 0}
-                                 onChange={(e) => {
-                                   const val = parseInt(e.target.value) || 0;
-                                   const existing = currentMenu.find(m => m.productoId === product.id && m.fecha === selectedDate);
-                                   if (existing) {
-                                      updateMenuItemStock(product.id, existing.stockInicial, existing.stockActual, val);
-                                   }
-                                 }}
-                                 className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:border-violet-400 transition-all text-center"
-                               />
+                               <span className="text-[9px] md:text-[10px] font-bold text-slate-400 underline decoration-violet-200 uppercase">Unidades</span>
                             </div>
                           </div>
                         </div>
@@ -329,16 +411,25 @@ const AdminPanel = () => {
             <div className="pt-4 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
                   <div className="flex items-center gap-2">
-                    <Database className="w-5 h-5 text-slate-600" />
+                    <Database className="w-5 h-5 text-violet-400" />
                     <h3 className="text-lg font-black text-slate-800 uppercase tracking-wider">Control de Jornada</h3>
                   </div>
-                  <button 
-                    onClick={() => setShowReport(true)}
-                    className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95"
-                  >
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    Ver Reporte de Ventas
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3">
+                    <button 
+                      onClick={() => exportToExcel(orders.filter(o => o.fecha === selectedDate), customers, products, selectedDate)}
+                      className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Exportar Excel
+                    </button>
+                    <button 
+                      onClick={() => setShowReport(true)}
+                      className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all active:scale-95"
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      Ver Reporte de Ventas
+                    </button>
+                  </div>
               </div>
               
               <div className="bg-rose-50 p-6 md:p-8 rounded-[40px] border border-rose-100 flex flex-col gap-6 shadow-sm">
@@ -351,19 +442,23 @@ const AdminPanel = () => {
                   onClick={() => {
                     requestConfirmation(
                       `Reiniciar Jornada (${selectedDate})`,
-                      `¿Deseas REINICIAR LA JORNADA de la fecha ${selectedDate}? Esto borrará sus pedidos y reiniciará el stock. Los clientes registrados se mantienen.`,
-                      () => resetStock()
+                      `Se descargará un ARCHIVO EXCEL de respaldo y luego se REINICIARÁ LA JORNADA de la fecha ${selectedDate}. ¿Deseas continuar?`,
+                      () => {
+                        exportToExcel(orders.filter(o => o.fecha === selectedDate), customers, products, selectedDate);
+                        resetStock();
+                      }
                     );
                   }}
                   className="w-full py-6 bg-rose-600 text-white rounded-[30px] font-black uppercase tracking-[0.2em] text-xs md:text-sm shadow-2xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95 flex items-center justify-center text-center"
                 >
-                  REINICIAR JORNADA Y DETALLES
+                  EXPORTAR Y REINICIAR JORNADA
                 </button>
               </div>
             </div>
           </div>
-       </div>
-     </div>
+         </div>
+       )}
+    </div>
 
      <AnimatePresence>
        {showReport && (
@@ -400,9 +495,17 @@ const AdminPanel = () => {
                 {(() => {
                   const salesToday = orders.filter(o => o.fecha === selectedDate);
                   
-                  const efectivo = salesToday.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
-                  const yape = salesToday.filter(o => o.metodoPago === 'YAPE').reduce((acc, o) => acc + o.total, 0);
-                  const creditoVendido = salesToday.filter(o => o.estado === 'CREDITO').reduce((acc, o) => acc + o.total, 0);
+                  let efectivo = 0;
+                  let yape = 0;
+                  let creditoVendido = 0;
+
+                  salesToday.forEach(o => {
+                    (o.pagos || []).forEach(p => {
+                      if (p.metodo === 'EFECTIVO') efectivo += p.monto;
+                      else if (p.metodo === 'YAPE') yape += p.monto;
+                      else if (p.metodo === 'CREDITO') creditoVendido += p.monto;
+                    });
+                  });
                   
                   const customerPaymentsToday = customers.flatMap(c => 
                      c.historial.filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))

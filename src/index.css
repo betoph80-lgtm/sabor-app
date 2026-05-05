@@ -6,9 +6,17 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-brand-600: #7C3AED;
-  --color-brand-500: #8B5CF6;
-  --color-brand-50: #F5F3FF;
+  --color-brand-600: #9F67FF;
+  --color-brand-500: #B794F4;
+  --color-brand-50: #F3EBFF;
+  
+  --color-violet-50: #F5F3FF;
+  --color-violet-100: #EDE9FE;
+  --color-violet-200: #DDD6FE;
+  --color-violet-400: #C4B5FD;
+  --color-violet-500: #B794F4;
+  --color-violet-600: #9F67FF;
+  --color-violet-700: #805AD5;
 }
 
 @layer base {

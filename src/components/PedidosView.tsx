@@ -23,7 +23,8 @@ export const PedidosView: React.FC = () => {
     resetStock,
     requestConfirmation,
     selectedDate,
-    isTodaySelected
+    isTodaySelected,
+    getOrderTotal
   } = useApp();
   const [view, setView] = React.useState<'ACTIVOS' | 'HISTORIAL'>('ACTIVOS');
   const [editingOrder, setEditingOrder] = React.useState<string | null>(null);
@@ -221,7 +222,7 @@ export const PedidosView: React.FC = () => {
                           {view === 'HISTORIAL' ? 'Importe Total' : 'Estado Cuenta'}
                         </span>
                         <p className={`text-2xl font-display font-bold tracking-tighter ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
-                          S/ {order.total.toFixed(2)}
+                          S/ {getOrderTotal(order).toFixed(2)}
                         </p>
                       </div>
                     </td>
