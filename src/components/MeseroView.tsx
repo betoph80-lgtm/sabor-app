@@ -11,14 +11,44 @@ import { OrderItem, ItemStatus } from '../types';
 import { OrderModal } from './OrderModal.tsx';
 
 export const MeseroView: React.FC = () => {
-  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected } = useApp();
+  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, lockMesa, unlockMesa } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [isLocking, setIsLocking] = useState(false);
 
   const mesaOrders = orders.filter(o => o.mesaId === selectedMesa && o.estado === 'ABIERTO' && o.fecha === selectedDate);
 
+  const handleMesaClick = async (mesaId: string, isOccupied: boolean) => {
+    setSelectedMesa(mesaId);
+    if (!isOccupied || mesaId === '13') {
+      setIsLocking(true);
+      const lock = await lockMesa(mesaId);
+      setIsLocking(false);
+      if (lock.success) {
+        setShowOrderModal(true);
+      } else {
+        alert(`La mesa está en proceso de registro por: ${lock.user}`);
+      }
+    }
+  };
+
+  const handleCloseModal = async () => {
+    if (selectedMesa) {
+      await unlockMesa(selectedMesa);
+    }
+    setShowOrderModal(false);
+  };
+
   return (
     <div className="p-2 md:p-8 space-y-4 md:space-y-8 max-w-5xl mx-auto">
+      {isLocking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verificando Mesa...</p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-5">
         {mesas.map((mesa) => {
           const mesaActiveOrders = orders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
@@ -27,12 +57,7 @@ export const MeseroView: React.FC = () => {
           return (
             <button
               key={mesa.id}
-              onClick={() => {
-                setSelectedMesa(mesa.id);
-                if (!isOccupied || mesa.id === '13') {
-                  setShowOrderModal(true);
-                }
-              }}
+              onClick={() => handleMesaClick(mesa.id, isOccupied)}
               className={`relative aspect-square min-h-[110px] rounded-[36px] border flex flex-col items-center justify-center transition-all duration-300 group soft-shadow ${
                 isOccupied
                   ? mesa.id === '13' 
@@ -155,9 +180,17 @@ export const MeseroView: React.FC = () => {
                   </div>
                   <div className="flex gap-3 w-full xs:w-auto">
                     <button
-                      onClick={() => {
-                        setSelectedMesa(selectedMesa);
-                        setShowOrderModal(true);
+                      onClick={async () => {
+                        if (selectedMesa) {
+                          setIsLocking(true);
+                          const lock = await lockMesa(selectedMesa);
+                          setIsLocking(false);
+                          if (lock.success) {
+                            setShowOrderModal(true);
+                          } else {
+                            alert(`La mesa está siendo atendida por: ${lock.user}`);
+                          }
+                        }
                       }}
                       className="flex-1 xs:flex-none py-4 px-8 bg-slate-900 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all soft-shadow active:scale-95"
                     >
@@ -180,7 +213,7 @@ export const MeseroView: React.FC = () => {
       {/* New Order Modal */}
       {showOrderModal && (
         <OrderModal
-          onClose={() => setShowOrderModal(false)}
+          onClose={handleCloseModal}
           onAdd={(items, clienteName) => {
              if (selectedMesa) {
                 const existingOrder = orders.find(o => o.mesaId === selectedMesa && o.estado === 'ABIERTO' && o.fecha === selectedDate);

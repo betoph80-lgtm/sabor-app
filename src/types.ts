@@ -124,6 +124,11 @@ export interface Mesa {
   id: string;
   nombre: string;
   estado: 'LIBRE' | 'OCUPADA' | 'RESERVADA';
+  ocupadaPor?: {
+    userId: string;
+    usuario: string;
+    timestamp: number;
+  };
 }
 
 export const PRODUCTOS_BASE: Product[] = [

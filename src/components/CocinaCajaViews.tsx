@@ -255,9 +255,10 @@ export const CocinaView: React.FC = () => {
 };
 
 export const CajaView: React.FC = () => {
-  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu } = useApp();
+  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu, lockMesa, unlockMesa } = useApp();
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [isLocking, setIsLocking] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [partialAmounts, setPartialAmounts] = useState<Record<string, string>>({});
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -391,16 +392,28 @@ export const CajaView: React.FC = () => {
 
   return (
     <div className="p-3 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {isLocking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verificando Estado...</p>
+          </div>
+        </div>
+      )}
       {editingOrderId && orderToEdit && (
         <OrderModal
-          onClose={() => setEditingOrderId(null)}
-          onAdd={(items, newClienteName) => {
+          onClose={async () => {
+             await unlockMesa(orderToEdit.mesaId);
+             setEditingOrderId(null);
+          }}
+          onAdd={async (items, newClienteName) => {
             if (items.length > 0) {
               addItemsToOrder(editingOrderId, items);
             }
             if (newClienteName !== orderToEdit.cliente) {
               updateOrderInfo(editingOrderId, { cliente: newClienteName });
             }
+            await unlockMesa(orderToEdit.mesaId);
             setEditingOrderId(null);
           }}
           products={products}
@@ -612,7 +625,16 @@ export const CajaView: React.FC = () => {
                          <div className="flex flex-col min-w-0">
                             <h3 className="font-display font-bold text-slate-900 text-base uppercase leading-tight truncate max-w-[120px]">{order.cliente}</h3>
                             <button 
-                              onClick={() => setEditingOrderId(order.id)}
+                              onClick={async () => {
+                                setIsLocking(true);
+                                const lock = await lockMesa(order.mesaId);
+                                setIsLocking(false);
+                                if (lock.success) {
+                                  setEditingOrderId(order.id);
+                                } else {
+                                  alert(`La mesa está siendo atendida por: ${lock.user}`);
+                                }
+                              }}
                               className="flex items-center gap-1 text-[8px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors"
                             >
                               <Edit2 className="w-2.5 h-2.5" /> Editar pedido

@@ -23,10 +23,13 @@ export const PedidosView: React.FC = () => {
     resetStock,
     requestConfirmation,
     selectedDate,
-    isTodaySelected
+    isTodaySelected,
+    lockMesa,
+    unlockMesa
   } = useApp();
   const [view, setView] = React.useState<'ACTIVOS' | 'HISTORIAL'>('ACTIVOS');
   const [editingOrder, setEditingOrder] = React.useState<string | null>(null);
+  const [isLocking, setIsLocking] = React.useState(false);
 
   const activeOrders = [...orders]
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
@@ -49,16 +52,28 @@ export const PedidosView: React.FC = () => {
 
   return (
     <div className="p-4 md:p-10 space-y-8 max-w-7xl mx-auto">
+      {isLocking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
+          <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verificando Estado...</p>
+          </div>
+        </div>
+      )}
       {editingOrder && orderToEdit && (
         <OrderModal
-          onClose={() => setEditingOrder(null)}
-          onAdd={(items, newClienteName) => {
+          onClose={async () => {
+             await unlockMesa(orderToEdit.mesaId);
+             setEditingOrder(null);
+          }}
+          onAdd={async (items, newClienteName) => {
             if (items.length > 0) {
               addItemsToOrder(editingOrder, items);
             }
             if (newClienteName !== orderToEdit.cliente) {
               updateOrderInfo(editingOrder, { cliente: newClienteName });
             }
+            await unlockMesa(orderToEdit.mesaId);
             setEditingOrder(null);
           }}
           products={products}
@@ -192,7 +207,16 @@ export const PedidosView: React.FC = () => {
                   <div className="flex gap-2 pt-1">
                     {view === 'ACTIVOS' && (
                       <button
-                        onClick={() => setEditingOrder(order.id)}
+                        onClick={async () => {
+                          setIsLocking(true);
+                          const lock = await lockMesa(order.mesaId);
+                          setIsLocking(false);
+                          if (lock.success) {
+                            setEditingOrder(order.id);
+                          } else {
+                            alert(`Mesa siendo editada por: ${lock.user}`);
+                          }
+                        }}
                         className="flex-1 py-3 bg-brand-50 text-brand-600 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2"
                       >
                         <Edit2 className="w-3.5 h-3.5" /> Editar
@@ -317,7 +341,16 @@ export const PedidosView: React.FC = () => {
                           <div className="flex items-center justify-center gap-3 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
                             {view === 'ACTIVOS' && (
                               <button
-                                onClick={() => setEditingOrder(order.id)}
+                                onClick={async () => {
+                                  setIsLocking(true);
+                                  const lock = await lockMesa(order.mesaId);
+                                  setIsLocking(false);
+                                  if (lock.success) {
+                                    setEditingOrder(order.id);
+                                  } else {
+                                    alert(`Mesa siendo editada por: ${lock.user}`);
+                                  }
+                                }}
                                 className="w-12 h-12 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-[18px] transition-all soft-shadow-sm active:scale-90"
                                 title="Editar Pedido"
                               >

@@ -81,6 +81,8 @@ interface AppContextType {
   resetStock: () => void;
   addMesa: (id: string, nombre: string) => void;
   deleteMesa: (id: string) => void;
+  lockMesa: (mesaId: string) => Promise<{ success: boolean; user?: string }>;
+  unlockMesa: (mesaId: string) => Promise<void>;
   toggleProductInMenu: (productId: string) => void;
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
@@ -282,6 +284,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const unlockMesa = async (mesaId: string) => {
+    const mesaRef = doc(db, 'mesas', mesaId);
+    const mesaSnap = await getDoc(mesaRef);
+    if (!mesaSnap.exists()) return;
+    const mesaData = mesaSnap.data() as Mesa;
+    if (mesaData?.ocupadaPor?.userId === currentUser?.id) {
+      await updateDoc(mesaRef, { ocupadaPor: null });
+    }
+  };
+
+  const lockMesa = async (mesaId: string): Promise<{ success: boolean; user?: string }> => {
+    if (!currentUser) return { success: false };
+    const mesaRef = doc(db, 'mesas', mesaId);
+    const mesaSnap = await getDoc(mesaRef);
+    if (!mesaSnap.exists()) return { success: false };
+    
+    const mesaData = mesaSnap.data() as Mesa;
+    const LOCK_TIMEOUT = 3 * 60 * 1000; // 3 minutos de gracia
+    const now = Date.now();
+
+    if (mesaData.ocupadaPor && mesaData.ocupadaPor.userId !== currentUser.id) {
+      if (now - mesaData.ocupadaPor.timestamp < LOCK_TIMEOUT) {
+        return { success: false, user: mesaData.ocupadaPor.usuario };
+      }
+    }
+
+    await updateDoc(mesaRef, {
+      ocupadaPor: {
+        userId: currentUser.id,
+        usuario: currentUser.usuario,
+        timestamp: now
+      }
+    });
+
+    return { success: true };
+  };
+
   const createOrder = async (mesaId: string, cliente: string, itemData: Partial<OrderItem>[]) => {
     const dailyOrders = orders.filter(o => o.fecha === selectedDate);
     const lastNum = dailyOrders.reduce((max, o) => {
@@ -321,7 +360,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update stock and mark mesa
     const batch = writeBatch(db);
     batch.set(doc(db, 'pedidos', orderId), newOrder);
-    batch.update(doc(db, 'mesas', mesaId), { estado: 'OCUPADA' });
+    batch.update(doc(db, 'mesas', mesaId), { estado: 'OCUPADA', ocupadaPor: null });
 
     // Stock deduction
     newItems.forEach(item => {
@@ -737,6 +776,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       role, setRole, currentUser, appUsers, login, logout,
       addAppUser, updateAppUser, deleteAppUser,
+      lockMesa, unlockMesa,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
       createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction,
