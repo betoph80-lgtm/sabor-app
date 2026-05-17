@@ -5,11 +5,11 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { role, setRole, orders, currentMenu, products, selectedDate, setSelectedDate } = useApp();
+  const { role, setRole, orders, currentMenu, products, selectedDate, setSelectedDate, logout, currentUser } = useApp();
   
   const formatDate = (date: Date) => {
     const d = date.getDate();
@@ -21,13 +21,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const today = formatDate(new Date());
 
   const navigation = [
-    { id: 'MESERO', label: 'Mesas', icon: LayoutDashboard },
-    { id: 'PEDIDOS', label: 'Pedidos', icon: ListTodo },
-    { id: 'COCINA', label: 'Cocina', icon: ChefHat },
-    { id: 'CAJA', label: 'Caja', icon: Wallet },
-    { id: 'CUENTAS', label: 'Cuentas', icon: UsersIcon },
-    { id: 'ADMIN', label: 'Admin', icon: UserIcon },
-  ];
+    { id: 'MESERO', label: 'Mesas', icon: LayoutDashboard, roles: ['ADMIN', 'MESERO'] },
+    { id: 'PEDIDOS', label: 'Pedidos', icon: ListTodo, roles: ['ADMIN', 'MESERO'] },
+    { id: 'COCINA', label: 'Cocina', icon: ChefHat, roles: ['ADMIN', 'COCINA'] },
+    { id: 'CAJA', label: 'Caja', icon: Wallet, roles: ['ADMIN', 'CAJA'] },
+    { id: 'CUENTAS', label: 'Cuentas', icon: UsersIcon, roles: ['ADMIN', 'CAJA'] },
+    { id: 'ADMIN', label: 'Admin', icon: UserIcon, roles: ['ADMIN'] },
+  ].filter(item => item.roles.includes(currentUser?.role as any));
 
   // Logic to handle date change from <input type="date">
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,14 +98,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="hidden lg:flex items-center gap-6 bg-violet-50/30 px-8 py-4 rounded-[32px] border border-violet-100/50">
            <div className="flex items-center gap-4">
               <Calendar className="w-5 h-5 text-violet-500" />
-              <input 
-                type="date" 
-                value={toInputDate(selectedDate)}
-                onChange={handleDateChange}
-                className="bg-transparent text-sm font-display font-bold text-slate-700 outline-none cursor-pointer hover:text-violet-600 transition-colors"
-              />
+              {role === 'ADMIN' ? (
+                <input 
+                  type="date" 
+                  value={toInputDate(selectedDate)}
+                  onChange={handleDateChange}
+                  className="bg-transparent text-sm font-display font-bold text-slate-700 outline-none cursor-pointer hover:text-violet-600 transition-colors"
+                />
+              ) : (
+                <span className="text-sm font-display font-bold text-slate-700">
+                  {selectedDate}
+                </span>
+              )}
            </div>
-           {selectedDate !== today && (
+           {selectedDate !== today && role === 'ADMIN' && (
               <button 
                 onClick={() => setSelectedDate(today)}
                 className="px-5 py-2 bg-violet-600 text-white text-[10px] rounded-full font-bold uppercase tracking-widest hover:bg-violet-700 transition-all active:scale-95 shadow-lg shadow-violet-100"
@@ -117,6 +123,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         <div className="flex gap-4 sm:gap-10 items-center ml-auto">
           <div className="flex items-center gap-4 md:gap-8 md:pr-12 md:border-r border-violet-100">
+            {/* Same as before... but we can add a mobile logout here */}
+            <button 
+              onClick={logout}
+              className="xl:hidden p-3 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
             <div className="text-right shrink-0 group">
               <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-1.5 md:mb-2.5 px-1">Sopa</p>
               <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm group-hover:border-violet-200 group-hover:scale-105 transition-all duration-300">
@@ -143,9 +156,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
             <div>
-              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-none mb-1.5">Acceso</p>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-none mb-1.5">{currentUser?.nombre || 'Acceso'}</p>
               <p className="text-base font-display font-bold text-slate-900 uppercase tracking-tight">{role}</p>
             </div>
+            <button 
+              onClick={logout}
+              className="p-3 ml-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+              title="Cerrar Sesión"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </nav>
@@ -242,7 +262,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Footer */}
       <footer className="h-10 bg-slate-800 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium">
-        <div>Personal en turno: <strong className="text-slate-300">Admin / Cocina Principal</strong></div>
+        <div>Personal en turno: <strong className="text-slate-300">{currentUser?.nombre || 'Ninguno'}</strong></div>
         <div className="flex gap-4 items-center">
           <span className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>

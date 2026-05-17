@@ -11,7 +11,8 @@ import { MeseroView } from './components/MeseroView.tsx';
 import { PedidosView } from './components/PedidosView.tsx';
 import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
-import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download } from 'lucide-react';
+import LoginView from './components/LoginView.tsx';
+import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download, LogOut } from 'lucide-react';
 import { exportToExcel } from './utils/exportUtils.ts';
 
 const AdminPanel = () => {
@@ -20,12 +21,13 @@ const AdminPanel = () => {
     deleteProduct, mesas, addMesa, deleteMesa, toggleProductInMenu, 
     requestConfirmation, isTodaySelected, orders, selectedDate,
     updateMenuItemStock, customers, categories, addCategory, deleteCategory,
-    seedDatabase
+    seedDatabase, logout, currentUser, appUsers, addAppUser, updateAppUser, deleteAppUser
   } = useApp();
-  const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
+  const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'USUARIOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
   const [newMesaName, setNewMesaName] = useState('');
   const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 });
+  const [newUser, setNewUser] = useState({ nombre: '', usuario: '', role: 'MESERO' as Role, pin: '' });
   const [activeCategory, setActiveCategory] = useState<string>('MENÚ');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [showCategoryManager, setShowCategoryManager] = useState(false);
@@ -96,7 +98,7 @@ const AdminPanel = () => {
     <>
     <div className="w-full max-w-6xl space-y-8 pb-20">
        <div className="flex bg-white/80 backdrop-blur-md p-1.5 rounded-3xl border border-slate-100 shadow-sm overflow-x-auto no-scrollbar mx-auto max-w-fit sticky top-4 z-40">
-          {(['PANEL', 'PRODUCTOS', 'MESAS', 'DATABASE'] as const).map(view => (
+          {(['PANEL', 'PRODUCTOS', 'USUARIOS', 'MESAS', 'DATABASE'] as const).map(view => (
             <button 
               key={view}
               onClick={() => setAdminView(view as any)}
@@ -106,7 +108,7 @@ const AdminPanel = () => {
                   : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
               }`}
             >
-              {view === 'PANEL' ? 'Jornada' : view === 'DATABASE' ? 'Estructura DB' : view}
+              {view === 'PANEL' ? 'Jornada' : view === 'DATABASE' ? 'Estructura DB' : view === 'USUARIOS' ? 'Personal' : view}
             </button>
           ))}
        </div>
@@ -351,6 +353,120 @@ const AdminPanel = () => {
                    ))}
                 </div>
               )}
+            </div>
+          </div>
+         </section>
+       )}
+
+       {adminView === 'USUARIOS' && (
+         <section className="space-y-6 animate-in fade-in duration-500">
+          <div className="flex items-center gap-2 px-2">
+            <Users className="w-6 h-6 text-violet-600" />
+            <h3 className="text-xl font-black text-slate-800 uppercase tracking-wider">Gestión de Personal</h3>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Form */}
+            <div className="bg-white rounded-[40px] p-8 shadow-xl border border-slate-100 h-fit space-y-6">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Nuevo Acceso</p>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (newUser.nombre && newUser.usuario && newUser.pin.length === 4) {
+                  addAppUser(newUser);
+                  setNewUser({ nombre: '', usuario: '', role: 'MESERO' as Role, pin: '' });
+                }
+              }} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nombre para mostrar</label>
+                  <input 
+                    type="text" 
+                    value={newUser.nombre}
+                    onChange={(e) => setNewUser({...newUser, nombre: e.target.value})}
+                    placeholder="Ej: Juan Pérez"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Usuario (Login)</label>
+                  <input 
+                    type="text" 
+                    value={newUser.usuario || ''}
+                    onChange={(e) => setNewUser({...newUser, usuario: e.target.value.toLowerCase().replace(/\s/g, '')})}
+                    placeholder="ej: juan.p"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Rol en el Sistema</label>
+                  <select 
+                    value={newUser.role}
+                    onChange={(e) => setNewUser({...newUser, role: e.target.value as Role})}
+                    className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none"
+                  >
+                    <option value="MESERO">MESERO</option>
+                    <option value="COCINA">COCINA</option>
+                    <option value="CAJA">CAJA</option>
+                    <option value="ADMIN">ADMINISTRADOR</option>
+                    <option value="PEDIDOS">PEDIDOS</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">PIN (4 dígs)</label>
+                  <input 
+                    type="password" 
+                    maxLength={4}
+                    value={newUser.pin}
+                    onChange={(e) => setNewUser({...newUser, pin: e.target.value.replace(/\D/g, '')})}
+                    placeholder="****"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none"
+                  />
+                </div>
+                <button type="submit" className="w-full bg-violet-600 text-white rounded-2xl py-4 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-violet-100 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+                  <Plus className="w-4 h-4" /> Registrar Usuario
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="lg:col-span-2 space-y-4">
+              {appUsers.map(user => (
+                <div key={user.id} className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50 flex items-center justify-between group">
+                  <div className="flex items-center gap-5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${user.role === 'ADMIN' ? 'bg-violet-100 text-violet-600' : 'bg-slate-100 text-slate-400'}`}>
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">{user.nombre} <span className="text-slate-400 font-medium ml-2">@{user.usuario || 'sin_usuario'}</span></h4>
+                      <div className="flex gap-2 items-center mt-0.5">
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg ${
+                          user.role === 'ADMIN' ? 'bg-violet-100 text-violet-600' : 'bg-emerald-100 text-emerald-600'
+                        }`}>{user.role}</span>
+                        <span className="text-[10px] font-mono text-slate-300">PIN: ****</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        const newPin = prompt(`Ingrese nuevo PIN para ${user.usuario || user.nombre} (4 dígitos)`, user.pin);
+                        if (newPin && newPin.length === 4) {
+                          updateAppUser(user.id, { pin: newPin });
+                        }
+                      }}
+                      className="p-3 bg-slate-50 text-slate-400 hover:text-violet-600 rounded-xl transition-all"
+                      title="Cambiar PIN"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => deleteAppUser(user.id)}
+                      className="p-3 bg-slate-50 text-slate-400 hover:text-rose-600 rounded-xl transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
          </section>
@@ -694,7 +810,11 @@ const AdminPanel = () => {
 };
 
 const AppContent = () => {
-  const { role } = useApp();
+  const { role, currentUser } = useApp();
+
+  if (!currentUser) {
+    return <LoginView />;
+  }
 
   return (
     <Layout>

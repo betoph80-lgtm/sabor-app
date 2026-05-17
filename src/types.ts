@@ -3,7 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA';
+export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA' | 'PEDIDOS' | 'CUENTAS';
+
+export interface AppUser {
+  id: string;
+  usuario: string; // Nombre de usuario para login
+  nombre: string;  // Nombre para mostrar
+  role: Role;
+  pin: string;     // Usado como contraseña
+  email?: string;
+}
+
+export const USUARIOS_BASE: AppUser[] = [
+  { id: 'u1', usuario: 'admin', nombre: 'Administrador', role: 'ADMIN', pin: '1234' },
+  { id: 'u2', usuario: 'mesero', nombre: 'Mesero Beta', role: 'MESERO', pin: '0000' },
+  { id: 'u3', usuario: 'cocina', nombre: 'Cocinero Alfa', role: 'COCINA', pin: '1111' },
+  { id: 'u4', usuario: 'caja', nombre: 'Cajero Gamma', role: 'CAJA', pin: '2222' },
+];
 
 export type ItemStatus = 'PEDIDO' | 'EN_PREPARACION' | 'LISTO' | 'SERVIDO';
 

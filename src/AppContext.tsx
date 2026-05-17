@@ -7,7 +7,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   Order, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
   OrderItem, ItemStatus, Customer, CustomerTransaction, 
-  DailyCashControl, Payment 
+  DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role 
 } from './types';
 import { db, auth } from './firebase';
 import { 
@@ -48,8 +48,15 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 }
 
 interface AppContextType {
-  role: string;
-  setRole: (role: string) => void;
+  role: Role;
+  setRole: (role: Role) => void;
+  currentUser: AppUser | null;
+  appUsers: AppUser[];
+  addAppUser: (user: Omit<AppUser, 'id'>) => void;
+  updateAppUser: (id: string, updates: Partial<AppUser>) => void;
+  deleteAppUser: (id: string) => void;
+  login: (usuario: string, pin: string) => Promise<boolean>;
+  logout: () => void;
   orders: Order[];
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
   products: Product[];
@@ -111,7 +118,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return `${d}/${m}/${y}`;
   };
 
-  const [role, setRole] = useState('MESERO');
+  const [role, setRole] = useState<Role>('MESERO'); // Default or read from currentUser
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const isTodaySelected = selectedDate === formatDate(new Date());
   
@@ -151,12 +160,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 🔥 AUTH
   useEffect(() => {
     signInAnonymously(auth).catch(err => {
-      console.error('Anonymous sign-in failed:', err);
+      // ignore if already signed in
     });
   }, []);
 
   // 🔥 REAL-TIME LISTENERS
   useEffect(() => {
+    // 0. USUARIOS
+    const unsubscribeUsers = onSnapshot(collection(db, 'usuarios'), (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AppUser));
+      setAppUsers(data);
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'usuarios'));
+
     // 1. MESAS
     const unsubscribeMesas = onSnapshot(collection(db, 'mesas'), (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Mesa));
@@ -524,6 +539,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await batch.commit();
   };
 
+  const login = async (usuario: string, pin: string): Promise<boolean> => {
+    const user = appUsers.find(u => u.usuario && u.usuario.toLowerCase() === usuario.toLowerCase() && u.pin === pin);
+    if (user) {
+      setCurrentUser(user);
+      setRole(user.role);
+      localStorage.setItem('sabor_user_id', user.id);
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('sabor_user_id');
+  };
+
+  const addAppUser = (userData: Omit<AppUser, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setDoc(doc(db, 'usuarios', id), { ...userData, id });
+  };
+
+  const updateAppUser = (id: string, updates: Partial<AppUser>) => {
+    updateDoc(doc(db, 'usuarios', id), updates);
+  };
+
+  const deleteAppUser = (id: string) => {
+    if (id === currentUser?.id) {
+      alert("No puedes eliminar tu propio usuario mientras estás en sesión.");
+      return;
+    }
+    requestConfirmation(
+      'Eliminar Personal',
+      '¿Estás seguro de eliminar este acceso?',
+      () => deleteDoc(doc(db, 'usuarios', id))
+    );
+  };
+
+  useEffect(() => {
+    const savedId = localStorage.getItem('sabor_user_id');
+    if (savedId && appUsers.length > 0) {
+      const user = appUsers.find(u => u.id === savedId);
+      if (user) {
+        setCurrentUser(user);
+        setRole(user.role);
+      }
+    }
+  }, [appUsers]);
+
   const addItemsToOrder = async (orderId: string, itemData: Partial<OrderItem>[]) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
@@ -645,6 +708,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       batch.set(doc(db, 'categorias', docId), { nombre: c });
     });
 
+    // Seed Usuarios
+    USUARIOS_BASE.forEach(u => {
+      batch.set(doc(db, 'usuarios', u.id), u);
+    });
+
     await batch.commit();
   };
 
@@ -667,7 +735,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      role, setRole, orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
+      role, setRole, currentUser, appUsers, login, logout,
+      addAppUser, updateAppUser, deleteAppUser,
+      orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
       createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction,
       cashControls, openCash, closeCash, reopenCash, currentCash,

@@ -91,6 +91,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    match /usuarios/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
     match /admins/{adminId} {
       allow read: if isSignedIn();
       allow write: if false; // Only manageable via console

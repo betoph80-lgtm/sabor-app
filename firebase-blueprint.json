@@ -92,9 +92,25 @@
         "nombre": { "type": "string" }
       },
       "required": ["nombre"]
+    },
+    "User": {
+      "title": "Usuario",
+      "description": "Personal del restaurante.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "role": { "type": "string", "enum": ["ADMIN", "MESERO", "COCINA", "CAJA"] },
+        "pin": { "type": "string" }
+      },
+      "required": ["nombre", "role", "pin"]
     }
   },
   "firestore": {
+    "/usuarios/{userId}": {
+      "schema": "User",
+      "description": "Personal autorizado."
+    },
     "/mesas/{mesaId}": {
       "schema": "Mesa",
       "description": "Estado de las mesas."
