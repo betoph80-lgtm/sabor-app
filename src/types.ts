@@ -34,11 +34,14 @@ export interface Customer {
 export interface Product {
   id: string;
   nombre: string;
-  categoria: 'MENÚ' | 'EXTRA' | 'BEBIDA';
-  tipo?: 'SOPA' | 'SEGUNDO'; // Para el menú de 9 soles
+  categoria: string;
+  tipo?: string; 
   precio: number;
   imagen?: string;
 }
+
+export const DEFAULT_CATEGORIES = ['MENÚ', 'EXTRA', 'BEBIDA'];
+export const MENU_TYPES = ['SOPA', 'SEGUNDO'];
 
 export interface MenuItem {
   id: string;
@@ -58,18 +61,32 @@ export interface OrderItem {
   notas?: string;
   horaPedido: string;
   timestampPedido: number;
-  pagado?: boolean;
-  metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO';
-  customerId?: string;
 }
 
 export interface Payment {
   id: string;
-  metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  pedidoId: string;
   monto: number;
-  customerId?: string;
+  metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO';
   fecha: string;
   hora: string;
+  timestamp: number;
+}
+
+export type CashControlStatus = 'ABIERTA' | 'CERRADA';
+
+export interface DailyCashControl {
+  id: string;
+  fecha: string;
+  montoApertura: number;
+  ingresosEfectivo: number;
+  ingresosYape: number;
+  ingresosFiar: number; // Créditos otorgados hoy
+  montoCierre: number;
+  estado: CashControlStatus;
+  horaApertura: string;
+  horaCierre?: string;
+  usuarioId: string;
 }
 
 export interface Order {
@@ -78,7 +95,8 @@ export interface Order {
   cliente: string;
   items: OrderItem[];
   estado: OrderStatus;
-  metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  total: number;
+  metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO'; // Maintain for legacy/single payments
   pagos?: Payment[];
   usuarioId: string;
   fecha: string;

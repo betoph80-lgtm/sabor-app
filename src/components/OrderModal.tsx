@@ -37,13 +37,14 @@ export const OrderModal: React.FC<{
     onAdd(items, clienteName);
   };
 
-  const menuItems = products.filter(p => 
-    p.categoria === 'MENÚ' && currentMenu.some(m => m.productoId === p.id)
-  );
-  const soups = menuItems.filter(p => p.tipo === 'SOPA');
-  const mains = menuItems.filter(p => p.tipo === 'SEGUNDO');
-  const extras = products.filter(p => p.categoria === 'EXTRA' && currentMenu.some(m => m.productoId === p.id));
-  const beverages = products.filter(p => p.categoria === 'BEBIDA' && currentMenu.some(m => m.productoId === p.id));
+  const categories = Array.from(new Set(products.map(p => p.categoria))) as string[];
+  
+  // Custom sorting to keep MENU first, then others
+  const sortedCategories = categories.sort((a, b) => {
+    if (a === 'MENÚ') return -1;
+    if (b === 'MENÚ') return 1;
+    return a.localeCompare(b);
+  });
 
   const totalSelected = Object.keys(quantities).reduce((acc, id) => acc + quantities[id], 0);
   const isNameChanged = clienteName.trim() !== initialClienteName.trim();
@@ -61,23 +62,23 @@ export const OrderModal: React.FC<{
         }`}
       >
         <div className="flex justify-between items-start gap-2">
-          <div className="font-display font-bold text-slate-900 text-xs md:text-sm leading-tight uppercase line-clamp-2">{p.nombre}</div>
-          <div className="text-[10px] text-brand-600 font-bold bg-white px-2 py-1 rounded-lg soft-shadow shrink-0">S/ {p.precio}</div>
+          <div className="font-display font-bold text-slate-900 text-[13px] md:text-sm leading-tight uppercase line-clamp-2">{p.nombre}</div>
+          <div className="text-[10px] text-brand-600 font-bold bg-white px-2 py-0.5 rounded-lg soft-shadow shrink-0">S/ {p.precio}</div>
         </div>
         
         <div className="flex items-center justify-between mt-3 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 border border-white/20 soft-shadow">
           <button
             onClick={() => updateQuantity(p.id, -1)}
-            className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform shadow-sm hover:text-rose-500"
+            className="w-12 h-12 md:w-10 md:h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-transform shadow-sm hover:text-rose-500"
           >
-            <Minus className="w-5 h-5" />
+            <Minus className="w-5 h-5 md:w-4 md:h-4" />
           </button>
-          <span className="font-display font-bold text-brand-900 w-10 text-center text-xl">{qty}</span>
+          <span className="font-display font-bold text-brand-900 w-10 text-center text-lg md:text-lg">{qty}</span>
           <button
             onClick={() => updateQuantity(p.id, 1)}
-            className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
+            className="w-12 h-12 md:w-10 md:h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 md:w-4 md:h-4" />
           </button>
         </div>
       </div>
@@ -91,7 +92,7 @@ export const OrderModal: React.FC<{
         animate={{ y: 0, opacity: 1 }}
         className="bg-white w-full max-w-2xl sm:rounded-[40px] rounded-t-[40px] p-6 pb-10 space-y-6 max-h-[95vh] overflow-auto no-scrollbar soft-shadow"
       >
-        <div className="flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-10 -mx-6 px-6 pb-4 border-b border-slate-50">
+        <div className="flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-20 -mx-6 px-6 pb-4 border-b border-slate-50">
           <div>
             <h3 className="text-2xl font-display font-bold text-slate-900 tracking-tight leading-none">{title}</h3>
             <div className="flex items-center gap-2 mt-2">
@@ -123,69 +124,78 @@ export const OrderModal: React.FC<{
           </div>
         </div>
 
-        <section className="space-y-4">
-          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] px-1 flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-brand-400 shadow-sm shadow-brand-200"></div>
-            Entrada (Incluida en Menú)
-          </h4>
-          <div className="grid grid-cols-1 gap-3">
-            {soups.slice(0, 1).map(p => (
-              <div key={p.id} className="flex items-center justify-between p-5 bg-brand-50 rounded-[28px] border border-brand-100 soft-shadow">
-                <div className="flex flex-col">
-                  <span className="font-display font-bold text-brand-900 uppercase tracking-tight text-lg leading-none">{p.nombre}</span>
-                  <span className="text-[10px] font-bold text-brand-500 uppercase mt-2 tracking-widest">Acompañamiento del día</span>
-                </div>
-                <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-2 soft-shadow border border-white/40">
-                  <button
-                    onClick={() => updateQuantity(p.id, -1)}
-                    className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="font-display font-bold text-brand-900 w-10 text-center text-2xl">{quantities[p.id] || 0}</span>
-                  <button
-                    onClick={() => updateQuantity(p.id, 1)}
-                    className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
+        {sortedCategories.map(cat => {
+          const catProducts = products.filter(p => 
+            p.categoria === cat && currentMenu.some(m => m.productoId === p.id)
+          );
+
+          if (catProducts.length === 0) return null;
+
+          if (cat === 'MENÚ') {
+            const soups = catProducts.filter(p => p.tipo === 'SOPA');
+            const mains = catProducts.filter(p => p.tipo === 'SEGUNDO');
+
+            return (
+              <React.Fragment key={cat}>
+                <section className="space-y-4">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] px-1 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-brand-400 shadow-sm shadow-brand-200"></div>
+                    Entrada (Menú)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {soups.map(p => (
+                      <div key={p.id} className="flex items-center justify-between p-5 bg-brand-50 rounded-[28px] border border-brand-100 soft-shadow">
+                        <div className="flex flex-col">
+                          <span className="font-display font-bold text-brand-900 uppercase tracking-tight text-lg leading-none">{p.nombre}</span>
+                          <span className="text-[10px] font-bold text-brand-500 uppercase mt-2 tracking-widest">Acompañamiento del día</span>
+                        </div>
+                        <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-2 soft-shadow border border-white/40">
+                          <button
+                            onClick={() => updateQuantity(p.id, -1)}
+                            className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
+                          >
+                            <Minus className="w-5 h-5" />
+                          </button>
+                          <span className="font-display font-bold text-brand-900 w-10 text-center text-2xl">{quantities[p.id] || 0}</span>
+                          <button
+                            onClick={() => updateQuantity(p.id, 1)}
+                            className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-2">
+                  <h4 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+                    Segundos del Menú
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {mains.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
+                  </div>
+                </section>
+              </React.Fragment>
+            );
+          }
+
+          return (
+            <section key={cat} className="space-y-2">
+              <h4 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                {cat}
+              </h4>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                {catProducts.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
+          );
+        })}
 
-        <section className="space-y-2">
-          <h4 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
-            Segundos del Menú (S/ 9.00)
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {mains.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
-          </div>
-        </section>
-
-        <section className="space-y-2">
-          <h4 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-            Platos Extras
-          </h4>
-           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-              {extras.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
-           </div>
-        </section>
-
-        <section className="space-y-2">
-          <h4 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
-            Bebidas
-          </h4>
-           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-              {beverages.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
-           </div>
-        </section>
-
-        <div className="sticky bottom-0 bg-white/90 backdrop-blur-md pt-6 -mx-6 px-6 mt-4 border-t border-slate-50 pb-2">
+        <div className="sticky bottom-0 bg-white/90 backdrop-blur-md pt-6 -mx-6 px-6 mt-4 border-t border-slate-50 pb-2 z-20">
           <button
             onClick={handleAdd}
             disabled={!canConfirm}

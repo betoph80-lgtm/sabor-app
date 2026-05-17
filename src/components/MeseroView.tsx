@@ -11,15 +11,15 @@ import { OrderItem, ItemStatus } from '../types';
 import { OrderModal } from './OrderModal.tsx';
 
 export const MeseroView: React.FC = () => {
-  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, getOrderTotal } = useApp();
+  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
   const mesaOrders = orders.filter(o => o.mesaId === selectedMesa && o.estado === 'ABIERTO' && o.fecha === selectedDate);
 
   return (
-    <div className="p-3 md:p-8 space-y-6 md:space-y-8 max-w-5xl mx-auto">
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-5">
+    <div className="p-2 md:p-8 space-y-4 md:space-y-8 max-w-5xl mx-auto">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-5">
         {mesas.map((mesa) => {
           const mesaActiveOrders = orders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
           const isOccupied = mesaActiveOrders.length > 0;
@@ -151,7 +151,7 @@ export const MeseroView: React.FC = () => {
 
                 <div className="relative z-10 pt-6 md:pt-10 border-t border-slate-50 flex flex-col xs:flex-row gap-5 items-center justify-between">
                   <div className="flex flex-col items-center xs:items-start">
-                    <p className="text-3xl md:text-4xl font-display font-bold text-brand-900 leading-none tracking-tight">S/ {getOrderTotal(activeOrder).toFixed(2)}</p>
+                    <p className="text-3xl md:text-4xl font-display font-bold text-brand-900 leading-none tracking-tight">S/ {activeOrder.total.toFixed(2)}</p>
                   </div>
                   <div className="flex gap-3 w-full xs:w-auto">
                     <button

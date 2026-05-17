@@ -17,23 +17,26 @@ import { exportToExcel } from './utils/exportUtils.ts';
 const AdminPanel = () => {
   const { 
     resetStock, currentMenu, products, addProduct, updateProduct, 
-    deleteProduct, mesas, addMesa, toggleProductInMenu, 
+    deleteProduct, mesas, addMesa, deleteMesa, toggleProductInMenu, 
     requestConfirmation, isTodaySelected, orders, selectedDate,
-    updateMenuItemStock, customers
+    updateMenuItemStock, customers, categories, addCategory, deleteCategory
   } = useApp();
   const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
   const [newMesaName, setNewMesaName] = useState('');
-  const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ' as any, tipo: 'SEGUNDO' as any, precio: 9 });
-  const [activeCategory, setActiveCategory] = useState<'MENÚ' | 'EXTRA' | 'BEBIDA'>('MENÚ');
+  const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 });
+  const [activeCategory, setActiveCategory] = useState<string>('MENÚ');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
 
   const handleAddMesa = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMesaName.trim()) {
-      const id = (mesas.length + 1).toString();
-      addMesa(id, newMesaName);
+      // Use numeric ID or random
+      const id = Math.random().toString(36).substr(2, 5);
+      addMesa(id, newMesaName.trim());
       setNewMesaName('');
     }
   };
@@ -42,7 +45,15 @@ const AdminPanel = () => {
     e.preventDefault();
     if (newProduct.nombre.trim()) {
       addProduct(newProduct);
-      setNewProduct({ nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 });
+      setNewProduct({ nombre: '', categoria: activeCategory, tipo: 'SEGUNDO', precio: activeCategory === 'MENÚ' ? 9 : newProduct.precio });
+    }
+  };
+
+  const handleAddCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newCategoryName.trim()) {
+      addCategory(newCategoryName.trim());
+      setNewCategoryName('');
     }
   };
 
@@ -171,61 +182,100 @@ const AdminPanel = () => {
 
           <div className="bg-white rounded-[32px] md:rounded-[40px] p-6 md:p-8 shadow-xl border border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
             {/* Add Dish Form */}
-            <form onSubmit={handleAddProduct} className="space-y-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Nuevo Plato / Bebida</p>
-              <div className="grid gap-3">
-                <input 
-                  type="text" 
-                  value={newProduct.nombre}
-                  onChange={(e) => setNewProduct({...newProduct, nombre: e.target.value})}
-                  placeholder="Nombre del plato..."
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-violet-500 outline-none transition-all"
-                />
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                   <select 
-                    value={newProduct.categoria}
-                    onChange={(e) => setNewProduct({...newProduct, categoria: e.target.value as any})}
-                    className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
-                   >
-                     <option value="MENÚ">Menú (9.00)</option>
-                     <option value="EXTRA">Extra</option>
-                     <option value="BEBIDA">Bebida</option>
-                   </select>
-                   <input 
-                    type="number" 
-                    value={newProduct.precio}
-                    onChange={(e) => setNewProduct({...newProduct, precio: parseFloat(e.target.value)})}
-                    placeholder="Precio..."
-                    className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
-                   />
-                </div>
-                {newProduct.categoria === 'MENÚ' && (
-                   <select 
-                    value={newProduct.tipo}
-                    onChange={(e) => setNewProduct({...newProduct, tipo: e.target.value as any})}
-                    className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
-                   >
-                     <option value="SEGUNDO">Segundo</option>
-                     <option value="SOPA">Sopa / Entrada</option>
-                   </select>
-                )}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Nuevo Plato / Bebida</p>
                 <button 
-                  type="submit"
-                  className="w-full py-4 bg-violet-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all flex items-center justify-center gap-2"
+                  onClick={() => setShowCategoryManager(!showCategoryManager)}
+                  className="text-[10px] font-bold text-violet-600 uppercase hover:underline"
                 >
-                  <Plus className="w-4 h-4" /> Registrar Plato
+                  {showCategoryManager ? 'Cerrar Categorías' : 'Gestionar Categorías'}
                 </button>
               </div>
-            </form>
+
+              {showCategoryManager ? (
+                <div className="bg-violet-50/50 p-4 rounded-3xl border border-violet-100 space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <form onSubmit={handleAddCategory} className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Nueva categoría..."
+                      className="flex-1 bg-white border-2 border-violet-100 rounded-xl px-4 py-2 text-xs font-bold outline-none"
+                    />
+                    <button type="submit" className="bg-violet-600 text-white px-4 rounded-xl text-[10px] font-black uppercase">Add</button>
+                  </form>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map(cat => (
+                      <div key={cat} className="flex items-center gap-1 bg-white border border-violet-200 px-3 py-1.5 rounded-full text-[10px] font-bold text-violet-700">
+                        {cat}
+                        {!['MENÚ', 'EXTRA', 'BEBIDA'].includes(cat) && (
+                          <button onClick={() => deleteCategory(cat)} className="text-violet-300 hover:text-rose-500"><X className="w-3 h-3" /></button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleAddProduct} className="space-y-4">
+                  <div className="grid gap-3">
+                    <input 
+                      type="text" 
+                      value={newProduct.nombre}
+                      onChange={(e) => setNewProduct({...newProduct, nombre: e.target.value})}
+                      placeholder="Nombre del plato..."
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-violet-500 outline-none transition-all"
+                    />
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
+                       <select 
+                        value={newProduct.categoria}
+                        onChange={(e) => setNewProduct({...newProduct, categoria: e.target.value})}
+                        className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                       >
+                         {categories.map(cat => (
+                           <option key={cat} value={cat}>{cat === 'MENÚ' ? 'Menú (9.00)' : cat.charAt(0) + cat.slice(1).toLowerCase()}</option>
+                         ))}
+                       </select>
+                       <input 
+                        type="number" 
+                        value={newProduct.precio}
+                        onChange={(e) => setNewProduct({...newProduct, precio: parseFloat(e.target.value)})}
+                        placeholder="Precio..."
+                        className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                       />
+                    </div>
+                    {newProduct.categoria === 'MENÚ' && (
+                       <select 
+                        value={newProduct.tipo}
+                        onChange={(e) => setNewProduct({...newProduct, tipo: e.target.value as any})}
+                        className="bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                       >
+                         <option value="SEGUNDO">Segundo</option>
+                         <option value="SOPA">Sopa / Entrada</option>
+                       </select>
+                    )}
+                    <button 
+                      type="submit"
+                      className="w-full py-4 bg-violet-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Registrar Plato
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
 
             {/* List Table */}
             <div className="space-y-4">
-              <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-2xl">
-                 {(['MENÚ', 'EXTRA', 'BEBIDA'] as const).map(cat => (
+              <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-2xl overflow-x-auto no-scrollbar">
+                 {categories.map(cat => (
                    <button
                     key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                    onClick={() => {
+                      setActiveCategory(cat);
+                      setNewProduct(prev => ({ ...prev, categoria: cat, precio: cat === 'MENÚ' ? 9 : prev.precio }));
+                    }}
+                    className={`flex-1 py-2 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${
                       activeCategory === cat ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
                     }`}
                    >
@@ -289,6 +339,57 @@ const AdminPanel = () => {
               )}
             </div>
           </div>
+         </section>
+       )}
+
+       {adminView === 'MESAS' && (
+         <section className="space-y-6 animate-in fade-in duration-500">
+           <div className="flex items-center gap-2 px-2">
+             <Users className="w-6 h-6 text-violet-600" />
+             <h3 className="text-xl font-black text-slate-800 uppercase tracking-wider">Gestión de Mesas</h3>
+           </div>
+
+           <div className="bg-white rounded-[32px] md:rounded-[40px] p-6 md:p-8 shadow-xl border border-slate-100 max-w-2xl">
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 mb-4">Nueva Mesa</p>
+             <form onSubmit={handleAddMesa} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <input 
+                 type="text" 
+                 value={newMesaName}
+                 onChange={(e) => setNewMesaName(e.target.value)}
+                 placeholder="Ej: Mesa Terraza, Mesa 15..."
+                 className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold focus:border-violet-500 outline-none transition-all shadow-sm"
+               />
+               <button 
+                 type="submit"
+                 className="py-4 bg-violet-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all flex items-center justify-center gap-2"
+               >
+                 <Plus className="w-4 h-4" /> Agregar Mesa
+               </button>
+             </form>
+
+             <div className="mt-8 space-y-3">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Listado de Mesas</p>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                 {mesas.map(mesa => {
+                   const isOccupied = orders.some(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
+                   return (
+                     <div key={mesa.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group">
+                       <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${isOccupied ? 'bg-violet-400' : 'bg-emerald-400'}`}></div>
+                          <span className="font-bold text-slate-700 text-xs">{mesa.nombre}</span>
+                       </div>
+                       <button 
+                         onClick={() => deleteMesa(mesa.id)}
+                         className="p-2 text-slate-300 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-all"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                     </div>
+                   );
+                 })}
+               </div>
+             </div>
+           </div>
          </section>
        )}
 
@@ -495,17 +596,9 @@ const AdminPanel = () => {
                 {(() => {
                   const salesToday = orders.filter(o => o.fecha === selectedDate);
                   
-                  let efectivo = 0;
-                  let yape = 0;
-                  let creditoVendido = 0;
-
-                  salesToday.forEach(o => {
-                    (o.pagos || []).forEach(p => {
-                      if (p.metodo === 'EFECTIVO') efectivo += p.monto;
-                      else if (p.metodo === 'YAPE') yape += p.monto;
-                      else if (p.metodo === 'CREDITO') creditoVendido += p.monto;
-                    });
-                  });
+                  const efectivo = salesToday.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
+                  const yape = salesToday.filter(o => o.metodoPago === 'YAPE').reduce((acc, o) => acc + o.total, 0);
+                  const creditoVendido = salesToday.filter(o => o.estado === 'CREDITO').reduce((acc, o) => acc + o.total, 0);
                   
                   const customerPaymentsToday = customers.flatMap(c => 
                      c.historial.filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))

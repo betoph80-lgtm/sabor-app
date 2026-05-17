@@ -23,8 +23,7 @@ export const PedidosView: React.FC = () => {
     resetStock,
     requestConfirmation,
     selectedDate,
-    isTodaySelected,
-    getOrderTotal
+    isTodaySelected
   } = useApp();
   const [view, setView] = React.useState<'ACTIVOS' | 'HISTORIAL'>('ACTIVOS');
   const [editingOrder, setEditingOrder] = React.useState<string | null>(null);
@@ -131,137 +130,225 @@ export const PedidosView: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden soft-shadow">
-          <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full border-separate border-spacing-0">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-100">
-                  <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">ID & Ubicación</th>
-                  <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Cliente & Tiempo</th>
-                  <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Pedido</th>
-                  <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Total</th>
-                  <th className="px-8 py-6 text-center text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Gestión</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {currentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50/30 transition-all duration-300 group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-5">
-                        <div className={`w-14 h-14 rounded-[22px] flex items-center justify-center font-display font-bold text-lg border-4 border-white soft-shadow-sm transition-transform group-hover:scale-105 ${
-                          view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
-                        }`}>
-                          {order.mesaId === '13' ? 'PL' : order.mesaId}
+        <div className="space-y-4">
+          {/* Mobile Card List */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {currentOrders.map((order) => (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-[32px] border border-slate-100 p-5 soft-shadow space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display font-bold text-base border-2 border-white soft-shadow-sm ${
+                      view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
+                    }`}>
+                      {order.mesaId === '13' ? 'PL' : order.mesaId}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm leading-tight">
+                        {order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">#{order.id.split('-').pop()}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xl font-display font-bold ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                      S/ {order.total.toFixed(2)}
+                    </p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase">{order.hora}</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50/50 rounded-2xl p-3 border border-slate-100/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-3 h-3 text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-600 truncate">
+                      {order.cliente || 'Consumidor Final'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {order.items.map((item, idx) => {
+                      const p = products.find(prod => prod.id === item.productoId);
+                      const isServed = item.estado === 'SERVIDO' || view === 'HISTORIAL';
+                      return (
+                        <div 
+                          key={`${order.id}-${item.id}-${idx}`}
+                          className={`text-[9px] font-bold uppercase px-2 py-1 rounded-lg flex items-center gap-1.5 border ${
+                            isServed ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-slate-500 border-slate-100'
+                          }`}
+                        >
+                          <span className="text-brand-500">{item.cantidad}x</span>
+                          <span className="max-w-[70px] truncate">{p?.nombre}</span>
                         </div>
-                        <div>
-                          <p className="font-display font-bold text-slate-900 text-base leading-tight group-hover:text-brand-700 transition-colors">
-                            {order.mesaId === '13' ? 'Para Llevar' : `Mesa N° ${order.mesaId}`}
-                          </p>
-                          <span className="text-[10px] text-brand-600 font-bold uppercase tracking-widest mt-1.5 inline-block bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-100">
-                            PEDIDO-{order.id.split('-').pop()}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors">
-                            <User className="w-4 h-4" />
-                          </div>
-                          <span className="text-sm font-bold text-slate-700 tracking-tight truncate max-w-[160px]">
-                            {order.cliente || 'Consumidor Final'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors">
-                            <Clock className="w-4 h-4" />
-                          </div>
-                          <span className="text-xs font-bold text-slate-400 tabular-nums">
-                            Registrado a las {order.hora}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-wrap gap-2.5 max-w-[320px]">
-                        {order.items.map((item, idx) => {
-                          const p = products.find(prod => prod.id === item.productoId);
-                          const isServed = item.estado === 'SERVIDO' || view === 'HISTORIAL';
-                          return (
-                            <div 
-                              key={`${order.id}-${item.id}-${idx}`}
-                              className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-[12px] flex items-center gap-2 border transition-all duration-300 ${
-                                isServed 
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100 soft-shadow-sm/50' 
-                                  : 'bg-white text-slate-500 border-slate-100 soft-shadow-sm/50'
-                              }`}
-                            >
-                              <span className="font-display font-bold tabular-nums text-brand-600">{item.cantidad}x</span>
-                              <span className="truncate max-w-[100px] tracking-tight">{p?.nombre}</span>
-                              {isServed ? (
-                                <div className="w-4 h-4 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[8px] soft-shadow-sm">✓</div>
-                              ) : (
-                                item.timestampPedido && (
-                                  <OrderTimer 
-                                    timestamp={item.timestampPedido} 
-                                    hideIcon
-                                    className="flex items-center gap-1 bg-brand-100/50 px-1.5 py-0.5 rounded-lg text-[9px] font-display font-bold text-brand-600 ring-1 ring-brand-200/50"
-                                  />
-                                )
-                              )}
-                            </div>
-                          );
-                        })}
-                        {order.items.length === 0 && <span className="text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em] italic">Sin artículos registrados</span>}
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">
-                          {view === 'HISTORIAL' ? 'Importe Total' : 'Estado Cuenta'}
-                        </span>
-                        <p className={`text-2xl font-display font-bold tracking-tighter ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
-                          S/ {getOrderTotal(order).toFixed(2)}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-center">
-                      {isTodaySelected ? (
-                        <div className="flex items-center justify-center gap-3 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-                          {view === 'ACTIVOS' && (
-                            <button
-                              onClick={() => setEditingOrder(order.id)}
-                              className="w-12 h-12 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-[18px] transition-all soft-shadow-sm active:scale-90"
-                              title="Editar Pedido"
-                            >
-                              <Edit2 className="w-5 h-5 md:w-6 md:h-6" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              requestConfirmation(
-                                'Anular Registro',
-                                `¿Seguro que desea eliminar el pedido ${order.id.split('-').pop()}? Este proceso descontará ventas del total del día.`,
-                                () => deleteOrder(order.id)
-                              );
-                            }}
-                            className={`w-12 h-12 flex items-center justify-center ${view === 'HISTORIAL' ? 'bg-slate-100 hover:bg-slate-600 text-slate-400 hover:text-white' : 'bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white'} rounded-[18px] transition-all soft-shadow-sm active:scale-90`}
-                            title="Eliminar Pedido"
-                          >
-                            <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg inline-block">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest">Solo Lectura</span>
-                        </div>
-                      )}
-                    </td>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {isTodaySelected && (
+                  <div className="flex gap-2 pt-1">
+                    {view === 'ACTIVOS' && (
+                      <button
+                        onClick={() => setEditingOrder(order.id)}
+                        className="flex-1 py-3 bg-brand-50 text-brand-600 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" /> Editar
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        requestConfirmation(
+                          'Anular Registro',
+                          `¿Eliminar pedido ${order.id.split('-').pop()}?`,
+                          () => deleteOrder(order.id)
+                        );
+                      }}
+                      className={`flex-1 py-3 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500'} rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-white rounded-[40px] border border-slate-100 overflow-hidden soft-shadow">
+            <div className="overflow-x-auto no-scrollbar">
+              <table className="w-full border-separate border-spacing-0">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-100">
+                    <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">ID & Ubicación</th>
+                    <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Cliente & Tiempo</th>
+                    <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Pedido</th>
+                    <th className="px-8 py-6 text-left text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Total</th>
+                    <th className="px-8 py-6 text-center text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Gestión</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {currentOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-slate-50/30 transition-all duration-300 group">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-5">
+                          <div className={`w-14 h-14 rounded-[22px] flex items-center justify-center font-display font-bold text-lg border-4 border-white soft-shadow-sm transition-transform group-hover:scale-105 ${
+                            view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
+                          }`}>
+                            {order.mesaId === '13' ? 'PL' : order.mesaId}
+                          </div>
+                          <div>
+                            <p className="font-display font-bold text-slate-900 text-base leading-tight group-hover:text-brand-700 transition-colors">
+                              {order.mesaId === '13' ? 'Para Llevar' : `Mesa N° ${order.mesaId}`}
+                            </p>
+                            <span className="text-[10px] text-brand-600 font-bold uppercase tracking-widest mt-1.5 inline-block bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-100">
+                              PEDIDO-{order.id.split('-').pop()}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors">
+                              <User className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm font-bold text-slate-700 tracking-tight truncate max-w-[160px]">
+                              {order.cliente || 'Consumidor Final'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors">
+                              <Clock className="w-4 h-4" />
+                            </div>
+                            <span className="text-xs font-bold text-slate-400 tabular-nums">
+                              Registrado a las {order.hora}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-wrap gap-2.5 max-w-[320px]">
+                          {order.items.map((item, idx) => {
+                            const p = products.find(prod => prod.id === item.productoId);
+                            const isServed = item.estado === 'SERVIDO' || view === 'HISTORIAL';
+                            return (
+                              <div 
+                                key={`${order.id}-${item.id}-${idx}`}
+                                className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-[12px] flex items-center gap-2 border transition-all duration-300 ${
+                                  isServed 
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100 soft-shadow-sm/50' 
+                                    : 'bg-white text-slate-500 border-slate-100 soft-shadow-sm/50'
+                                }`}
+                              >
+                                <span className="font-display font-bold tabular-nums text-brand-600">{item.cantidad}x</span>
+                                <span className="truncate max-w-[100px] tracking-tight">{p?.nombre}</span>
+                                {isServed ? (
+                                  <div className="w-4 h-4 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[8px] soft-shadow-sm">✓</div>
+                                ) : (
+                                  item.timestampPedido && (
+                                    <OrderTimer 
+                                      timestamp={item.timestampPedido} 
+                                      hideIcon
+                                      className="flex items-center gap-1 bg-brand-100/50 px-1.5 py-0.5 rounded-lg text-[9px] font-display font-bold text-brand-600 ring-1 ring-brand-200/50"
+                                    />
+                                  )
+                                )}
+                              </div>
+                            );
+                          })}
+                          {order.items.length === 0 && <span className="text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em] italic">Sin artículos registrados</span>}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">
+                            {view === 'HISTORIAL' ? 'Importe Total' : 'Estado Cuenta'}
+                          </span>
+                          <p className={`text-2xl font-display font-bold tracking-tighter ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                            S/ {order.total.toFixed(2)}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-center">
+                        {isTodaySelected ? (
+                          <div className="flex items-center justify-center gap-3 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+                            {view === 'ACTIVOS' && (
+                              <button
+                                onClick={() => setEditingOrder(order.id)}
+                                className="w-12 h-12 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-[18px] transition-all soft-shadow-sm active:scale-90"
+                                title="Editar Pedido"
+                              >
+                                <Edit2 className="w-5 h-5 md:w-6 md:h-6" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                requestConfirmation(
+                                  'Anular Registro',
+                                  `¿Seguro que desea eliminar el pedido ${order.id.split('-').pop()}? Este proceso descontará ventas del total del día.`,
+                                  () => deleteOrder(order.id)
+                                );
+                              }}
+                              className={`w-12 h-12 flex items-center justify-center ${view === 'HISTORIAL' ? 'bg-slate-100 hover:bg-slate-600 text-slate-400 hover:text-white' : 'bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white'} rounded-[18px] transition-all soft-shadow-sm active:scale-90`}
+                              title="Eliminar Pedido"
+                            >
+                              <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg inline-block">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest">Solo Lectura</span>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

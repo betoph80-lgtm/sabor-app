@@ -10,7 +10,15 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { role, setRole, orders, currentMenu, products, selectedDate, setSelectedDate } = useApp();
-  const today = new Date().toLocaleDateString();
+  
+  const formatDate = (date: Date) => {
+    const d = date.getDate();
+    const m = date.getMonth() + 1;
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  };
+  
+  const today = formatDate(new Date());
 
   const navigation = [
     { id: 'MESERO', label: 'Mesas', icon: LayoutDashboard },
@@ -39,14 +47,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Calculate stats for sidebar
   const activeOrdersCount = orders.filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate).length;
-  const totalRevenue = orders
-    .filter(o => o.fecha === selectedDate)
-    .reduce((acc, order) => {
-      const paidAmount = order.items
-        .filter(i => i.pagado && i.metodoPago !== 'CREDITO')
-        .reduce((sum, i) => sum + (i.precioUnitario * i.cantidad), 0);
-      return acc + paidAmount;
-    }, 0);
+  const totalRevenue = orders.filter(o => o.estado === 'PAGADO' && o.fecha === selectedDate).reduce((acc, o) => acc + o.total, 0);
   
   // Calculate stock summaries
   const dailyMenu = currentMenu.filter(m => m.fecha === selectedDate);
@@ -66,11 +67,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="h-28 bg-white border-b border-violet-100 flex items-center justify-between px-8 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
-        <div className="flex items-center gap-10 shrink-0 group cursor-pointer">
+      <nav className="h-[72px] md:h-28 bg-white border-b border-violet-100 flex items-center justify-between px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
+        <div className="flex items-center gap-4 md:gap-10 shrink-0 group cursor-pointer">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-violet-500/20 to-brand-500/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-            <div className="relative w-20 h-20 bg-white rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
+            <div className="relative w-12 h-12 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-1.5 md:p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
               <img 
                 src="/logo.png" 
                 alt="Sabor Abanquino" 
@@ -114,10 +115,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
            )}
         </div>
 
-        <div className="flex gap-6 sm:gap-10 items-center ml-auto">
-          <div className="flex items-center gap-8 pr-12 border-r border-violet-100">
+        <div className="flex gap-4 sm:gap-10 items-center ml-auto">
+          <div className="flex items-center gap-4 md:gap-8 md:pr-12 md:border-r border-violet-100">
             <div className="text-right shrink-0 group">
-              <p className="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Sopa</p>
+              <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-1.5 md:mb-2.5 px-1">Sopa</p>
               <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm group-hover:border-violet-200 group-hover:scale-105 transition-all duration-300">
                 <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
                    {totalSoupStock} <span className="text-violet-400">/</span> <span className="text-slate-400">{totalSoupInitial}</span>
