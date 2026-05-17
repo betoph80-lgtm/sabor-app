@@ -5,9 +5,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard } from 'lucide-react';
+import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderTimer } from './OrderTimer.tsx';
+import { OrderModal } from './OrderModal.tsx';
 import * as XLSX from 'xlsx';
 
 export const CocinaView: React.FC = () => {
@@ -254,8 +255,9 @@ export const CocinaView: React.FC = () => {
 };
 
 export const CajaView: React.FC = () => {
-  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash } = useApp();
+  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu } = useApp();
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [partialAmounts, setPartialAmounts] = useState<Record<string, string>>({});
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -385,8 +387,29 @@ export const CajaView: React.FC = () => {
       return numB - numA;
     });
 
+  const orderToEdit = orders.find(o => o.id === editingOrderId);
+
   return (
     <div className="p-3 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {editingOrderId && orderToEdit && (
+        <OrderModal
+          onClose={() => setEditingOrderId(null)}
+          onAdd={(items, newClienteName) => {
+            if (items.length > 0) {
+              addItemsToOrder(editingOrderId, items);
+            }
+            if (newClienteName !== orderToEdit.cliente) {
+              updateOrderInfo(editingOrderId, { cliente: newClienteName });
+            }
+            setEditingOrderId(null);
+          }}
+          products={products}
+          currentMenu={currentMenu.filter(m => m.fecha === selectedDate)}
+          mesaId={orderToEdit.mesaId}
+          initialClienteName={orderToEdit.cliente}
+          title="Modificar Pedido en Caja"
+        />
+      )}
       {/* Control de Jornada Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/50 p-6 rounded-[32px] border border-slate-100 mb-2">
         <div className="flex items-center gap-4">
@@ -580,13 +603,21 @@ export const CajaView: React.FC = () => {
                           <span className="text-[8px] font-black text-amber-500 uppercase">Cocina</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                          <div className="w-9 h-9 bg-brand-50 rounded-xl flex items-center justify-center border border-brand-100 shrink-0">
                             <span className="font-display font-bold text-brand-600 text-sm">
                               {order.mesaId === '13' ? 'PL' : order.mesaId}
                             </span>
                          </div>
-                         <h3 className="font-display font-bold text-slate-900 text-base uppercase leading-tight truncate max-w-[100px]">{order.cliente}</h3>
+                         <div className="flex flex-col min-w-0">
+                            <h3 className="font-display font-bold text-slate-900 text-base uppercase leading-tight truncate max-w-[120px]">{order.cliente}</h3>
+                            <button 
+                              onClick={() => setEditingOrderId(order.id)}
+                              className="flex items-center gap-1 text-[8px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors"
+                            >
+                              <Edit2 className="w-2.5 h-2.5" /> Editar pedido
+                            </button>
+                         </div>
                       </div>
                     </div>
 

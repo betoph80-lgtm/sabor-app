@@ -19,7 +19,8 @@ const AdminPanel = () => {
     resetStock, currentMenu, products, addProduct, updateProduct, 
     deleteProduct, mesas, addMesa, deleteMesa, toggleProductInMenu, 
     requestConfirmation, isTodaySelected, orders, selectedDate,
-    updateMenuItemStock, customers, categories, addCategory, deleteCategory
+    updateMenuItemStock, customers, categories, addCategory, deleteCategory,
+    seedDatabase
   } = useApp();
   const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
@@ -113,12 +114,25 @@ const AdminPanel = () => {
          <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
             <div className="bg-violet-600 p-8 md:p-10 rounded-[48px] text-white shadow-xl relative overflow-hidden">
                <Database className="absolute top-0 right-0 w-64 h-64 text-white/5 -translate-y-12 translate-x-12" />
-               <div className="relative z-10 space-y-2">
-                 <h2 className="text-2xl font-display font-bold">Arquitectura de Datos</h2>
-                 <p className="text-violet-100 text-sm max-w-2xl font-medium leading-relaxed">
-                   Esquema técnico de las tablas principales que gestionan la lógica del negocio.
-                   Diseñado para integridad relacional y alta disponibilidad.
-                 </p>
+               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                 <div className="space-y-2">
+                   <h2 className="text-2xl font-display font-bold">Arquitectura de Datos</h2>
+                   <p className="text-violet-100 text-sm max-w-2xl font-medium leading-relaxed">
+                     Esquema técnico de las tablas principales que gestionan la lógica del negocio.
+                     Diseñado para integridad relacional y alta disponibilidad.
+                   </p>
+                 </div>
+                 <button 
+                   onClick={() => requestConfirmation(
+                     'Inicializar Tablas', 
+                     'Esto restaurará las mesas y productos base si están vacíos. ¿Continuar?', 
+                     seedDatabase
+                   )}
+                   className="bg-white text-violet-600 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-violet-50 transition-all flex items-center gap-2"
+                 >
+                   <Database className="w-4 h-4" />
+                   Inicializar Sistema
+                 </button>
                </div>
             </div>
 
@@ -536,7 +550,7 @@ const AdminPanel = () => {
               <div className="bg-rose-50 p-6 md:p-8 rounded-[40px] border border-rose-100 flex flex-col gap-6 shadow-sm">
                 <div className="text-center sm:text-left">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 mb-1">Cierre de Día</p>
-                  <p className="text-[11px] text-rose-400 font-medium italic leading-tight">Precaución: Esto borrará los pedidos de la fecha {selectedDate} y reiniciará el stock general. Los clientes registrados se mantienen.</p>
+                  <p className="text-[11px] text-rose-400 font-medium italic leading-tight">Precaución: Esto borrará los pedidos de la fecha {selectedDate} y reiniciará el stock del menú. Los productos, mesas y clientes registrados se mantienen.</p>
                 </div>
                 
                 <button 

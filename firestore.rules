@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // HELPERS
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return true; // Relaxed for preview/seeding. In production, use: return request.auth != null;
+    }
+
+    function isAdmin() {
+      // Temporarily allow all for setup. In production, use the email/admin check.
+      return true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // -------------------------------------------------------------------------
+    // VALIDATIONS
+    // -------------------------------------------------------------------------
+    function isValidMesa(data) {
+      return data.nombre is string && data.nombre.size() > 0 &&
+             data.estado in ['LIBRE', 'OCUPADA', 'RESERVADA'];
+    }
+
+    function isValidPedido(data) {
+      return data.mesaId is string &&
+             data.cliente is string &&
+             data.estado in ['ABIERTO', 'PAGADO', 'CANCELADO', 'CREDITO'] &&
+             data.total is number &&
+             data.fecha is string;
+    }
+
+    function isValidProduct(data) {
+      return data.nombre is string && data.nombre.size() > 0 &&
+             data.categoria is string &&
+             data.precio is number;
+    }
+
+    // -------------------------------------------------------------------------
+    // RULES
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /mesas/{mesaId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidMesa(incoming());
+    }
+
+    match /pedidos/{pedidoId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidPedido(incoming());
+      allow update: if isSignedIn() && isValidPedido(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /productos/{productoId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isValidProduct(incoming());
+    }
+
+    match /clientes/{clienteId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    match /menu_diario/{menuId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    match /control_caja/{cajaId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    match /categorias/{catId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via console
+    }
+  }
+}

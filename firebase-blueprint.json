@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "Mesa": {
+      "title": "Mesa",
+      "description": "Estado y nombre de una mesa física.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "estado": { "type": "string", "enum": ["LIBRE", "OCUPADA", "RESERVADA"] }
+      },
+      "required": ["nombre", "estado"]
+    },
+    "Order": {
+      "title": "Pedido",
+      "description": "Comanda o registro de venta.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "mesaId": { "type": "string" },
+        "cliente": { "type": "string" },
+        "items": { "type": "array" },
+        "estado": { "type": "string", "enum": ["ABIERTO", "PAGADO", "CANCELADO", "CREDITO"] },
+        "total": { "type": "number" },
+        "pagos": { "type": "array" },
+        "fecha": { "type": "string" },
+        "hora": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["mesaId", "cliente", "estado", "total", "fecha"]
+    },
+    "Product": {
+      "title": "Producto",
+      "description": "Plato o bebida del catálogo maestro.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "categoria": { "type": "string" },
+        "tipo": { "type": "string" },
+        "precio": { "type": "number" }
+      },
+      "required": ["nombre", "categoria", "precio"]
+    },
+    "Customer": {
+      "title": "Cliente",
+      "description": "Información de cliente y saldo de créditos.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "saldo": { "type": "number" },
+        "historial": { "type": "array" }
+      },
+      "required": ["nombre"]
+    },
+    "MenuItem": {
+      "title": "Item de Menú Diario",
+      "description": "Stock y estado de un producto para una fecha específica.",
+      "type": "object",
+      "properties": {
+        "productoId": { "type": "string" },
+        "stockInicial": { "type": "number" },
+        "stockActual": { "type": "number" },
+        "estado": { "type": "boolean" },
+        "fecha": { "type": "string" }
+      },
+      "required": ["productoId", "fecha", "stockInicial", "stockActual"]
+    },
+    "CashControl": {
+      "title": "Control de Caja",
+      "description": "Registro de apertura y cierre de caja diaria.",
+      "type": "object",
+      "properties": {
+        "fecha": { "type": "string" },
+        "montoApertura": { "type": "number" },
+        "ingresosEfectivo": { "type": "number" },
+        "ingresosYape": { "type": "number" },
+        "ingresosFiar": { "type": "number" },
+        "montoCierre": { "type": "number" },
+        "estado": { "type": "string", "enum": ["ABIERTA", "CERRADA"] },
+        "horaApertura": { "type": "string" },
+        "horaCierre": { "type": "string" }
+      },
+      "required": ["fecha", "estado"]
+    },
+    "Category": {
+      "title": "Categoría",
+      "description": "Categorías de productos.",
+      "type": "object",
+      "properties": {
+        "nombre": { "type": "string" }
+      },
+      "required": ["nombre"]
+    }
+  },
+  "firestore": {
+    "/mesas/{mesaId}": {
+      "schema": "Mesa",
+      "description": "Estado de las mesas."
+    },
+    "/pedidos/{pedidoId}": {
+      "schema": "Order",
+      "description": "Registro de pedidos."
+    },
+    "/productos/{productoId}": {
+      "schema": "Product",
+      "description": "Catálogo de productos."
+    },
+    "/clientes/{clienteId}": {
+      "schema": "Customer",
+      "description": "Cartera de clientes."
+    },
+    "/menu_diario/{menuId}": {
+      "schema": "MenuItem",
+      "description": "Disponibilidad diaria de platos."
+    },
+    "/control_caja/{cajaId}": {
+      "schema": "CashControl",
+      "description": "Apertura y cierre de caja."
+    },
+    "/categorias/{catId}": {
+      "schema": "Category",
+      "description": "Lista de categorías."
+    }
+  }
+}
