@@ -12,7 +12,7 @@ import { OrderModal } from './OrderModal.tsx';
 import * as XLSX from 'xlsx';
 
 export const CocinaView: React.FC = () => {
-  const { orders, products, updateItemStatus, currentMenu, selectedDate, isTodaySelected } = useApp();
+  const { orders, products, updateItemStatus, currentMenu, selectedDate, isTodaySelected, mesas } = useApp();
 
   const itemsToPrepare = orders
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
@@ -95,19 +95,19 @@ export const CocinaView: React.FC = () => {
   });
 
   return (
-    <div className="p-3 md:p-6 space-y-4 max-w-[1600px] mx-auto">
+    <div className="p-2 md:p-6 space-y-3 md:space-y-4 max-w-[1600px] mx-auto">
       {/* Metrics Bar Compact */}
-      <div className="flex flex-col xl:flex-row gap-3">
-        <div className="flex-1 bg-white rounded-2xl p-4 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-4">
-          <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-slate-100 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+      <div className="flex flex-col xl:flex-row gap-2 md:gap-3">
+        <div className="flex-1 bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+          <div className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-slate-100 pb-1.5 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
              <div className="w-1 h-1 rounded-full bg-brand-500" />
              Stock Crítico
           </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar">
+          <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar">
             {menuStock.map(item => (
-              <div key={item.id} className="flex items-baseline gap-2 shrink-0">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[80px]">{item.nombre}</span>
-                <span className={`text-lg font-display font-bold ${item.stockActual < 5 ? 'text-rose-500' : 'text-slate-800'}`}>
+              <div key={item.id} className="flex items-baseline gap-1.5 md:gap-2 shrink-0">
+                <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[70px] md:max-w-[80px]">{item.nombre}</span>
+                <span className={`text-base md:text-lg font-display font-bold ${item.stockActual < 5 ? 'text-rose-500' : 'text-slate-800'}`}>
                   {item.stockActual}
                 </span>
               </div>
@@ -115,20 +115,17 @@ export const CocinaView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-2xl p-4 text-white shadow-lg flex flex-col md:flex-row md:items-center gap-4 min-w-fit">
-          <div className="text-[9px] font-black text-brand-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-white/10 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
-             <Clock className="w-3 h-3" /> Pendientes hoy
+        <div className="bg-slate-900 rounded-xl md:rounded-2xl p-3 md:p-4 text-white shadow-lg flex flex-col md:flex-row md:items-center gap-3 md:gap-4 min-w-fit">
+          <div className="text-[8px] md:text-[9px] font-black text-brand-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-white/10 pb-1.5 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+             <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" /> Hoy
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             {Object.entries(summary).map(([name, qty]) => (
-              <div key={name} className="flex items-baseline gap-1.5 shrink-0">
-                <span className="text-lg font-display font-bold text-brand-400 leading-none">{qty}</span>
-                <span className="text-[9px] font-bold uppercase tracking-tight text-slate-300 leading-none">{name}</span>
+              <div key={name} className="flex items-baseline gap-1 shrink-0">
+                <span className="text-base md:text-lg font-display font-bold text-brand-400 leading-none">{qty}</span>
+                <span className="text-[8px] md:text-[9px] font-bold uppercase tracking-tight text-slate-300 leading-none">{name}</span>
               </div>
             ))}
-            {Object.entries(summary).length === 0 && (
-              <p className="text-[9px] text-slate-500 italic">No hay platos pendientes</p>
-            )}
           </div>
         </div>
       </div>
@@ -161,26 +158,28 @@ export const CocinaView: React.FC = () => {
           return (
             <div 
               key={key} 
-              className={`bg-white rounded-[40px] border shadow-sm overflow-hidden flex flex-col transition-all duration-300 ${
+              className={`bg-white rounded-[32px] md:rounded-[40px] border shadow-sm overflow-hidden flex flex-col transition-all duration-300 ${
                 elapsedMinutes >= 20 ? 'border-rose-300 ring-2 ring-rose-50' : 'border-slate-200'
               }`}
             >
-            <div className={`${headerColorClass} px-5 py-4 flex justify-between items-center text-white relative transition-colors duration-500`}>
-               <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -translate-y-8 translate-x-8" />
+            <div className={`${headerColorClass} px-4 md:px-5 py-3 md:py-4 flex justify-between items-center text-white relative transition-colors duration-500`}>
+               <div className="absolute top-0 right-0 w-20 h-20 md:w-24 md:h-24 bg-white/10 rounded-full blur-2xl -translate-y-8 translate-x-8" />
                <div className="flex flex-col relative z-10">
-                  <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${textColorClass} leading-none mb-1.5`}>
+                  <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-[0.2em] ${textColorClass} leading-none mb-1 md:mb-1.5`}>
                     #{items[0].orderId.split('-').pop()} • Ticket
                   </span>
-                  <h3 className="text-xl font-display font-bold leading-none">{mesaId === '13' ? 'PL (CLIENTE)' : `MESA ${mesaId}`}</h3>
-                  <p className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${textColorClass} opacity-80`}>Por: {items[0].usuarioNombre || 'Desconocido'}</p>
+                  <h3 className="text-lg md:text-xl font-display font-bold leading-none">
+                    {mesaId === '13' ? 'PARA LLEVAR' : (mesas.find(m => m.id === mesaId)?.nombre.toUpperCase() || `MESA ${mesaId}`)}
+                  </h3>
+                  <p className={`text-[7px] md:text-[8px] font-bold uppercase tracking-widest mt-1 ${textColorClass} opacity-80`}>Por: {items[0].usuarioNombre || 'Desconocido'}</p>
                </div>
-               <div className="flex flex-col items-end gap-2 relative z-10">
-                  <OrderTimer timestamp={orderTimestamp} className="text-lg" />
-                  <p className="text-[8px] font-mono font-bold uppercase tracking-widest tabular-nums px-2 py-0.5 bg-black/20 rounded-lg backdrop-blur-sm border border-white/5">A las {items[0].horaPedido}</p>
+               <div className="flex flex-col items-end gap-1 md:gap-2 relative z-10">
+                  <OrderTimer timestamp={orderTimestamp} className="text-base md:text-lg" />
+                  <p className="text-[7px] md:text-[8px] font-mono font-bold uppercase tracking-widest tabular-nums px-1.5 py-0.5 bg-black/20 rounded-md md:rounded-lg backdrop-blur-sm border border-white/5">A las {items[0].horaPedido}</p>
                </div>
             </div>
 
-            <div className="p-4 space-y-3 flex-1 overflow-auto">
+            <div className="p-3 md:p-4 space-y-2 md:space-y-3 flex-1 overflow-auto">
               {/* Items already served for this mesa in this order */}
               {(() => {
                 const orderId = items[0].orderId;
@@ -257,7 +256,7 @@ export const CocinaView: React.FC = () => {
 };
 
 export const CajaView: React.FC = () => {
-  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu } = useApp();
+  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu, mesas } = useApp();
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
 
@@ -268,14 +267,8 @@ export const CajaView: React.FC = () => {
   const [openingAmount, setOpeningAmount] = useState('0');
 
   const openOrders = [...orders]
-    .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
-    .sort((a, b) => {
-      const aReady = a.items.every(i => i.estado === 'SERVIDO');
-      const bReady = b.items.every(i => i.estado === 'SERVIDO');
-      if (aReady && !bReady) return -1;
-      if (!aReady && bReady) return 1;
-      return (a.timestamp || 0) - (b.timestamp || 0);
-    });
+    .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.items.every(i => i.estado === 'SERVIDO'))
+    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
   const allPaymentsToday = orders
     .filter(o => o.fecha === selectedDate)
@@ -318,7 +311,7 @@ export const CajaView: React.FC = () => {
           'FECHA': order.fecha,
           'HORA': order.hora,
           'TICKET': order.id.split('-').pop(),
-          'MESA': order.mesaId === '13' ? 'PL' : order.mesaId,
+          'MESA': order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre || order.mesaId),
           'CLIENTE': order.cliente,
           'USUARIO': order.usuarioNombre || 'Desconocido',
           'PRODUCTO': product?.nombre || 'Desconocido',
@@ -396,7 +389,7 @@ export const CajaView: React.FC = () => {
   const orderToEdit = orders.find(o => o.id === editingOrderId);
 
   return (
-    <div className="p-3 md:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-2 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
       {editingOrderId && orderToEdit && (
         <OrderModal
           onClose={() => setEditingOrderId(null)}
@@ -412,56 +405,57 @@ export const CajaView: React.FC = () => {
           products={products}
           currentMenu={currentMenu.filter(m => m.fecha === selectedDate)}
           mesaId={orderToEdit.mesaId}
+          mesaName={mesas.find(m => m.id === orderToEdit.mesaId)?.nombre || orderToEdit.mesaId}
           initialClienteName={orderToEdit.cliente}
           title="Modificar Pedido en Caja"
         />
       )}
       {/* Control de Jornada Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/50 p-6 rounded-[32px] border border-slate-100 mb-2">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-600 shadow-sm border border-brand-100">
-            <LayoutDashboard className="w-6 h-6" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white/50 p-4 md:p-6 rounded-2xl md:rounded-[32px] border border-slate-100 mb-1 md:mb-2">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-brand-50 rounded-xl md:rounded-2xl flex items-center justify-center text-brand-600 shadow-sm border border-brand-100 shrink-0">
+            <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Control de Jornada</h1>
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5">Gestión de ingresos y reportes</p>
+            <h1 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight">Caja Central</h1>
+            <p className="text-slate-400 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5">Gestión de ingresos</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button 
             onClick={exportFullDatabaseExcel}
-            className="flex items-center gap-3 px-6 py-3.5 bg-emerald-600 text-white rounded-[20px] font-black uppercase text-[10px] tracking-[0.1em] hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-100"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-black uppercase text-[9px] tracking-[0.1em] hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-100"
           >
-            <Download className="w-4 h-4" />
-            Exportar Excel
+            <Download className="w-3.5 h-3.5" />
+            Excel
           </button>
           <button 
             onClick={exportFullDatabaseExcel}
-            className="flex items-center gap-3 px-6 py-3.5 bg-brand-400 text-white rounded-[20px] font-black uppercase text-[10px] tracking-[0.1em] hover:bg-brand-500 transition-all active:scale-95 shadow-lg shadow-brand-100"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-400 text-white rounded-xl font-black uppercase text-[9px] tracking-[0.1em] hover:bg-brand-500 transition-all active:scale-95 shadow-lg shadow-brand-100"
           >
-            <Timer className="w-4 h-4" />
-            Reporte de Ventas
+            <Timer className="w-3.5 h-3.5" />
+            Reporte
           </button>
         </div>
       </div>
 
       {/* Caja Status Banner */}
       {!currentCash && (
-        <div className="bg-rose-50 border-2 border-rose-100 rounded-[32px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 soft-shadow-sm">
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 bg-rose-600 rounded-[22px] flex items-center justify-center text-white shadow-lg shadow-rose-200">
-              <AlertCircle className="w-7 h-7" />
+        <div className="bg-rose-50 border-2 border-rose-100 rounded-2xl md:rounded-[32px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 soft-shadow-sm">
+          <div className="flex items-center gap-4 md:gap-5">
+            <div className="w-12 h-12 md:w-14 md:h-14 bg-rose-600 rounded-xl md:rounded-[22px] flex items-center justify-center text-white shadow-lg shadow-rose-200 shrink-0">
+              <AlertCircle className="w-6 h-6 md:w-7 md:h-7" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-rose-900 uppercase tracking-tight italic">Caja Cerrada</h3>
-              <p className="text-rose-600/70 text-xs font-bold uppercase tracking-widest mt-1">Debe abrir la caja para registrar ventas y pagos en {selectedDate}</p>
+              <h3 className="text-lg md:text-xl font-black text-rose-900 uppercase tracking-tight italic">Caja Cerrada</h3>
+              <p className="text-rose-600/70 text-[10px] md:text-xs font-bold uppercase tracking-widest mt-1">Abre caja para operar en {selectedDate}</p>
             </div>
           </div>
           <button 
             onClick={() => setShowOpenModal(true)}
-            className="w-full md:w-auto px-10 py-5 bg-rose-600 text-white rounded-[22px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
+            className="w-full md:w-auto px-6 md:px-10 py-4 md:py-5 bg-rose-600 text-white rounded-xl md:rounded-[22px] font-black uppercase text-[10px] md:text-xs tracking-[0.2em] shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
           >
-            Abrir Caja para {selectedDate}
+            Abrir Caja
           </button>
         </div>
       )}
@@ -517,45 +511,45 @@ export const CajaView: React.FC = () => {
       )}
 
       {/* Daily Summary Compact */}
-      <div className="flex flex-col xl:flex-row gap-4 opacity-100 transition-opacity">
-        <div className={`flex-1 bg-white rounded-3xl p-6 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-          <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-50 rounded-full blur-2xl -translate-y-8 -translate-x-8" />
+      <div className="flex flex-col xl:flex-row gap-3 md:gap-4 opacity-100 transition-opacity">
+        <div className={`flex-1 bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-4 md:gap-6 relative overflow-hidden ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+          <div className="absolute top-0 left-0 w-20 h-20 md:w-24 md:h-24 bg-emerald-50 rounded-full blur-2xl -translate-y-8 -translate-x-8" />
           <div className="shrink-0 relative z-10">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-1">Caja Real del Día</p>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-display font-bold text-emerald-600">S/</span>
-              <span className="text-4xl font-display font-bold text-slate-900 tracking-tighter">{totalRecaudado.toFixed(2)}</span>
+            <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-0.5 md:mb-1">Caja Real</p>
+            <div className="flex items-baseline gap-1 md:gap-1.5">
+              <span className="text-lg md:text-xl font-display font-bold text-emerald-600">S/</span>
+              <span className="text-3xl md:text-4xl font-display font-bold text-slate-900 tracking-tighter">{totalRecaudado.toFixed(2)}</span>
             </div>
           </div>
           
-          <div className="h-px md:h-12 w-full md:w-px bg-slate-100 shrink-0" />
+          <div className="h-px md:h-10 w-full md:w-px bg-slate-100 shrink-0" />
 
-          <div className="flex flex-wrap items-center gap-6 relative z-10">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6 relative z-10">
             <div className="flex flex-col">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Efectivo</p>
-              <p className="font-display font-bold text-slate-800 text-lg">S/ {totalEfectivo.toFixed(2)}</p>
+              <p className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Efectivo</p>
+              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {totalEfectivo.toFixed(2)}</p>
             </div>
             <div className="flex flex-col">
-              <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest mb-1">Yape</p>
-              <p className="font-display font-bold text-slate-800 text-lg">S/ {totalYape.toFixed(2)}</p>
+              <p className="text-[7px] md:text-[8px] font-black text-brand-500 uppercase tracking-widest mb-0.5">Yape</p>
+              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {totalYape.toFixed(2)}</p>
             </div>
             <div className="flex flex-col">
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Depósitos/Créditos</p>
-              <p className="font-display font-bold text-slate-800 text-lg">S/ {totalCustomerPayments.toFixed(2)}</p>
+              <p className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Cobros</p>
+              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {totalCustomerPayments.toFixed(2)}</p>
             </div>
           </div>
         </div>
 
-        <div className={`xl:w-[400px] bg-slate-50 rounded-3xl p-5 border border-slate-200 flex flex-col soft-shadow-sm h-[100px] md:h-auto max-h-[160px] ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">Flujo Reciente</p>
-          <div className="space-y-2 overflow-y-auto no-scrollbar">
+        <div className={`xl:w-[400px] bg-slate-50 rounded-2xl md:rounded-3xl p-4 md:p-5 border border-slate-200 flex flex-col soft-shadow-sm max-h-[140px] md:max-h-[160px] ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+          <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 md:mb-3">Flujo Reciente</p>
+          <div className="space-y-1.5 md:space-y-2 overflow-y-auto no-scrollbar">
             {customerPaymentsToday.length === 0 ? (
-              <p className="text-[9px] text-slate-400 font-bold uppercase py-2">Sin actividad reciente</p>
+              <p className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase py-1">Sin actividad</p>
             ) : (
               customerPaymentsToday.map((t, idx) => (
-                <div key={idx} className="flex justify-between items-center bg-white/50 px-3 py-2 rounded-xl border border-white transition-colors">
-                  <p className="text-[10px] font-bold text-slate-700 truncate max-w-[150px] uppercase">{t.cliente}</p>
-                  <p className="text-[11px] font-display font-bold text-emerald-600">+S/ {t.monto.toFixed(2)}</p>
+                <div key={idx} className="flex justify-between items-center bg-white/50 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg md:rounded-xl border border-white transition-colors">
+                  <p className="text-[9px] md:text-[10px] font-bold text-slate-700 truncate max-w-[120px] md:max-w-[150px] uppercase">{t.cliente}</p>
+                  <p className="text-[10px] md:text-[11px] font-display font-bold text-emerald-600">+S/ {t.monto.toFixed(2)}</p>
                 </div>
               ))
             )}
@@ -604,113 +598,108 @@ export const CajaView: React.FC = () => {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {openOrders.map((order) => {
               const isReadyToPay = order.items.every(i => i.estado === 'SERVIDO');
+              const totalPaid = (order.pagos || []).reduce((acc, p) => acc + p.monto, 0);
+              const balance = Math.max(0, order.total - totalPaid);
 
               return (
                 <div
                   key={order.id}
-                  className={`bg-white rounded-[24px] p-5 shadow-sm border transition-all duration-300 relative overflow-hidden ${
+                  className={`bg-white rounded-[24px] p-3 md:p-4 shadow-sm border transition-all duration-300 relative overflow-hidden ${
                     isReadyToPay 
                       ? 'border-emerald-200 ring-4 ring-emerald-100/10 shadow-lg' 
                       : 'border-slate-100'
-                  } flex flex-col sm:flex-row gap-5 lg:flex-col xl:flex-row`}
+                  } flex flex-col sm:flex-row gap-3 lg:flex-col xl:flex-row`}
                 >
                   {/* Visual Status Indicator */}
                   {!isReadyToPay && (
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-200" />
+                    <div className="absolute top-0 left-0 w-1 h-full bg-slate-200" />
                   )}
                   {isReadyToPay && (
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
+                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
                   )}
 
                   {/* Order Info & Total */}
-                  <div className="flex flex-col justify-between gap-4 min-w-[140px] shrink-0">
+                  <div className="flex flex-col justify-between gap-2 min-w-[130px] shrink-0">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-slate-900 text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-[0.15em]">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="bg-slate-900 text-white px-1.5 py-0.5 rounded-lg text-[7px] font-black uppercase tracking-[0.15em]">
                           #{order.id.split('-').pop()}
                         </span>
                         {isReadyToPay ? (
-                          <span className="text-[8px] font-black text-emerald-600 uppercase">Listo</span>
+                          <span className="text-[7px] font-black text-emerald-600 uppercase">Listo</span>
                         ) : (
-                          <span className="text-[8px] font-black text-amber-500 uppercase">Cocina</span>
+                          <span className="text-[7px] font-black text-amber-500 uppercase">Cocina</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mb-2">
-                         <div className="w-9 h-9 bg-brand-50 rounded-xl flex items-center justify-center border border-brand-100 shrink-0">
-                            <span className="font-display font-bold text-brand-600 text-sm">
-                              {order.mesaId === '13' ? 'PL' : order.mesaId}
+                      <div className="flex items-center gap-2 mb-1.5">
+                         <div className="w-8 h-8 bg-brand-50 rounded-xl flex items-center justify-center border border-brand-100 shrink-0">
+                            <span className={`font-display font-bold text-brand-600 ${order.mesaId === '13' ? 'text-[7px] leading-tight px-0.5 text-center' : 'text-xs'}`}>
+                              {order.mesaId === '13' ? 'Para Llevar' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
                             </span>
                          </div>
                          <div className="flex flex-col min-w-0">
-                            <h3 className="font-display font-bold text-slate-900 text-base uppercase leading-tight truncate max-w-[120px]">{order.cliente}</h3>
-                            <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest leading-none my-1">Mesero: {order.usuarioNombre || 'Desconocido'}</p>
+                            <h3 className="font-display font-bold text-slate-900 text-sm uppercase leading-tight truncate max-w-[110px]">{order.cliente}</h3>
+                            <p className="text-[7px] font-black text-brand-500 uppercase tracking-widest leading-none my-0.5">Mesero: {order.usuarioNombre || 'Desconocido'}</p>
                             <button 
                               onClick={() => {
                                 if (isCashClosed) return;
                                 setEditingOrderId(order.id);
                               }}
                               disabled={isCashClosed}
-                              className={`flex items-center gap-1 text-[8px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors ${
+                              className={`flex items-center gap-0.5 text-[7px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors ${
                                 isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
                               }`}
                             >
-                              <Edit2 className="w-2.5 h-2.5" /> Editar pedido
+                              <Edit2 className="w-2 h-2" /> Editar
                             </button>
                          </div>
                       </div>
                     </div>
 
                     <div>
-                       <div className="flex justify-between items-end mb-1">
-                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total: S/ {order.total.toFixed(2)}</p>
-                         {(() => {
-                           const paid = (order.pagos || []).reduce((acc, p) => acc + p.monto, 0);
-                           if (paid > 0) return <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Pagado: S/ {paid.toFixed(2)}</p>;
-                           return null;
-                         })()}
+                       <div className="flex justify-between items-end mb-0.5">
+                         <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Total: S/ {order.total.toFixed(2)}</p>
+                         {totalPaid > 0 && <p className="text-[7px] font-black text-emerald-500 uppercase tracking-widest">Pagado: S/ {totalPaid.toFixed(2)}</p>}
                        </div>
                        <div className="flex items-baseline gap-1">
-                          <span className="text-base font-display font-bold text-emerald-600">S/</span>
-                          <p className="text-3xl font-display font-bold text-slate-900 tracking-tighter leading-none">
-                            {(() => {
-                              const paid = (order.pagos || []).reduce((acc, p) => acc + p.monto, 0);
-                              return Math.max(0, order.total - paid).toFixed(2);
-                            })()}
+                          <span className="text-sm font-display font-bold text-emerald-600">S/</span>
+                          <p className="text-2xl font-display font-bold text-slate-900 tracking-tighter leading-none">
+                            {balance.toFixed(2)}
                           </p>
                        </div>
-                       <p className="text-[7px] font-bold text-slate-400 uppercase mt-1 tracking-tighter">Saldo Pendiente</p>
+                       <p className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Saldo Pendiente</p>
                     </div>
                   </div>
 
                   {/* Compact Detail Panel */}
-                  <div className="flex-1 bg-slate-50/50 rounded-xl p-3 border border-slate-100 flex flex-col">
-                    <div className="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-100">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                  <div className="flex-1 bg-slate-50/50 rounded-xl p-2.5 border border-slate-100 flex flex-col min-h-[80px]">
+                    <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-slate-100">
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
                         Consumo • {order.items.length} Platos
                       </p>
                       
                       {/* Historial de pagos parciales */}
                       <div className="flex gap-1 overflow-x-auto no-scrollbar ml-2">
                         {(order.pagos || []).map((p, i) => (
-                          <span key={p.id} className="text-[7px] font-black bg-white border border-slate-200 px-1.5 py-0.5 rounded-md text-slate-500 uppercase whitespace-nowrap">
+                          <span key={p.id} className="text-[6px] font-black bg-white border border-slate-200 px-1 py-0.5 rounded-md text-slate-500 uppercase whitespace-nowrap">
                             {p.metodo === 'EFECTIVO' ? 'EF' : p.metodo === 'YAPE' ? 'YP' : 'FI'}: {p.monto.toFixed(1)}
                           </span>
                         ))}
                       </div>
                     </div>
                     
-                    <div className="space-y-1.5 overflow-y-auto max-h-[85px] pr-2 no-scrollbar">
+                    <div className="space-y-1 overflow-y-auto max-h-[100px] pr-1.5 no-scrollbar">
                       {order.items.map((item) => {
                         const p = products.find(prod => prod.id === item.productoId);
                         return (
-                          <div key={item.id} className="flex justify-between items-center text-[9px] py-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="w-5 h-5 rounded-lg bg-white shadow-sm flex items-center justify-center text-[8px] font-black text-slate-500 shrink-0">{item.cantidad}</span>
-                              <span className="font-bold text-slate-700 uppercase tracking-tight truncate max-w-[100px]">
+                          <div key={item.id} className="flex justify-between items-center text-[8px] py-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-4 h-4 rounded-lg bg-white shadow-sm flex items-center justify-center text-[7px] font-black text-slate-500 shrink-0">{item.cantidad}</span>
+                              <span className="font-bold text-slate-700 uppercase tracking-tight truncate max-w-[90px]">
                                 {p?.nombre}
                               </span>
                             </div>
-                            <span className="font-mono text-slate-400 text-[9px] tabular-nums">
+                            <span className="font-mono text-slate-400 text-[8px] tabular-nums">
                               {(item.cantidad * item.precioUnitario).toFixed(2)}
                             </span>
                           </div>
@@ -720,63 +709,83 @@ export const CajaView: React.FC = () => {
                   </div>
 
                   {/* Highly Compact Actions */}
-                  <div className="flex flex-col gap-2 min-w-[160px] justify-center pt-2">
+                  <div className="flex flex-col gap-1.5 min-w-[150px] justify-center">
                     <div className="flex flex-col gap-1 px-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Monto a pagar</label>
+                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Monto a pagar</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">S/</span>
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400">S/</span>
                         <input 
                           type="number"
                           step="0.1"
                           placeholder="0.00"
-                          className="w-full bg-slate-100 border border-slate-200 rounded-lg py-1.5 pl-7 pr-2 text-xs font-bold outline-none focus:border-brand-400 focus:bg-white transition-all"
-                          value={partialAmounts[order.id] ?? (order.total - (order.pagos || []).reduce((acc, p) => acc + p.monto, 0)).toFixed(2)}
-                          onChange={(e) => setPartialAmounts(prev => ({ ...prev, [order.id]: e.target.value }))}
+                          className="w-full bg-slate-100 border border-slate-200 rounded-lg py-1 pl-6 pr-2 text-[11px] font-bold outline-none focus:border-brand-400 focus:bg-white transition-all"
+                          value={partialAmounts[order.id] ?? balance.toFixed(2)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              setPartialAmounts(prev => ({ ...prev, [order.id]: '' }));
+                              return;
+                            }
+                            const numVal = parseFloat(val);
+                            if (numVal > balance) {
+                              setPartialAmounts(prev => ({ ...prev, [order.id]: balance.toFixed(2) }));
+                            } else {
+                              setPartialAmounts(prev => ({ ...prev, [order.id]: val }));
+                            }
+                          }}
                         />
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        const amount = parseFloat(partialAmounts[order.id] || (order.total - (order.pagos || []).reduce((acc, p) => acc + p.monto, 0)).toString());
-                        if (amount > 0) {
-                          payOrder(order.id, 'EFECTIVO', amount);
-                          setPartialAmounts(prev => ({ ...prev, [order.id]: '' }));
-                        }
-                      }}
-                      disabled={!isReadyToPay}
-                      className={`group relative flex items-center justify-between px-3 py-2 rounded-xl transition-all active:scale-95 border-2 ${
-                        isReadyToPay 
-                          ? 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600' 
-                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
-                      }`}
-                    >
-                      <span className="text-[9px] font-black uppercase tracking-[0.1em]">Efectivo</span>
-                      <div className={`w-4 h-4 rounded-lg flex items-center justify-center transition-all ${isReadyToPay ? 'bg-white/20' : 'bg-transparent'}`}>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => {
+                          const amount = parseFloat(partialAmounts[order.id] || balance.toString());
+                          if (amount > 0) {
+                            const finalAmount = Math.min(amount, balance);
+                            payOrder(order.id, 'EFECTIVO', finalAmount);
+                            setPartialAmounts(prev => {
+                              const next = { ...prev };
+                              delete next[order.id];
+                              return next;
+                            });
+                          }
+                        }}
+                        disabled={!isReadyToPay}
+                        className={`group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all active:scale-95 border-2 ${
+                          isReadyToPay 
+                            ? 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600' 
+                            : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+                        }`}
+                      >
+                        <span className="text-[8px] font-black uppercase tracking-[0.1em]">Efectivo</span>
                         <Check className="w-2.5 h-2.5" />
-                      </div>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        const amount = parseFloat(partialAmounts[order.id] || (order.total - (order.pagos || []).reduce((acc, p) => acc + p.monto, 0)).toString());
-                        if (amount > 0) {
-                          payOrder(order.id, 'YAPE', amount);
-                          setPartialAmounts(prev => ({ ...prev, [order.id]: '' }));
-                        }
-                      }}
-                      disabled={!isReadyToPay}
-                      className={`group relative flex items-center justify-between px-3 py-2 rounded-xl transition-all active:scale-95 border-2 ${
-                        isReadyToPay 
-                          ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
-                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
-                      }`}
-                    >
-                      <span className="text-[9px] font-black uppercase tracking-[0.1em]">Via Yape</span>
-                      <div className={`w-4 h-4 rounded-lg flex items-center justify-center transition-all ${isReadyToPay ? 'bg-white/20' : 'bg-transparent'}`}>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          const amount = parseFloat(partialAmounts[order.id] || balance.toString());
+                          if (amount > 0) {
+                            const finalAmount = Math.min(amount, balance);
+                            payOrder(order.id, 'YAPE', finalAmount);
+                            setPartialAmounts(prev => {
+                              const next = { ...prev };
+                              delete next[order.id];
+                              return next;
+                            });
+                          }
+                        }}
+                        disabled={!isReadyToPay}
+                        className={`group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all active:scale-95 border-2 ${
+                          isReadyToPay 
+                            ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
+                            : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+                        }`}
+                      >
+                        <span className="text-[8px] font-black uppercase tracking-[0.1em]">Yape</span>
                         <Plus className="w-2.5 h-2.5" />
-                      </div>
-                    </button>
+                      </button>
+                    </div>
 
                     <button
                       onClick={() => setSelectingCustomerFor(order.id)}

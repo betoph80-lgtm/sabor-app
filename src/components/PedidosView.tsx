@@ -15,6 +15,7 @@ export const PedidosView: React.FC = () => {
     orders, 
     products, 
     currentMenu, 
+    mesas,
     deleteItemFromOrder, 
     updateItemQuantity, 
     addItemsToOrder, 
@@ -24,14 +25,20 @@ export const PedidosView: React.FC = () => {
     requestConfirmation,
     selectedDate,
     isTodaySelected,
-    cashControls
+    cashControls,
+    currentUser
   } = useApp();
   const [view, setView] = React.useState<'ACTIVOS' | 'HISTORIAL'>('ACTIVOS');
   const [editingOrder, setEditingOrder] = React.useState<string | null>(null);
 
   const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
+  const isMesero = currentUser?.role === 'MESERO';
 
-  const activeOrders = [...orders]
+  const filteredOrders = isMesero 
+    ? orders.filter(o => o.usuarioId === currentUser?.id)
+    : orders;
+
+  const activeOrders = [...filteredOrders]
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
     .sort((a, b) => {
       const numA = parseInt(a.id.split('-')[1] || '0');
@@ -39,7 +46,7 @@ export const PedidosView: React.FC = () => {
       return numB - numA;
     });
 
-  const paidOrders = [...orders]
+  const paidOrders = [...filteredOrders]
     .filter(o => (o.estado === 'PAGADO' || o.estado === 'CREDITO') && o.fecha === selectedDate)
     .sort((a, b) => {
       const numA = parseInt(a.id.split('-')[1] || '0');
@@ -48,18 +55,18 @@ export const PedidosView: React.FC = () => {
     });
 
   const currentOrders = view === 'ACTIVOS' ? activeOrders : paidOrders;
-  const orderToEdit = orders.find(o => o.id === editingOrder);
+  const orderToEdit = filteredOrders.find(o => o.id === editingOrder);
 
   return (
-    <div className="p-4 md:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="p-2 md:p-10 space-y-4 md:space-y-8 max-w-7xl mx-auto">
       {isCashClosed && (
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
-            <Edit2 className="w-6 h-6" />
+        <div className="bg-amber-50 border border-amber-200 p-3 md:p-4 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-100 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+            <Edit2 className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-amber-900 uppercase tracking-tight text-sm">Caja Cerrada</h3>
-            <p className="text-amber-700 text-[10px] font-medium leading-relaxed">No se pueden realizar modificaciones en esta fecha porque la caja está cerrada.</p>
+            <h3 className="font-display font-bold text-amber-900 uppercase tracking-tight text-[11px] md:text-sm">Caja Cerrada</h3>
+            <p className="text-amber-700 text-[9px] md:text-[10px] font-medium leading-relaxed">No se pueden realizar modificaciones porque la caja está cerrada.</p>
           </div>
         </div>
       )}
@@ -78,55 +85,41 @@ export const PedidosView: React.FC = () => {
           products={products}
           currentMenu={currentMenu.filter(m => m.fecha === selectedDate)}
           mesaId={orderToEdit.mesaId}
+          mesaName={mesas.find(m => m.id === orderToEdit.mesaId)?.nombre || orderToEdit.mesaId}
           initialClienteName={orderToEdit.cliente}
           title="Editar Pedido"
         />
       )}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 px-2">
-        <div className="space-y-2 text-center lg:text-left">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-slate-900 tracking-tight leading-none">
-            {view === 'ACTIVOS' ? 'Pedidos en Curso' : 'Facturación de Hoy'}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-8 px-1 md:px-2">
+        <div className="space-y-1 text-center lg:text-left">
+          <h2 className="text-2xl md:text-4xl font-display font-bold text-slate-900 tracking-tight leading-none">
+            {view === 'ACTIVOS' ? 'Servicio Activo' : 'Ventas de Hoy'}
           </h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mt-2">
-            <div className="px-4 py-1.5 bg-slate-100 rounded-full">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
-                {view === 'ACTIVOS' ? `${activeOrders.length} Mesas Activas` : `${paidOrders.length} Ventas Finalizadas`}
+          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 md:gap-4 mt-1">
+            <div className="px-3 py-1 bg-slate-100 rounded-full">
+              <p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">
+                {view === 'ACTIVOS' ? `${activeOrders.length} Mesas` : `${paidOrders.length} Cerradas`}
               </p>
             </div>
-            {view === 'HISTORIAL' && paidOrders.length > 0 && isTodaySelected && (
-              <button 
-                onClick={() => {
-                  requestConfirmation(
-                    'Eliminar Todo el Historial',
-                    '¿Desea borrar permanentemente todos los pedidos y facturas de hoy? Esta acción no se puede deshacer.',
-                    () => resetStock()
-                  );
-                }}
-                className="text-[10px] font-bold text-rose-500 uppercase tracking-widest hover:text-rose-600 transition-colors flex items-center gap-2 group"
-              >
-                <Trash2 className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
-                Desechar históricos
-              </button>
-            )}
           </div>
         </div>
 
-        <div className="flex bg-slate-100/80 p-1.5 rounded-[24px] w-full lg:w-auto soft-shadow-sm border border-slate-200/50 backdrop-blur-sm self-center lg:self-auto">
+        <div className="flex bg-slate-100/80 p-1 md:p-1.5 rounded-xl md:rounded-[24px] w-full lg:w-auto soft-shadow-sm border border-slate-200/50 backdrop-blur-sm self-center lg:self-auto">
           <button
             onClick={() => setView('ACTIVOS')}
-            className={`flex-1 lg:px-10 py-5 rounded-[22px] text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
+            className={`flex-1 lg:px-10 py-3 md:py-5 rounded-lg md:rounded-[22px] text-[10px] md:text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
               view === 'ACTIVOS' ? 'bg-white text-brand-600 soft-shadow scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            Servicio Activo
+            Activos
           </button>
           <button
             onClick={() => setView('HISTORIAL')}
-            className={`flex-1 lg:px-10 py-5 rounded-[22px] text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
+            className={`flex-1 lg:px-10 py-3 md:py-5 rounded-lg md:rounded-[22px] text-[10px] md:text-[12px] font-bold uppercase tracking-widest transition-all duration-300 ${
               view === 'HISTORIAL' ? 'bg-white text-brand-600 soft-shadow scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            Ventas Cerradas
+            Historial
           </button>
         </div>
       </div>
@@ -155,47 +148,47 @@ export const PedidosView: React.FC = () => {
                 className="bg-white rounded-[32px] border border-slate-100 p-5 soft-shadow space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-display font-bold text-base border-2 border-white soft-shadow-sm ${
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-sm border-2 border-white soft-shadow-sm shrink-0 ${
                       view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
                     }`}>
-                      {order.mesaId === '13' ? 'PL' : order.mesaId}
+                      {order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900 text-sm leading-tight">
-                        {order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`}
+                      <p className="font-bold text-slate-900 text-[13px] leading-tight">
+                        {order.mesaId === '13' ? 'Para Llevar' : (mesas.find(m => m.id === order.mesaId)?.nombre || `Mesa ${order.mesaId}`)}
                       </p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">#{order.id.split('-').pop()} • {order.usuarioNombre || 'Desconocido'}</p>
+                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">#{order.id.split('-').pop()} • {order.usuarioNombre || 'Desconocido'}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-display font-bold ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                    <p className={`text-lg font-display font-bold ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
                       S/ {order.total.toFixed(2)}
                     </p>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase">{order.hora}</p>
+                    <p className="text-[8px] text-slate-400 font-bold uppercase">{order.hora}</p>
                   </div>
                 </div>
 
-                <div className="bg-slate-50/50 rounded-2xl p-3 border border-slate-100/50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-3 h-3 text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-600 truncate">
+                <div className="bg-slate-50/50 rounded-xl p-2.5 border border-slate-100/50">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <User className="w-2.5 h-2.5 text-slate-400" />
+                    <span className="text-[9px] font-bold text-slate-600 truncate">
                       {order.cliente || 'Consumidor Final'}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1">
                     {order.items.map((item, idx) => {
                       const p = products.find(prod => prod.id === item.productoId);
                       const isServed = item.estado === 'SERVIDO' || view === 'HISTORIAL';
                       return (
                         <div 
                           key={`${order.id}-${item.id}-${idx}`}
-                          className={`text-[9px] font-bold uppercase px-2 py-1 rounded-lg flex items-center gap-1.5 border ${
+                          className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md flex items-center gap-1 border ${
                             isServed ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-slate-500 border-slate-100'
                           }`}
                         >
                           <span className="text-brand-500">{item.cantidad}x</span>
-                          <span className="max-w-[70px] truncate">{p?.nombre}</span>
+                          <span className="max-w-[60px] truncate">{p?.nombre}</span>
                         </div>
                       );
                     })}
@@ -203,7 +196,7 @@ export const PedidosView: React.FC = () => {
                 </div>
 
                 {isTodaySelected && (
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-2 pt-0.5">
                     {view === 'ACTIVOS' && (
                       <button
                         onClick={() => {
@@ -211,11 +204,11 @@ export const PedidosView: React.FC = () => {
                           setEditingOrder(order.id);
                         }}
                         disabled={isCashClosed}
-                        className={`flex-1 py-3 bg-brand-50 text-brand-600 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 ${
+                        className={`flex-1 py-2.5 bg-brand-50 text-brand-600 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 ${
                           isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
-                        <Edit2 className="w-3.5 h-3.5" /> Editar
+                        <Edit2 className="w-3 h-3" /> Editar
                       </button>
                     )}
                     <button
@@ -228,11 +221,11 @@ export const PedidosView: React.FC = () => {
                         );
                       }}
                       disabled={isCashClosed}
-                      className={`flex-1 py-3 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500'} rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 ${
+                      className={`flex-1 py-2.5 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500'} rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 ${
                         isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
-                      <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                      <Trash2 className="w-3 h-3" /> Borrar
                     </button>
                   </div>
                 )}
@@ -261,11 +254,11 @@ export const PedidosView: React.FC = () => {
                           <div className={`w-14 h-14 rounded-[22px] flex items-center justify-center font-display font-bold text-lg border-4 border-white soft-shadow-sm transition-transform group-hover:scale-105 ${
                             view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
                           }`}>
-                            {order.mesaId === '13' ? 'PL' : order.mesaId}
+                            {order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
                           </div>
                           <div>
                             <p className="font-display font-bold text-slate-900 text-base leading-tight group-hover:text-brand-700 transition-colors">
-                              {order.mesaId === '13' ? 'Para Llevar' : `Mesa N° ${order.mesaId}`}
+                              {order.mesaId === '13' ? 'Para Llevar' : (mesas.find(m => m.id === order.mesaId)?.nombre || `Mesa N° ${order.mesaId}`)}
                             </p>
                             <span className="text-[10px] text-brand-600 font-bold uppercase tracking-widest mt-1.5 inline-block bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-100">
                               PEDIDO-{order.id.split('-').pop()}

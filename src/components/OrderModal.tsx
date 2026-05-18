@@ -14,9 +14,10 @@ export const OrderModal: React.FC<{
   products: Product[];
   currentMenu: MenuItem[];
   mesaId: string;
+  mesaName: string;
   initialClienteName?: string;
   title?: string;
-}> = ({ onClose, onAdd, products, currentMenu, mesaId, initialClienteName = '', title = 'Nuevo Pedido' }) => {
+}> = ({ onClose, onAdd, products, currentMenu, mesaId, mesaName, initialClienteName = '', title = 'Nuevo Pedido' }) => {
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
   const [clienteName, setClienteName] = useState(initialClienteName);
 
@@ -55,30 +56,30 @@ export const OrderModal: React.FC<{
 
     return (
       <div
-        className={`p-4 rounded-[28px] border-2 transition-all flex flex-col justify-between soft-shadow ${
+        className={`p-3 rounded-[20px] border-2 transition-all flex flex-col justify-between soft-shadow ${
           qty > 0
             ? 'bg-brand-50 border-brand-500 ring-4 ring-brand-50/50'
             : 'bg-slate-50 border-transparent hover:bg-slate-100/80 hover:border-slate-200'
         }`}
       >
         <div className="flex justify-between items-start gap-2">
-          <div className="font-display font-bold text-slate-900 text-[13px] md:text-sm leading-tight uppercase line-clamp-2">{p.nombre}</div>
-          <div className="text-[10px] text-brand-600 font-bold bg-white px-2 py-0.5 rounded-lg soft-shadow shrink-0">S/ {p.precio}</div>
+          <div className="font-display font-bold text-slate-900 text-xs md:text-sm leading-tight uppercase line-clamp-2">{p.nombre}</div>
+          <div className="text-[10px] text-brand-600 font-bold bg-white px-1.5 py-0.5 rounded-lg soft-shadow shrink-0">S/ {p.precio}</div>
         </div>
         
-        <div className="flex items-center justify-between mt-3 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 border border-white/20 soft-shadow">
+        <div className="flex items-center justify-between mt-2 bg-white/60 backdrop-blur-sm rounded-xl p-1 border border-white/20 soft-shadow">
           <button
             onClick={() => updateQuantity(p.id, -1)}
-            className="w-12 h-12 md:w-10 md:h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-transform shadow-sm hover:text-rose-500"
+            className="w-9 h-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-transform shadow-sm hover:text-rose-500"
           >
-            <Minus className="w-5 h-5 md:w-4 md:h-4" />
+            <Minus className="w-4 h-4" />
           </button>
-          <span className="font-display font-bold text-brand-900 w-10 text-center text-lg md:text-lg">{qty}</span>
+          <span className="font-display font-bold text-brand-900 w-8 text-center text-base">{qty}</span>
           <button
             onClick={() => updateQuantity(p.id, 1)}
-            className="w-12 h-12 md:w-10 md:h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
+            className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
           >
-            <Plus className="w-5 h-5 md:w-4 md:h-4" />
+            <Plus className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -90,34 +91,34 @@ export const OrderModal: React.FC<{
       <motion.div
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white w-full max-w-2xl sm:rounded-[40px] rounded-t-[40px] p-6 pb-10 space-y-6 max-h-[95vh] overflow-auto no-scrollbar soft-shadow"
+        className="bg-white w-full max-w-2xl sm:rounded-[40px] rounded-t-[40px] p-4 sm:p-6 pb-8 space-y-4 max-h-[95vh] overflow-auto no-scrollbar soft-shadow"
       >
-        <div className="flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-20 -mx-6 px-6 pb-4 border-b border-slate-50">
+        <div className="flex justify-between items-center sticky top-0 bg-white/80 backdrop-blur-md z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 pb-3 border-b border-slate-50">
           <div>
-            <h3 className="text-2xl font-display font-bold text-slate-900 tracking-tight leading-none">{title}</h3>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-brand-600 text-[10px] font-bold uppercase tracking-[0.2em] bg-brand-50 px-2 py-0.5 rounded-full">Espacio N° {mesaId}</span>
+            <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 tracking-tight leading-none">{title}</h3>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-brand-600 text-[9px] font-bold uppercase tracking-[0.2em] bg-brand-50 px-2 py-0.5 rounded-full">{mesaName}</span>
             </div>
           </div>
-          <button onClick={onClose} className="p-3 bg-slate-50 rounded-2xl hover:bg-rose-50 hover:text-rose-500 transition-colors border border-slate-100">
-            <X className="w-6 h-6 text-slate-400" />
+          <button onClick={onClose} className="p-2 sm:p-3 bg-slate-50 rounded-xl sm:rounded-2xl hover:bg-rose-50 hover:text-rose-500 transition-colors border border-slate-100">
+            <X className="w-5 h-5 sm:w-6 h-6 text-slate-400" />
           </button>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 soft-shadow">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-brand-500 shrink-0 soft-shadow">
-                <User className="w-6 h-6" />
+        <div className="space-y-3">
+          <div className="bg-slate-50 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-slate-100 soft-shadow">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 h-12 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center text-brand-500 shrink-0 soft-shadow">
+                <User className="w-5 h-5 sm:w-6 h-6" />
               </div>
               <div className="flex-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Nombre del comensal</label>
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Nombre del comensal</label>
                 <input
                   type="text"
                   value={clienteName}
                   onChange={(e) => setClienteName(e.target.value)}
                   placeholder="Identificar pedido..."
-                  className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 px-5 font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-300 text-base"
+                  className="w-full bg-white border border-slate-100 rounded-xl sm:rounded-2xl py-3 px-4 font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-300 text-sm"
                 />
               </div>
             </div>
@@ -137,31 +138,31 @@ export const OrderModal: React.FC<{
 
             return (
               <React.Fragment key={cat}>
-                <section className="space-y-4">
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] px-1 flex items-center gap-3">
+                <section className="space-y-3">
+                  <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] px-1 flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-brand-400 shadow-sm shadow-brand-200"></div>
                     Entrada (Menú)
                   </h4>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 gap-2">
                     {soups.map(p => (
-                      <div key={p.id} className="flex items-center justify-between p-5 bg-brand-50 rounded-[28px] border border-brand-100 soft-shadow">
+                      <div key={p.id} className="flex items-center justify-between p-3 bg-brand-50 rounded-[20px] border border-brand-100 soft-shadow">
                         <div className="flex flex-col">
-                          <span className="font-display font-bold text-brand-900 uppercase tracking-tight text-lg leading-none">{p.nombre}</span>
-                          <span className="text-[10px] font-bold text-brand-500 uppercase mt-2 tracking-widest">Acompañamiento del día</span>
+                          <span className="font-display font-bold text-brand-900 uppercase tracking-tight text-base leading-none">{p.nombre}</span>
+                          <span className="text-[9px] font-bold text-brand-500 uppercase mt-1 tracking-widest">Entrada del día</span>
                         </div>
-                        <div className="flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-2 soft-shadow border border-white/40">
+                        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl p-1 soft-shadow border border-white/40">
                           <button
                             onClick={() => updateQuantity(p.id, -1)}
-                            className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
+                            className="w-9 h-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
                           >
-                            <Minus className="w-5 h-5" />
+                            <Minus className="w-4 h-4" />
                           </button>
-                          <span className="font-display font-bold text-brand-900 w-10 text-center text-2xl">{quantities[p.id] || 0}</span>
+                          <span className="font-display font-bold text-brand-900 w-8 text-center text-xl">{quantities[p.id] || 0}</span>
                           <button
                             onClick={() => updateQuantity(p.id, 1)}
-                            className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow"
+                            className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow"
                           >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -195,11 +196,11 @@ export const OrderModal: React.FC<{
           );
         })}
 
-        <div className="sticky bottom-0 bg-white/90 backdrop-blur-md pt-6 -mx-6 px-6 mt-4 border-t border-slate-50 pb-2 z-20">
+        <div className="sticky bottom-0 bg-white/90 backdrop-blur-md pt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 mt-2 border-t border-slate-50 pb-2 z-20">
           <button
             onClick={handleAdd}
             disabled={!canConfirm}
-            className="w-full py-5 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-[24px] soft-shadow disabled:opacity-20 disabled:grayscale transition-all active:scale-95 hover:bg-slate-800"
+            className="w-full py-4 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-[20px] soft-shadow disabled:opacity-20 disabled:grayscale transition-all active:scale-95 hover:bg-slate-800"
           >
             {totalSelected > 0 ? `Confirmar ${totalSelected} Items Seleccionados` : 'Actualizar Información'}
           </button>

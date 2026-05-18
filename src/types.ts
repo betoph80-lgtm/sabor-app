@@ -77,6 +77,8 @@ export interface OrderItem {
   notas?: string;
   horaPedido: string;
   timestampPedido: number;
+  usuarioId?: string;
+  usuarioNombre?: string;
 }
 
 export interface Payment {
@@ -146,4 +148,4 @@ export const MESAS: Mesa[] = Array.from({ length: 12 }, (_, i) => ({
   estado: 'LIBRE',
 }));
 
-MESAS.push({ id: '13', nombre: 'Para llevar', estado: 'LIBRE' });
+MESAS.push({ id: '13', nombre: 'Para Llevar', estado: 'LIBRE' });

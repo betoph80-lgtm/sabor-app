@@ -199,7 +199,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (snapshot.empty && isTodaySelected) {
         ['MENÚ', 'EXTRA', 'BEBIDA'].forEach(c => addDoc(collection(db, 'categorias'), { nombre: c }));
       } else {
-        setCategories(snapshot.docs.map(doc => doc.data().nombre));
+        const uniqueCategories = Array.from(new Set(snapshot.docs.map(doc => doc.data().nombre)));
+        setCategories(uniqueCategories);
       }
     });
 
@@ -318,6 +319,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           estado: 'PEDIDO',
           horaPedido: new Date().toLocaleTimeString(),
           timestampPedido: Date.now(),
+          usuarioId: currentUser?.id || 'unknown',
+          usuarioNombre: currentUser?.nombre || 'Desconocido',
           ...item
         }));
 
@@ -651,6 +654,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       estado: 'PEDIDO',
       horaPedido: new Date().toLocaleTimeString(),
       timestampPedido: Date.now(),
+      usuarioId: currentUser?.id || 'unknown',
+      usuarioNombre: currentUser?.nombre || 'Desconocido',
       ...item
     }));
 
