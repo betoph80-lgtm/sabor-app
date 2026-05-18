@@ -35,6 +35,7 @@ export interface CustomerTransaction {
   tipo: TransactionType;
   monto: number; // Positivo para depósitos/pagos, negativo para consumos (o manejar con tipo)
   descripcion: string;
+  metodoPago?: 'EFECTIVO' | 'YAPE';
   orderId?: string;
 }
 
@@ -102,6 +103,8 @@ export interface DailyCashControl {
   ingresosYape: number;
   ingresosFiar: number; // Créditos otorgados hoy
   montoCierre: number;
+  efectivoFisico?: number;
+  diferencia?: number;
   estado: CashControlStatus;
   horaApertura: string;
   horaCierre?: string;

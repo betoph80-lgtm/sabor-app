@@ -9,7 +9,7 @@ import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, 
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { activeView, setActiveView, orders, currentMenu, products, selectedDate, setSelectedDate, logout, currentUser } = useApp();
+  const { activeView, setActiveView, orders, currentMenu, products, customers, currentCash, selectedDate, setSelectedDate, logout, currentUser } = useApp();
   
   const formatDate = (date: Date) => {
     const d = date.getDate();
@@ -47,7 +47,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Calculate stats for sidebar
   const activeOrdersCount = orders.filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate).length;
-  const totalRevenue = orders.filter(o => o.estado === 'PAGADO' && o.fecha === selectedDate).reduce((acc, o) => acc + o.total, 0);
+  
+  // CAJA TOTAL = (Efectivo Ventas + Efectivo Cobros) + (Yape Ventas + Yape Cobros) + Base
+  const allPaymentsToday = orders
+    .filter(o => o.fecha === selectedDate)
+    .flatMap(o => o.pagos || []);
+
+  const totalSalesEfAndYp = allPaymentsToday
+    .filter(p => p.metodo === 'EFECTIVO' || p.metodo === 'YAPE')
+    .reduce((acc, p) => acc + p.monto, 0);
+  
+  const customerPaymentsTodayRaw = customers.flatMap(c => 
+    c.historial.filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
+  );
+
+  const totalCobrosEfAndYp = customerPaymentsTodayRaw
+    .filter(t => t.metodoPago === 'EFECTIVO' || t.metodoPago === 'YAPE')
+    .reduce((acc, t) => acc + t.monto, 0);
+
+  const baseCaja = currentCash?.montoApertura || 0;
+  
+  const cajaTotalGlobal = totalSalesEfAndYp + totalCobrosEfAndYp + baseCaja;
+  
+  const cajaEfectivoOnly = allPaymentsToday.filter(p => p.metodo === 'EFECTIVO').reduce((acc, p) => acc + p.monto, 0) + 
+                           customerPaymentsTodayRaw.filter(t => t.metodoPago === 'EFECTIVO').reduce((acc, t) => acc + t.monto, 0) + 
+                           baseCaja;
   
   // Calculate stock summaries
   const dailyMenu = currentMenu.filter(m => m.fecha === selectedDate);
@@ -187,11 +211,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </section>
 
-          <section className="mt-auto">
-            <div className="bg-violet-50/50 p-6 rounded-[32px] border border-violet-100/50 shadow-sm">
-              <p className="text-[10px] text-violet-600 font-bold uppercase mb-2 tracking-widest">Caja Total</p>
-              <p className="text-4xl font-display font-bold text-violet-800 tracking-tight leading-none">S/ {totalRevenue.toFixed(2)}</p>
-              <p className="text-[10px] text-violet-400 mt-3 font-medium opacity-80">Cierre sincronizado</p>
+          <section className="mt-auto space-y-4">
+            <div className="bg-violet-50/50 p-6 rounded-[32px] border border-violet-100/50 shadow-sm relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-20 h-20 bg-violet-200/20 rounded-full blur-2xl -translate-y-10 translate-x-10 group-hover:bg-violet-300/30 transition-colors" />
+              <p className="text-[10px] text-violet-600 font-bold uppercase mb-2 tracking-widest relative z-10">Caja Total</p>
+              <p className="text-4xl font-display font-bold text-violet-800 tracking-tight leading-none relative z-10">S/ {cajaTotalGlobal.toFixed(2)}</p>
+              <p className="text-[8px] text-violet-400 mt-2 font-black uppercase tracking-widest relative z-10">EFECTIVO + YAPE + BASE</p>
+            </div>
+
+            <div className="bg-emerald-50/30 p-5 rounded-[28px] border border-emerald-100/50 shadow-sm">
+              <p className="text-[9px] text-emerald-600 font-bold uppercase mb-1.5 tracking-widest">Caja Real (Efectivo)</p>
+              <p className="text-2xl font-display font-bold text-slate-800 tracking-tight leading-none">S/ {cajaEfectivoOnly.toFixed(2)}</p>
+              <p className="text-[8px] text-slate-400 mt-1 font-bold uppercase">Solo para cuadre</p>
             </div>
           </section>
         </aside>

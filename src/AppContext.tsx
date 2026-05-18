@@ -88,9 +88,11 @@ interface AppContextType {
   updateCustomer: (id: string, customer: Partial<Omit<Customer, 'id' | 'saldo' | 'historial'>>) => void;
   deleteCustomer: (id: string) => void;
   addTransaction: (customerId: string, transaction: Omit<CustomerTransaction, 'id' | 'fecha' | 'hora'>) => void;
+  deleteTransaction: (customerId: string, transactionId: string) => void;
+  updateTransaction: (customerId: string, transactionId: string, updates: Partial<CustomerTransaction>) => void;
   cashControls: DailyCashControl[];
   openCash: (montoApertura: number) => void;
-  closeCash: () => void;
+  closeCash: (efectivoFisico: number) => void;
   reopenCash: () => void;
   currentCash: DailyCashControl | undefined;
   confirmAction: {
@@ -439,7 +441,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDoc(doc(db, 'control_caja', id), newControl);
   };
 
-  const closeCash = () => {
+  const closeCash = (efectivoFisico: number) => {
     if (!currentCash || currentCash.estado !== 'ABIERTA') return;
 
     // Verificar si hay órdenes abiertas para la fecha seleccionada
@@ -449,17 +451,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    requestConfirmation(
-      'Cerrar Caja',
-      `¿Estás seguro de cerrar la caja de hoy?`,
-      () => {
-        updateDoc(doc(db, 'control_caja', currentCash.id), {
-          estado: 'CERRADA',
-          horaCierre: new Date().toLocaleTimeString(),
-          montoCierre: currentCash.montoApertura + currentCash.ingresosEfectivo + currentCash.ingresosYape
-        });
-      }
+    // Recalcular montos desde el estado actual para evitar desincronizaciones
+    const allPaymentsToday = orders
+      .filter(o => o.fecha === selectedDate)
+      .flatMap(o => o.pagos || []);
+
+    const efectivoVentas = allPaymentsToday
+      .filter(p => p.metodo === 'EFECTIVO')
+      .reduce((acc, p) => acc + p.monto, 0);
+
+    const yapeVentas = allPaymentsToday
+      .filter(p => p.metodo === 'YAPE')
+      .reduce((acc, p) => acc + p.monto, 0);
+
+    const fiarVentas = allPaymentsToday
+      .filter(p => p.metodo === 'CREDITO')
+      .reduce((acc, p) => acc + p.monto, 0);
+
+    const customerPaymentsTodayRaw = customers.flatMap(c => 
+      c.historial.filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
     );
+
+    const efectivoCobros = customerPaymentsTodayRaw
+      .filter(t => t.metodoPago === 'EFECTIVO')
+      .reduce((acc, t) => acc + t.monto, 0);
+
+    const yapeCobros = customerPaymentsTodayRaw
+      .filter(t => t.metodoPago === 'YAPE')
+      .reduce((acc, t) => acc + t.monto, 0);
+
+    // CAJA TOTAL = Ventas (Ef + Yp + Fi) + Cobros (Ef + Yp) + Base
+    // Pero el usuario dice: CAJA REAL SISTEMA (EFECTIVO) = Venta Ef + Cobro Ef + Base
+    
+    const finalIngresosEfectivo = efectivoVentas + efectivoCobros;
+    const finalIngresosYape = yapeVentas + yapeCobros;
+    const finalIngresosFiar = fiarVentas;
+
+    const esperadoEfectivo = currentCash.montoApertura + finalIngresosEfectivo;
+    const diferenciaValue = efectivoFisico - esperadoEfectivo;
+
+    updateDoc(doc(db, 'control_caja', currentCash.id), {
+      estado: 'CERRADA',
+      horaCierre: new Date().toLocaleTimeString(),
+      ingresosEfectivo: finalIngresosEfectivo,
+      ingresosYape: finalIngresosYape,
+      ingresosFiar: finalIngresosFiar,
+      montoCierre: esperadoEfectivo + finalIngresosYape, // Total sistema (Ef + Yp + Base)
+      efectivoFisico: efectivoFisico,
+      diferencia: diferenciaValue
+    });
   };
 
   const reopenCash = () => {
@@ -509,9 +549,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: Date.now()
     };
 
-    updateDoc(doc(db, 'clientes', customerId), {
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'clientes', customerId), {
       saldo: customer.saldo + newT.monto,
       historial: [newT, ...customer.historial]
+    });
+
+    // Update cash control if it's a deposit or payment and there's an open cash register
+    if (currentCash && currentCash.estado === 'ABIERTA' && (newT.tipo === 'DEPOSITO' || newT.tipo === 'PAGO_CREDITO') && newT.metodoPago) {
+      batch.update(doc(db, 'control_caja', currentCash.id), {
+        ingresosEfectivo: currentCash.ingresosEfectivo + (newT.metodoPago === 'EFECTIVO' ? newT.monto : 0),
+        ingresosYape: currentCash.ingresosYape + (newT.metodoPago === 'YAPE' ? newT.monto : 0),
+      });
+    }
+
+    batch.commit().catch(err => handleFirestoreError(err, OperationType.UPDATE, 'clientes'));
+  };
+
+  const deleteTransaction = (customerId: string, transactionId: string) => {
+    const customer = customers.find(c => c.id === customerId);
+    if (!customer) return;
+
+    const newHistorial = customer.historial.filter(t => t.id !== transactionId);
+    const newSaldo = newHistorial.reduce((acc, t) => acc + t.monto, 0);
+
+    updateDoc(doc(db, 'clientes', customerId), {
+      saldo: newSaldo,
+      historial: newHistorial
+    });
+  };
+
+  const updateTransaction = (customerId: string, transactionId: string, updates: Partial<CustomerTransaction>) => {
+    const customer = customers.find(c => c.id === customerId);
+    if (!customer) return;
+
+    const newHistorial = customer.historial.map(t => t.id === transactionId ? { ...t, ...updates } : t);
+    const newSaldo = newHistorial.reduce((acc, t) => acc + t.monto, 0);
+
+    updateDoc(doc(db, 'clientes', customerId), {
+      saldo: newSaldo,
+      historial: newHistorial
     });
   };
 
@@ -748,6 +825,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Reset menu items
     currentMenu.forEach(m => batch.update(doc(db, 'menu_diario', m.id), { stockActual: m.stockInicial }));
 
+    // Reset customer history for today (specifically CONSUMO according to user)
+    customers.forEach(customer => {
+      const todayConsumos = customer.historial.filter(t => t.fecha === selectedDate && t.tipo === 'CONSUMO');
+      if (todayConsumos.length > 0) {
+        const newHistorial = customer.historial.filter(t => t.fecha !== selectedDate || t.tipo !== 'CONSUMO');
+        const newSaldo = newHistorial.reduce((acc, t) => acc + t.monto, 0);
+        batch.update(doc(db, 'clientes', customer.id), {
+          historial: newHistorial,
+          saldo: newSaldo
+        });
+      }
+    });
+
     await batch.commit();
   };
 
@@ -809,7 +899,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addAppUser, updateAppUser, deleteAppUser,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
       createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, deleteMesa, toggleProductInMenu,
-      customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction,
+      customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction,
       cashControls, openCash, closeCash, reopenCash, currentCash,
       confirmAction, requestConfirmation, closeConfirmation,
       selectedDate, setSelectedDate, isTodaySelected,

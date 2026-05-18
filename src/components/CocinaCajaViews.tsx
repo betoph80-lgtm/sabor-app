@@ -200,13 +200,13 @@ export const CocinaView: React.FC = () => {
                 );
               })()}
 
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 {items.map((item) => {
                   const product = products.find(p => p.id === item.productoId);
                   const isSoup = product?.tipo === 'SOPA';
                   
                   return (
-                    <div key={item.id} className="flex items-center justify-between group py-1 border-b border-slate-50 last:border-0 pb-3 last:pb-1">
+                    <div key={item.id} className="flex items-center justify-between group py-0.5 border-b border-slate-50 last:border-0 pb-2 last:pb-0.5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${
                           isSoup ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-brand-50 text-brand-600 border border-brand-100'
@@ -266,6 +266,9 @@ export const CajaView: React.FC = () => {
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [openingAmount, setOpeningAmount] = useState('0');
 
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [cashCounted, setCashCounted] = useState('');
+
   const openOrders = [...orders]
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.items.every(i => i.estado === 'SERVIDO'))
     .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -274,31 +277,36 @@ export const CajaView: React.FC = () => {
     .filter(o => o.fecha === selectedDate)
     .flatMap(o => o.pagos || []);
 
-  const totalEfectivo = allPaymentsToday
+  const totalEfectivoVentas = allPaymentsToday
     .filter(p => p.metodo === 'EFECTIVO')
     .reduce((acc, p) => acc + p.monto, 0);
 
-  const totalYape = allPaymentsToday
+  const totalYapeVentas = allPaymentsToday
     .filter(p => p.metodo === 'YAPE')
     .reduce((acc, p) => acc + p.monto, 0);
 
-  const totalDirecto = totalEfectivo + totalYape;
-
   // Calcular cobros a clientes hoy (Depósitos y Pagos de crédito)
-  const customerPaymentsToday = customers.flatMap(c => 
+  const customerPaymentsTodayRaw = customers.flatMap(c => 
     c.historial
       .filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
       .map(t => ({ ...t, cliente: c.nombre }))
   );
   
-  // Also count partial payments made via CREDITO today
-  const partialCreditPaymentsToday = allPaymentsToday
-    .filter(p => p.metodo === 'CREDITO')
-    .reduce((acc, p) => acc + p.monto, 0);
+  const totalEfectivoCobros = customerPaymentsTodayRaw
+    .filter(t => t.metodoPago === 'EFECTIVO')
+    .reduce((acc, t) => acc + t.monto, 0);
+    
+  const totalYapeCobros = customerPaymentsTodayRaw
+    .filter(t => t.metodoPago === 'YAPE')
+    .reduce((acc, t) => acc + t.monto, 0);
 
-  const totalCustomerPayments = customerPaymentsToday.reduce((acc, t) => acc + t.monto, 0) + partialCreditPaymentsToday;
-
-  const totalRecaudado = totalDirecto + totalCustomerPayments;
+  const baseCaja = currentCash?.montoApertura || 0;
+  
+  // CAJA TOTAL = (Efectivo Ventas + Efectivo Cobros) + (Yape Ventas + Yape Cobros) + Base
+  const totalCajaGlobal = totalEfectivoVentas + totalYapeVentas + totalEfectivoCobros + totalYapeCobros + baseCaja;
+  
+  // CAJA REAL (Efectivo) = (Efectivo Ventas + Efectivo Cobros) + Base
+  const totalCajaEfectivo = totalEfectivoVentas + totalEfectivoCobros + baseCaja;
 
   const exportFullDatabaseExcel = () => {
     const workbook = XLSX.utils.book_new();
@@ -364,7 +372,25 @@ export const CajaView: React.FC = () => {
     })));
     XLSX.utils.book_append_sheet(workbook, clientSheet, "Base Clientes");
 
-    // 5. Menu/Productos
+    // 5. Movimientos de Cuentas (Solo hoy)
+    const movementsToday = customers.flatMap(c => 
+      c.historial
+        .filter(t => t.fecha === selectedDate)
+        .map(t => ({
+          'FECHA': t.fecha,
+          'HORA': t.hora,
+          'CLIENTE': c.nombre,
+          'TIPO': t.tipo,
+          'DESCRIPCION': t.descripcion,
+          'METODO': t.metodoPago || '-',
+          'MONTO': t.monto
+        }))
+    ).sort((a, b) => a.HORA.localeCompare(b.HORA));
+    
+    const movementSheet = XLSX.utils.json_to_sheet(movementsToday);
+    XLSX.utils.book_append_sheet(workbook, movementSheet, "Movimientos Cuentas");
+
+    // 6. Menu/Productos
     const productSheet = XLSX.utils.json_to_sheet(products.map(p => ({
       'CATEGORIA': p.categoria,
       'PRODUCTO': p.nombre,
@@ -424,17 +450,10 @@ export const CajaView: React.FC = () => {
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button 
             onClick={exportFullDatabaseExcel}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-black uppercase text-[9px] tracking-[0.1em] hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-100"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.1em] hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-100/50 group"
           >
-            <Download className="w-3.5 h-3.5" />
-            Excel
-          </button>
-          <button 
-            onClick={exportFullDatabaseExcel}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-400 text-white rounded-xl font-black uppercase text-[9px] tracking-[0.1em] hover:bg-brand-500 transition-all active:scale-95 shadow-lg shadow-brand-100"
-          >
-            <Timer className="w-3.5 h-3.5" />
-            Reporte
+            <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            Descargar Excel Completo
           </button>
         </div>
       </div>
@@ -472,11 +491,36 @@ export const CajaView: React.FC = () => {
             </div>
           </div>
           <button 
-            onClick={() => closeCash()}
+            onClick={() => {
+              setCashCounted(totalCajaEfectivo.toFixed(2));
+              setShowCloseModal(true);
+            }}
             className="w-full md:w-auto px-6 py-3 bg-slate-900 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-black transition-all active:scale-95"
           >
             Cerrar Caja Final
           </button>
+        </div>
+      )}
+
+      {currentCash && currentCash.estado === 'CERRADA' && currentCash.efectivoFisico !== undefined && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2 animate-in fade-in slide-in-from-top-2 duration-700">
+          <div className="bg-white p-5 rounded-2xl md:rounded-[32px] border border-slate-100 flex flex-col items-center text-center soft-shadow-sm">
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Efectivo Sistema</p>
+            <p className="font-display font-bold text-slate-700 text-2xl tracking-tighter">S/ {(currentCash.montoApertura + currentCash.ingresosEfectivo).toFixed(2)}</p>
+          </div>
+          <div className="bg-white p-5 rounded-2xl md:rounded-[32px] border border-brand-100 flex flex-col items-center text-center soft-shadow-sm ring-4 ring-brand-50/30">
+            <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest mb-1.5">Efectivo Físico</p>
+            <p className="font-display font-bold text-brand-600 text-2xl tracking-tighter">S/ {currentCash.efectivoFisico.toFixed(2)}</p>
+          </div>
+          <div className="bg-white p-5 rounded-2xl md:rounded-[32px] border border-slate-100 flex flex-col items-center text-center soft-shadow-sm">
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Diferencia Auditores</p>
+            <p className={`font-display font-bold text-2xl tracking-tighter ${currentCash.diferencia === 0 ? 'text-slate-400' : currentCash.diferencia! > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {currentCash.diferencia! > 0 ? '+' : ''}{currentCash.diferencia?.toFixed(2)}
+            </p>
+            <span className="text-[6px] font-bold text-slate-400 uppercase mt-1">
+              {currentCash.diferencia === 0 ? 'Cuadre Perfecto' : currentCash.diferencia! > 0 ? 'Sobrante en Caja' : 'Faltante en Caja'}
+            </span>
+          </div>
         </div>
       )}
 
@@ -513,29 +557,27 @@ export const CajaView: React.FC = () => {
       {/* Daily Summary Compact */}
       <div className="flex flex-col xl:flex-row gap-3 md:gap-4 opacity-100 transition-opacity">
         <div className={`flex-1 bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-4 md:gap-6 relative overflow-hidden ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-          <div className="absolute top-0 left-0 w-20 h-20 md:w-24 md:h-24 bg-emerald-50 rounded-full blur-2xl -translate-y-8 -translate-x-8" />
+          <div className="absolute top-0 left-0 w-20 h-20 md:w-24 md:h-24 bg-brand-50 rounded-full blur-2xl -translate-y-8 -translate-x-8" />
           <div className="shrink-0 relative z-10">
-            <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-0.5 md:mb-1">Caja Real</p>
+            <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-brand-600 mb-0.5 md:mb-1">Caja Total</p>
             <div className="flex items-baseline gap-1 md:gap-1.5">
-              <span className="text-lg md:text-xl font-display font-bold text-emerald-600">S/</span>
-              <span className="text-3xl md:text-4xl font-display font-bold text-slate-900 tracking-tighter">{totalRecaudado.toFixed(2)}</span>
+              <span className="text-lg md:text-xl font-display font-bold text-brand-600">S/</span>
+              <span className="text-3xl md:text-4xl font-display font-bold text-slate-900 tracking-tighter">{totalCajaGlobal.toFixed(2)}</span>
             </div>
+            <p className="text-[7px] text-slate-400 font-bold uppercase mt-1">Efectivo + Yape + Base</p>
           </div>
           
           <div className="h-px md:h-10 w-full md:w-px bg-slate-100 shrink-0" />
 
-          <div className="flex flex-wrap items-center gap-4 md:gap-6 relative z-10">
+          <div className="flex flex-wrap items-center gap-4 md:gap-8 relative z-10 flex-1">
             <div className="flex flex-col">
-              <p className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Efectivo</p>
-              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {totalEfectivo.toFixed(2)}</p>
+              <p className="text-[7px] md:text-[8px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Caja Real (Efectivo)</p>
+              <p className="font-display font-bold text-slate-900 text-xl md:text-2xl italic tracking-tighter">S/ {totalCajaEfectivo.toFixed(2)}</p>
+              <p className="text-[6px] text-slate-400 font-bold uppercase">Solo Efectivo + Base</p>
             </div>
-            <div className="flex flex-col">
-              <p className="text-[7px] md:text-[8px] font-black text-brand-500 uppercase tracking-widest mb-0.5">Yape</p>
-              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {totalYape.toFixed(2)}</p>
-            </div>
-            <div className="flex flex-col">
-              <p className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Cobros</p>
-              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {totalCustomerPayments.toFixed(2)}</p>
+            <div className="flex flex-col opacity-60">
+              <p className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Yape</p>
+              <p className="font-display font-bold text-slate-800 text-base md:text-lg">S/ {(totalYapeVentas + totalYapeCobros).toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -543,12 +585,15 @@ export const CajaView: React.FC = () => {
         <div className={`xl:w-[400px] bg-slate-50 rounded-2xl md:rounded-3xl p-4 md:p-5 border border-slate-200 flex flex-col soft-shadow-sm max-h-[140px] md:max-h-[160px] ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
           <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 md:mb-3">Flujo Reciente</p>
           <div className="space-y-1.5 md:space-y-2 overflow-y-auto no-scrollbar">
-            {customerPaymentsToday.length === 0 ? (
+            {customerPaymentsTodayRaw.length === 0 ? (
               <p className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase py-1">Sin actividad</p>
             ) : (
-              customerPaymentsToday.map((t, idx) => (
+              customerPaymentsTodayRaw.map((t, idx) => (
                 <div key={idx} className="flex justify-between items-center bg-white/50 px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg md:rounded-xl border border-white transition-colors">
-                  <p className="text-[9px] md:text-[10px] font-bold text-slate-700 truncate max-w-[120px] md:max-w-[150px] uppercase">{t.cliente}</p>
+                  <div className="flex flex-col">
+                    <p className="text-[9px] md:text-[10px] font-bold text-slate-700 truncate max-w-[120px] md:max-w-[150px] uppercase">{t.cliente}</p>
+                    <span className="text-[6px] text-slate-400 font-black uppercase tracking-tighter">{t.metodoPago} • {t.hora}</span>
+                  </div>
                   <p className="text-[10px] md:text-[11px] font-display font-bold text-emerald-600">+S/ {t.monto.toFixed(2)}</p>
                 </div>
               ))
@@ -672,8 +717,8 @@ export const CajaView: React.FC = () => {
                   </div>
 
                   {/* Compact Detail Panel */}
-                  <div className="flex-1 bg-slate-50/50 rounded-xl p-2.5 border border-slate-100 flex flex-col min-h-[80px]">
-                    <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-slate-100">
+                  <div className="flex-1 bg-slate-50/50 rounded-xl p-2 border border-slate-100 flex flex-col min-h-[70px]">
+                    <div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
                       <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
                         Consumo • {order.items.length} Platos
                       </p>
@@ -688,13 +733,13 @@ export const CajaView: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="space-y-1 overflow-y-auto max-h-[100px] pr-1.5 no-scrollbar">
+                    <div className="space-y-0.5 overflow-y-auto max-h-[100px] pr-1.5 no-scrollbar">
                       {order.items.map((item) => {
                         const p = products.find(prod => prod.id === item.productoId);
                         return (
-                          <div key={item.id} className="flex justify-between items-center text-[8px] py-0.5">
+                          <div key={item.id} className="flex justify-between items-center text-[8px] py-[1px]">
                             <div className="flex items-center gap-1.5">
-                              <span className="w-4 h-4 rounded-lg bg-white shadow-sm flex items-center justify-center text-[7px] font-black text-slate-500 shrink-0">{item.cantidad}</span>
+                              <span className="w-3.5 h-3.5 rounded-md bg-white shadow-sm flex items-center justify-center text-[7px] font-black text-slate-500 shrink-0">{item.cantidad}</span>
                               <span className="font-bold text-slate-700 uppercase tracking-tight truncate max-w-[90px]">
                                 {p?.nombre}
                               </span>
@@ -709,16 +754,16 @@ export const CajaView: React.FC = () => {
                   </div>
 
                   {/* Highly Compact Actions */}
-                  <div className="flex flex-col gap-1.5 min-w-[150px] justify-center">
-                    <div className="flex flex-col gap-1 px-1">
+                  <div className="flex flex-col gap-1 min-w-[140px] justify-center">
+                    <div className="flex flex-col gap-0.5 px-0.5">
                       <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Monto a pagar</label>
                       <div className="relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400">S/</span>
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400">S/</span>
                         <input 
                           type="number"
                           step="0.1"
                           placeholder="0.00"
-                          className="w-full bg-slate-100 border border-slate-200 rounded-lg py-1 pl-6 pr-2 text-[11px] font-bold outline-none focus:border-brand-400 focus:bg-white transition-all"
+                          className="w-full bg-slate-100 border border-slate-200 rounded-lg py-0.5 pl-5 pr-2 text-[11px] font-bold outline-none focus:border-brand-400 focus:bg-white transition-all"
                           value={partialAmounts[order.id] ?? balance.toFixed(2)}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -805,6 +850,75 @@ export const CajaView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {showCloseModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[40px] w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6"
+          >
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-[24px] flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight italic">Cierre de Auditoría</h3>
+              <p className="text-slate-500 text-xs font-medium leading-relaxed">Compara el total calculado en sistema con el efectivo físico que tienes en caja.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Calculado en Sistema (Efectivo)</p>
+                <p className="text-2xl font-display font-bold text-slate-900 tracking-tight">S/ {totalCajaEfectivo.toFixed(2)}</p>
+                <p className="text-[7px] text-slate-400 font-bold uppercase mt-1">Base: {baseCaja.toFixed(2)} + Ventas: {(totalEfectivoVentas + totalEfectivoCobros).toFixed(2)}</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Efectivo Físico Contado</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">S/</span>
+                  <input 
+                    autoFocus
+                    type="number"
+                    step="0.01"
+                    className="w-full bg-slate-100 border border-slate-200 rounded-2xl py-4 pl-10 pr-4 text-2xl font-display font-bold outline-none focus:bg-white focus:border-brand-500 transition-all text-slate-800"
+                    value={cashCounted}
+                    onChange={(e) => setCashCounted(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {Number(cashCounted) !== totalCajaEfectivo && Number(cashCounted) > 0 && (
+                <div className={`p-4 rounded-2xl border flex items-center gap-3 ${Number(cashCounted) > totalCajaEfectivo ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-rose-50 border-rose-100 text-rose-800'}`}>
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <p className="text-[10px] font-bold uppercase tracking-tight leading-tight">
+                    Diferencia: S/ {(Number(cashCounted) - totalCajaEfectivo).toFixed(2)} 
+                    ({Number(cashCounted) > totalCajaEfectivo ? 'SOBRANTE' : 'FALTANTE'})
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button 
+                onClick={() => setShowCloseModal(false)}
+                className="py-4 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  closeCash(Number(cashCounted) || 0);
+                  setShowCloseModal(false);
+                }}
+                className="py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-slate-200 hover:bg-black transition-all active:scale-95"
+              >
+                Confirmar Cierre
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {showOpenModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">

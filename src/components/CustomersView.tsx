@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Customer } from '../types';
 
 export const CustomersView: React.FC = () => {
-  const { customers, addCustomer, updateCustomer, deleteCustomer, addTransaction, requestConfirmation, isTodaySelected, selectedDate } = useApp();
+  const { customers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction, requestConfirmation, isTodaySelected, selectedDate } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   
@@ -51,7 +51,21 @@ export const CustomersView: React.FC = () => {
   const [newCustomer, setNewCustomer] = useState({ nombre: '', documento: '', telefono: '' });
   
   // New Transaction Form State
-  const [newTransaction, setNewTransaction] = useState({ type: 'DEPOSITO' as 'DEPOSITO' | 'PAGO_CREDITO', amount: 0, description: '' });
+  const [newTransaction, setNewTransaction] = useState({ 
+    type: 'DEPOSITO' as 'DEPOSITO' | 'PAGO_CREDITO', 
+    amount: 0, 
+    description: '',
+    metodoPago: 'EFECTIVO' as 'EFECTIVO' | 'YAPE'
+  });
+
+  // Edit Transaction State
+  const [editingTxId, setEditingTxId] = useState<string | null>(null);
+  const [editTxData, setEditTxData] = useState({ amount: 0, description: '' });
+
+  const handleStartEditTx = (tx: any) => {
+    setEditingTxId(tx.id);
+    setEditTxData({ amount: Math.abs(tx.monto), description: tx.descripcion });
+  };
 
   const handleAddCustomer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,9 +81,10 @@ export const CustomersView: React.FC = () => {
     addTransaction(selectedCustomer.id, {
       tipo: newTransaction.type as any,
       monto: newTransaction.amount,
-      descripcion: newTransaction.description || (newTransaction.type === 'DEPOSITO' ? 'Depósito de saldo' : 'Pago de deuda')
+      descripcion: newTransaction.description || (newTransaction.type === 'DEPOSITO' ? 'Depósito de saldo' : 'Pago de deuda'),
+      metodoPago: newTransaction.metodoPago
     });
-    setNewTransaction({ type: 'DEPOSITO', amount: 0, description: '' });
+    setNewTransaction({ type: 'DEPOSITO', amount: 0, description: '', metodoPago: 'EFECTIVO' });
     setShowAddTransaction(false);
   };
 
@@ -197,13 +212,45 @@ export const CustomersView: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     {isEditing ? (
-                      <form onSubmit={handleSaveEdit} className="space-y-2">
-                        <input 
-                          autoFocus
-                          className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-sm font-bold outline-none focus:border-white/40 backdrop-blur-sm"
-                          value={editingData.nombre}
-                          onChange={e => setEditingData({...editingData, nombre: e.target.value})}
-                        />
+                      <form onSubmit={handleSaveEdit} className="space-y-3">
+                        <div className="flex flex-col gap-2">
+                          <input 
+                            autoFocus
+                            className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-sm font-bold outline-none focus:border-white/40 backdrop-blur-sm"
+                            value={editingData.nombre}
+                            placeholder="Nombre..."
+                            onChange={e => setEditingData({...editingData, nombre: e.target.value})}
+                          />
+                          <div className="flex gap-2">
+                            <input 
+                              className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-bold outline-none focus:border-white/40 backdrop-blur-sm"
+                              value={editingData.documento}
+                              placeholder="Doc..."
+                              onChange={e => setEditingData({...editingData, documento: e.target.value})}
+                            />
+                            <input 
+                              className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] font-bold outline-none focus:border-white/40 backdrop-blur-sm"
+                              value={editingData.telefono}
+                              placeholder="Tel..."
+                              onChange={e => setEditingData({...editingData, telefono: e.target.value})}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              type="button"
+                              onClick={() => setIsEditing(false)}
+                              className="flex-1 py-1.5 bg-white/10 text-white/60 rounded-lg text-[10px] font-black uppercase hover:bg-white/20"
+                            >
+                              Cancelar
+                            </button>
+                            <button 
+                              type="submit"
+                              className="flex-[2] py-1.5 bg-brand-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-brand-600 shadow-lg shadow-brand-900/20"
+                            >
+                              Guardar
+                            </button>
+                          </div>
+                        </div>
                       </form>
                     ) : (
                       <>
@@ -213,8 +260,16 @@ export const CustomersView: React.FC = () => {
                             <button 
                               onClick={handleStartEdit}
                               className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white"
+                              title="Editar cliente"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              onClick={handleDeleteCustomer}
+                              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-rose-400"
+                              title="Eliminar cliente"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -264,27 +319,109 @@ export const CustomersView: React.FC = () => {
                         if (dateA !== dateB) return dateB - dateA;
                         return (b.timestamp || 0) - (a.timestamp || 0);
                       })
-                      .map(tx => (
-                      <div key={tx.id} className="flex items-center justify-between p-4 md:p-6 bg-slate-50/50 hover:bg-slate-50 rounded-2xl md:rounded-[32px] border border-slate-100/50 transition-all group soft-shadow-sm">
-                        <div className="flex items-center gap-4 md:gap-6">
-                          <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${
-                             tx.tipo === 'CONSUMO' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'
-                          }`}>
-                            {tx.tipo === 'CONSUMO' ? <ArrowUpRight className="w-4 h-4 md:w-6 md:h-6" /> : <ArrowDownLeft className="w-4 h-4 md:w-6 md:h-6" />}
+                      .map(tx => {
+                        const canEditDelete = tx.fecha === selectedDate;
+                        const isEditingTx = editingTxId === tx.id;
+
+                        if (isEditingTx) {
+                          return (
+                            <div key={tx.id} className="p-4 md:p-6 bg-brand-50 rounded-2xl md:rounded-[32px] border border-brand-200 soft-shadow space-y-4">
+                              <div className="flex gap-4">
+                                <div className="flex-1 space-y-1">
+                                  <label className="text-[8px] font-bold text-brand-600 uppercase tracking-widest pl-1">Monto</label>
+                                  <input 
+                                    type="number"
+                                    value={editTxData.amount}
+                                    onChange={e => setEditTxData({...editTxData, amount: parseFloat(e.target.value) || 0})}
+                                    className="w-full bg-white border border-brand-100 rounded-xl px-3 py-2 text-sm font-bold outline-none"
+                                  />
+                                </div>
+                                <div className="flex-[2] space-y-1">
+                                  <label className="text-[8px] font-bold text-brand-600 uppercase tracking-widest pl-1">Descripción</label>
+                                  <input 
+                                    type="text"
+                                    value={editTxData.description}
+                                    onChange={e => setEditTxData({...editTxData, description: e.target.value})}
+                                    className="w-full bg-white border border-brand-100 rounded-xl px-3 py-2 text-sm font-bold outline-none"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => setEditingTxId(null)}
+                                  className="flex-1 py-2 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase"
+                                >
+                                  Cancelar
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    const newMonto = tx.tipo === 'CONSUMO' ? -editTxData.amount : editTxData.amount;
+                                    updateTransaction(selectedCustomer.id, tx.id, { 
+                                      monto: newMonto, 
+                                      descripcion: editTxData.description 
+                                    });
+                                    setEditingTxId(null);
+                                  }}
+                                  className="flex-[2] py-2 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase"
+                                >
+                                  Guardar
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={tx.id} className="flex items-center justify-between p-4 md:p-6 bg-slate-50/50 hover:bg-slate-50 rounded-2xl md:rounded-[32px] border border-slate-100/50 transition-all group soft-shadow-sm">
+                            <div className="flex items-center gap-4 md:gap-6">
+                              <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${
+                                tx.tipo === 'CONSUMO' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'
+                              }`}>
+                                {tx.tipo === 'CONSUMO' ? <ArrowUpRight className="w-4 h-4 md:w-6 md:h-6" /> : <ArrowDownLeft className="w-4 h-4 md:w-6 md:h-6" />}
+                              </div>
+                              <div>
+                                <p className="font-bold text-slate-900 text-sm md:text-base leading-tight uppercase tracking-tight">{tx.descripcion}</p>
+                                <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{tx.fecha} • {tx.hora}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              {tx.metodoPago && (
+                                <span className="text-[7px] md:text-[8px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                  {tx.metodoPago}
+                                </span>
+                              )}
+                              {canEditDelete && (
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button 
+                                    onClick={() => handleStartEditTx(tx)}
+                                    className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-brand-500 transition-colors"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      requestConfirmation(
+                                        'Eliminar Movimiento',
+                                        `¿Deseas eliminar este registro de S/ ${Math.abs(tx.monto).toFixed(2)}?`,
+                                        () => deleteTransaction(selectedCustomer.id, tx.id)
+                                      );
+                                    }}
+                                    className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-rose-500 transition-colors"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
+                              <div className="text-right shrink-0">
+                                <p className={`text-base md:text-xl font-display font-bold tracking-tight ${tx.monto >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                  {tx.monto > 0 ? '+' : ''}{tx.monto.toFixed(2)}
+                                </p>
+                                <span className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{tx.tipo}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-slate-900 text-sm md:text-base leading-tight uppercase tracking-tight">{tx.descripcion}</p>
-                            <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{tx.fecha} • {tx.hora}</p>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className={`text-base md:text-xl font-display font-bold tracking-tight ${tx.monto >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {tx.monto > 0 ? '+' : ''}{tx.monto.toFixed(2)}
-                          </p>
-                          <span className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{tx.tipo}</span>
-                        </div>
-                      </div>
-                    ))
+                        );
+                      })
                   )}
                 </div>
               </div>
@@ -418,6 +555,33 @@ export const CustomersView: React.FC = () => {
                         }`}
                        >
                          <Check className="w-3 h-3" /> Cancelar Deuda
+                       </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Método de Pago</label>
+                    <div className="grid grid-cols-2 gap-3">
+                       <button
+                        type="button"
+                        onClick={() => setNewTransaction(prev => ({ ...prev, metodoPago: 'EFECTIVO' }))}
+                        className={`py-3.5 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 ${
+                          newTransaction.metodoPago === 'EFECTIVO' 
+                            ? 'bg-slate-900 border-slate-900 text-white'
+                            : 'bg-white border-slate-50 text-slate-400 hover:border-slate-100'
+                        }`}
+                       >
+                         Efectivo
+                       </button>
+                       <button
+                        type="button"
+                        onClick={() => setNewTransaction(prev => ({ ...prev, metodoPago: 'YAPE' }))}
+                        className={`py-3.5 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 ${
+                          newTransaction.metodoPago === 'YAPE' 
+                            ? 'bg-brand-600 border-brand-600 text-white'
+                            : 'bg-white border-slate-50 text-slate-400 hover:border-slate-100'
+                        }`}
+                       >
+                         Yape
                        </button>
                     </div>
                   </div>
