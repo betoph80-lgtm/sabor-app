@@ -24,12 +24,12 @@ export const PedidosView: React.FC = () => {
     requestConfirmation,
     selectedDate,
     isTodaySelected,
-    lockMesa,
-    unlockMesa
+    cashControls
   } = useApp();
   const [view, setView] = React.useState<'ACTIVOS' | 'HISTORIAL'>('ACTIVOS');
   const [editingOrder, setEditingOrder] = React.useState<string | null>(null);
-  const [isLocking, setIsLocking] = React.useState(false);
+
+  const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
 
   const activeOrders = [...orders]
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
@@ -52,28 +52,27 @@ export const PedidosView: React.FC = () => {
 
   return (
     <div className="p-4 md:p-10 space-y-8 max-w-7xl mx-auto">
-      {isLocking && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
-          <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verificando Estado...</p>
+      {isCashClosed && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+            <Edit2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-amber-900 uppercase tracking-tight text-sm">Caja Cerrada</h3>
+            <p className="text-amber-700 text-[10px] font-medium leading-relaxed">No se pueden realizar modificaciones en esta fecha porque la caja está cerrada.</p>
           </div>
         </div>
       )}
       {editingOrder && orderToEdit && (
         <OrderModal
-          onClose={async () => {
-             await unlockMesa(orderToEdit.mesaId);
-             setEditingOrder(null);
-          }}
-          onAdd={async (items, newClienteName) => {
+          onClose={() => setEditingOrder(null)}
+          onAdd={(items, newClienteName) => {
             if (items.length > 0) {
               addItemsToOrder(editingOrder, items);
             }
             if (newClienteName !== orderToEdit.cliente) {
               updateOrderInfo(editingOrder, { cliente: newClienteName });
             }
-            await unlockMesa(orderToEdit.mesaId);
             setEditingOrder(null);
           }}
           products={products}
@@ -166,7 +165,7 @@ export const PedidosView: React.FC = () => {
                       <p className="font-bold text-slate-900 text-sm leading-tight">
                         {order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`}
                       </p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">#{order.id.split('-').pop()}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">#{order.id.split('-').pop()} • {order.usuarioNombre || 'Desconocido'}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -207,30 +206,31 @@ export const PedidosView: React.FC = () => {
                   <div className="flex gap-2 pt-1">
                     {view === 'ACTIVOS' && (
                       <button
-                        onClick={async () => {
-                          setIsLocking(true);
-                          const lock = await lockMesa(order.mesaId);
-                          setIsLocking(false);
-                          if (lock.success) {
-                            setEditingOrder(order.id);
-                          } else {
-                            alert(`Mesa siendo editada por: ${lock.user}`);
-                          }
+                        onClick={() => {
+                          if (isCashClosed) return;
+                          setEditingOrder(order.id);
                         }}
-                        className="flex-1 py-3 bg-brand-50 text-brand-600 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2"
+                        disabled={isCashClosed}
+                        className={`flex-1 py-3 bg-brand-50 text-brand-600 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 ${
+                          isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
                         <Edit2 className="w-3.5 h-3.5" /> Editar
                       </button>
                     )}
                     <button
                       onClick={() => {
+                        if (isCashClosed) return;
                         requestConfirmation(
                           'Anular Registro',
                           `¿Eliminar pedido ${order.id.split('-').pop()}?`,
                           () => deleteOrder(order.id)
                         );
                       }}
-                      className={`flex-1 py-3 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500'} rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2`}
+                      disabled={isCashClosed}
+                      className={`flex-1 py-3 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500'} rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 ${
+                        isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Eliminar
                     </button>
@@ -287,9 +287,14 @@ export const PedidosView: React.FC = () => {
                             <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors">
                               <Clock className="w-4 h-4" />
                             </div>
-                            <span className="text-xs font-bold text-slate-400 tabular-nums">
-                              Registrado a las {order.hora}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-400 tabular-nums leading-none">
+                                Registrado a las {order.hora}
+                              </span>
+                              <span className="text-[8px] font-black text-brand-500 uppercase tracking-widest mt-1">
+                                Por: {order.usuarioNombre || 'Desconocido'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -341,16 +346,7 @@ export const PedidosView: React.FC = () => {
                           <div className="flex items-center justify-center gap-3 lg:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
                             {view === 'ACTIVOS' && (
                               <button
-                                onClick={async () => {
-                                  setIsLocking(true);
-                                  const lock = await lockMesa(order.mesaId);
-                                  setIsLocking(false);
-                                  if (lock.success) {
-                                    setEditingOrder(order.id);
-                                  } else {
-                                    alert(`Mesa siendo editada por: ${lock.user}`);
-                                  }
-                                }}
+                                onClick={() => setEditingOrder(order.id)}
                                 className="w-12 h-12 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-[18px] transition-all soft-shadow-sm active:scale-90"
                                 title="Editar Pedido"
                               >

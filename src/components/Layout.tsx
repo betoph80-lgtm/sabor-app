@@ -9,7 +9,7 @@ import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, 
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { role, setRole, orders, currentMenu, products, selectedDate, setSelectedDate, logout, currentUser } = useApp();
+  const { activeView, setActiveView, orders, currentMenu, products, selectedDate, setSelectedDate, logout, currentUser } = useApp();
   
   const formatDate = (date: Date) => {
     const d = date.getDate();
@@ -22,10 +22,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const navigation = [
     { id: 'MESERO', label: 'Mesas', icon: LayoutDashboard, roles: ['ADMIN', 'MESERO'] },
-    { id: 'PEDIDOS', label: 'Pedidos', icon: ListTodo, roles: ['ADMIN', 'MESERO'] },
+    { id: 'PEDIDOS', label: 'Pedidos', icon: ListTodo, roles: ['ADMIN', 'MESERO', 'PEDIDOS'] },
     { id: 'COCINA', label: 'Cocina', icon: ChefHat, roles: ['ADMIN', 'COCINA'] },
     { id: 'CAJA', label: 'Caja', icon: Wallet, roles: ['ADMIN', 'CAJA'] },
-    { id: 'CUENTAS', label: 'Cuentas', icon: UsersIcon, roles: ['ADMIN', 'CAJA'] },
+    { id: 'CUENTAS', label: 'Cuentas', icon: UsersIcon, roles: ['ADMIN'] },
     { id: 'ADMIN', label: 'Admin', icon: UserIcon, roles: ['ADMIN'] },
   ].filter(item => item.roles.includes(currentUser?.role as any));
 
@@ -98,7 +98,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="hidden lg:flex items-center gap-6 bg-violet-50/30 px-8 py-4 rounded-[32px] border border-violet-100/50">
            <div className="flex items-center gap-4">
               <Calendar className="w-5 h-5 text-violet-500" />
-              {role === 'ADMIN' ? (
+              {currentUser?.role === 'ADMIN' ? (
                 <input 
                   type="date" 
                   value={toInputDate(selectedDate)}
@@ -111,7 +111,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </span>
               )}
            </div>
-           {selectedDate !== today && role === 'ADMIN' && (
+           {selectedDate !== today && currentUser?.role === 'ADMIN' && (
               <button 
                 onClick={() => setSelectedDate(today)}
                 className="px-5 py-2 bg-violet-600 text-white text-[10px] rounded-full font-bold uppercase tracking-widest hover:bg-violet-700 transition-all active:scale-95 shadow-lg shadow-violet-100"
@@ -157,7 +157,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
             <div>
               <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-none mb-1.5">{currentUser?.nombre || 'Acceso'}</p>
-              <p className="text-base font-display font-bold text-slate-900 uppercase tracking-tight">{role}</p>
+              <p className="text-base font-display font-bold text-slate-900 uppercase tracking-tight">{currentUser?.role}</p>
             </div>
             <button 
               onClick={logout}
@@ -201,7 +201,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="flex-1 overflow-auto no-scrollbar">
             <AnimatePresence mode="wait">
               <motion.div
-                key={role}
+                key={activeView}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
@@ -217,11 +217,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <nav className="lg:hidden bg-white border-t border-slate-200 flex justify-around items-center px-2 py-2 shrink-0 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = role === item.id;
+              const isActive = activeView === item.id;
               return (
                 <button
                   key={item.id}
-                  onClick={() => setRole(item.id)}
+                  onClick={() => setActiveView(item.id as any)}
                   className={`flex flex-col items-center justify-center w-full py-2 transition-all duration-300 relative ${
                     isActive ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'
                   }`}
@@ -242,11 +242,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="hidden lg:flex flex-row justify-center gap-2 border-t border-violet-100 bg-white/80 backdrop-blur-md p-3">
              {navigation.map((item) => {
                 const Icon = item.icon;
-                const isActive = role === item.id;
+                const isActive = activeView === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setRole(item.id)}
+                    onClick={() => setActiveView(item.id as any)}
                     className={`flex items-center gap-3 px-6 py-3 rounded-[18px] transition-all duration-300 ${
                       isActive ? 'bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
                     }`}

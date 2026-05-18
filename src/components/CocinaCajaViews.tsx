@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2 } from 'lucide-react';
+import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderTimer } from './OrderTimer.tsx';
 import { OrderModal } from './OrderModal.tsx';
@@ -28,6 +28,7 @@ export const CocinaView: React.FC = () => {
         ...item, 
         orderId: order.id, 
         mesaId: order.mesaId,
+        usuarioNombre: order.usuarioNombre,
         timestamp: order.timestamp,
         hasPendingSeconds,
         hasNoSeconds
@@ -171,6 +172,7 @@ export const CocinaView: React.FC = () => {
                     #{items[0].orderId.split('-').pop()} • Ticket
                   </span>
                   <h3 className="text-xl font-display font-bold leading-none">{mesaId === '13' ? 'PL (CLIENTE)' : `MESA ${mesaId}`}</h3>
+                  <p className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${textColorClass} opacity-80`}>Por: {items[0].usuarioNombre || 'Desconocido'}</p>
                </div>
                <div className="flex flex-col items-end gap-2 relative z-10">
                   <OrderTimer timestamp={orderTimestamp} className="text-lg" />
@@ -255,10 +257,11 @@ export const CocinaView: React.FC = () => {
 };
 
 export const CajaView: React.FC = () => {
-  const { orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu, lockMesa, unlockMesa } = useApp();
+  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu } = useApp();
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
-  const [isLocking, setIsLocking] = useState(false);
+
+  const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
   const [customerSearch, setCustomerSearch] = useState('');
   const [partialAmounts, setPartialAmounts] = useState<Record<string, string>>({});
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -317,6 +320,7 @@ export const CajaView: React.FC = () => {
           'TICKET': order.id.split('-').pop(),
           'MESA': order.mesaId === '13' ? 'PL' : order.mesaId,
           'CLIENTE': order.cliente,
+          'USUARIO': order.usuarioNombre || 'Desconocido',
           'PRODUCTO': product?.nombre || 'Desconocido',
           'CANTIDAD': item.cantidad,
           'PRECIO UNIT.': product?.precio || 0,
@@ -337,6 +341,7 @@ export const CajaView: React.FC = () => {
         'CLIENTE': order.cliente,
         'MONTO': p.monto,
         'METODO': p.metodo,
+        'USUARIO': p.usuarioNombre || order.usuarioNombre || 'Desconocido',
         'ESTADO FINAL': order.estado
       }))
     );
@@ -392,28 +397,16 @@ export const CajaView: React.FC = () => {
 
   return (
     <div className="p-3 md:p-6 space-y-6 max-w-7xl mx-auto">
-      {isLocking && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
-          <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verificando Estado...</p>
-          </div>
-        </div>
-      )}
       {editingOrderId && orderToEdit && (
         <OrderModal
-          onClose={async () => {
-             await unlockMesa(orderToEdit.mesaId);
-             setEditingOrderId(null);
-          }}
-          onAdd={async (items, newClienteName) => {
+          onClose={() => setEditingOrderId(null)}
+          onAdd={(items, newClienteName) => {
             if (items.length > 0) {
               addItemsToOrder(editingOrderId, items);
             }
             if (newClienteName !== orderToEdit.cliente) {
               updateOrderInfo(editingOrderId, { cliente: newClienteName });
             }
-            await unlockMesa(orderToEdit.mesaId);
             setEditingOrderId(null);
           }}
           products={products}
@@ -504,16 +497,20 @@ export const CajaView: React.FC = () => {
               <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Cierre: S/ {currentCash.montoCierre.toFixed(2)} | Fecha: {selectedDate}</p>
             </div>
           </div>
-          {isTodaySelected ? (
+          {isTodaySelected && currentUser?.role === 'ADMIN' ? (
             <button 
               onClick={() => reopenCash()}
               className="flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-brand-700 transition-all active:scale-95 shadow-lg shadow-brand-100"
             >
               Reabrir Caja para {selectedDate}
             </button>
-          ) : (
+          ) : isTodaySelected ? (
             <div className="px-6 py-2 bg-white border border-slate-200 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest">
               Registro Cerrado
+            </div>
+          ) : (
+            <div className="px-6 py-2 bg-white border border-slate-200 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest">
+              Registro Histórico
             </div>
           )}
         </div>
@@ -565,6 +562,28 @@ export const CajaView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {currentCash && currentCash.estado === 'CERRADA' && (
+        <div className="bg-amber-50 border border-amber-200 p-6 rounded-[32px] flex items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500 mb-6 grayscale-0">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 bg-amber-100 rounded-[22px] flex items-center justify-center text-amber-600 shadow-sm">
+              <Lock className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-amber-900 uppercase tracking-tight text-lg mb-1">Caja Cerrada</h3>
+              <p className="text-amber-700 text-xs font-medium leading-relaxed max-w-sm">La jornada ha finalizado. No se permiten más cobros ni modificaciones de pedidos para esta fecha.</p>
+            </div>
+          </div>
+          {isTodaySelected && currentUser?.role === 'ADMIN' && (
+            <button 
+              onClick={() => reopenCash()}
+              className="px-8 py-4 bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all active:scale-95 shadow-lg shadow-amber-200/50"
+            >
+              Reabrir Caja
+            </button>
+          )}
+        </div>
+      )}
 
       <div className={`space-y-4 ${(!currentCash || currentCash.estado === 'CERRADA') ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
         <div className="flex items-center justify-between px-2">
@@ -624,18 +643,16 @@ export const CajaView: React.FC = () => {
                          </div>
                          <div className="flex flex-col min-w-0">
                             <h3 className="font-display font-bold text-slate-900 text-base uppercase leading-tight truncate max-w-[120px]">{order.cliente}</h3>
+                            <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest leading-none my-1">Mesero: {order.usuarioNombre || 'Desconocido'}</p>
                             <button 
-                              onClick={async () => {
-                                setIsLocking(true);
-                                const lock = await lockMesa(order.mesaId);
-                                setIsLocking(false);
-                                if (lock.success) {
-                                  setEditingOrderId(order.id);
-                                } else {
-                                  alert(`La mesa está siendo atendida por: ${lock.user}`);
-                                }
+                              onClick={() => {
+                                if (isCashClosed) return;
+                                setEditingOrderId(order.id);
                               }}
-                              className="flex items-center gap-1 text-[8px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors"
+                              disabled={isCashClosed}
+                              className={`flex items-center gap-1 text-[8px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors ${
+                                isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
                             >
                               <Edit2 className="w-2.5 h-2.5" /> Editar pedido
                             </button>
@@ -930,7 +947,12 @@ export const CajaView: React.FC = () => {
                {orderSummary.map((order) => (
                  <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
                    <td className="px-5 py-3 text-[9px] font-bold text-slate-400 tracking-widest font-mono">#{order.id.split('-').pop()}</td>
-                   <td className="px-5 py-3 text-xs font-bold text-slate-800 uppercase truncate max-w-[200px]">{order.cliente}</td>
+                   <td className="px-5 py-3">
+                     <div className="flex flex-col">
+                       <span className="text-xs font-bold text-slate-800 uppercase truncate max-w-[180px]">{order.cliente}</span>
+                       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.1em]">Por: {order.usuarioNombre || 'Desconocido'}</span>
+                     </div>
+                   </td>
                    <td className="px-5 py-3 text-center">
                      <span className="text-[10px] font-bold text-slate-400">{order.items.length}</span>
                    </td>

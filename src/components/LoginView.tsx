@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../AppContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Keypad, ArrowRight, UserPlus, Lock, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { ArrowRight, UserPlus, Lock, ShieldCheck, User as UserIcon } from 'lucide-react';
 
 const LoginView = () => {
   const { login, appUsers, seedDatabase, requestConfirmation } = useApp();

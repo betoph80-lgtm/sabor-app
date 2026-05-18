@@ -84,6 +84,7 @@ export interface Payment {
   pedidoId: string;
   monto: number;
   metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  usuarioNombre?: string;
   fecha: string;
   hora: string;
   timestamp: number;
@@ -115,6 +116,7 @@ export interface Order {
   metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO'; // Maintain for legacy/single payments
   pagos?: Payment[];
   usuarioId: string;
+  usuarioNombre?: string;
   fecha: string;
   hora: string;
   timestamp: number;
@@ -124,11 +126,6 @@ export interface Mesa {
   id: string;
   nombre: string;
   estado: 'LIBRE' | 'OCUPADA' | 'RESERVADA';
-  ocupadaPor?: {
-    userId: string;
-    usuario: string;
-    timestamp: number;
-  };
 }
 
 export const PRODUCTOS_BASE: Product[] = [

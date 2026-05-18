@@ -5,47 +5,30 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Meal } from 'lucide-react';
+import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Meal, Lock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { OrderItem, ItemStatus } from '../types';
 import { OrderModal } from './OrderModal.tsx';
 
 export const MeseroView: React.FC = () => {
-  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, lockMesa, unlockMesa } = useApp();
+  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, cashControls } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const [isLocking, setIsLocking] = useState(false);
+
+  const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
 
   const mesaOrders = orders.filter(o => o.mesaId === selectedMesa && o.estado === 'ABIERTO' && o.fecha === selectedDate);
 
-  const handleMesaClick = async (mesaId: string, isOccupied: boolean) => {
-    setSelectedMesa(mesaId);
-    if (!isOccupied || mesaId === '13') {
-      setIsLocking(true);
-      const lock = await lockMesa(mesaId);
-      setIsLocking(false);
-      if (lock.success) {
-        setShowOrderModal(true);
-      } else {
-        alert(`La mesa está en proceso de registro por: ${lock.user}`);
-      }
-    }
-  };
-
-  const handleCloseModal = async () => {
-    if (selectedMesa) {
-      await unlockMesa(selectedMesa);
-    }
-    setShowOrderModal(false);
-  };
-
   return (
     <div className="p-2 md:p-8 space-y-4 md:space-y-8 max-w-5xl mx-auto">
-      {isLocking && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-[2px]">
-          <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verificando Mesa...</p>
+      {isCashClosed && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+            <Lock className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-amber-900 uppercase tracking-tight text-sm">Caja Cerrada</h3>
+            <p className="text-amber-700 text-[10px] font-medium leading-relaxed">No se pueden realizar nuevos pedidos ni modificaciones para esta fecha.</p>
           </div>
         </div>
       )}
@@ -57,8 +40,17 @@ export const MeseroView: React.FC = () => {
           return (
             <button
               key={mesa.id}
-              onClick={() => handleMesaClick(mesa.id, isOccupied)}
+              onClick={() => {
+                if (isCashClosed) return;
+                setSelectedMesa(mesa.id);
+                if (!isOccupied || mesa.id === '13') {
+                  setShowOrderModal(true);
+                }
+              }}
+              disabled={isCashClosed}
               className={`relative aspect-square min-h-[110px] rounded-[36px] border flex flex-col items-center justify-center transition-all duration-300 group soft-shadow ${
+                isCashClosed ? 'opacity-50 cursor-not-allowed grayscale' : ''
+              } ${
                 isOccupied
                   ? mesa.id === '13' 
                     ? 'bg-brand-50 border-brand-300 text-brand-800 hover:bg-brand-100 -translate-y-1' 
@@ -180,19 +172,15 @@ export const MeseroView: React.FC = () => {
                   </div>
                   <div className="flex gap-3 w-full xs:w-auto">
                     <button
-                      onClick={async () => {
-                        if (selectedMesa) {
-                          setIsLocking(true);
-                          const lock = await lockMesa(selectedMesa);
-                          setIsLocking(false);
-                          if (lock.success) {
-                            setShowOrderModal(true);
-                          } else {
-                            alert(`La mesa está siendo atendida por: ${lock.user}`);
-                          }
-                        }
+                      onClick={() => {
+                        if (isCashClosed) return;
+                        setSelectedMesa(selectedMesa);
+                        setShowOrderModal(true);
                       }}
-                      className="flex-1 xs:flex-none py-4 px-8 bg-slate-900 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all soft-shadow active:scale-95"
+                      disabled={isCashClosed}
+                      className={`flex-1 xs:flex-none py-4 px-8 bg-slate-900 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all soft-shadow active:scale-95 ${
+                        isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       <Plus className="w-4 h-4" />
                       Pedir más
@@ -213,7 +201,7 @@ export const MeseroView: React.FC = () => {
       {/* New Order Modal */}
       {showOrderModal && (
         <OrderModal
-          onClose={handleCloseModal}
+          onClose={() => setShowOrderModal(false)}
           onAdd={(items, clienteName) => {
              if (selectedMesa) {
                 const existingOrder = orders.find(o => o.mesaId === selectedMesa && o.estado === 'ABIERTO' && o.fecha === selectedDate);

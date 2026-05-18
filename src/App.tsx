@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { AppProvider, useApp } from './AppContext.tsx';
+import { Role } from './types.ts';
 import Layout from './components/Layout.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { MeseroView } from './components/MeseroView.tsx';
@@ -407,7 +408,6 @@ const AdminPanel = () => {
                     <option value="COCINA">COCINA</option>
                     <option value="CAJA">CAJA</option>
                     <option value="ADMIN">ADMINISTRADOR</option>
-                    <option value="PEDIDOS">PEDIDOS</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -810,7 +810,7 @@ const AdminPanel = () => {
 };
 
 const AppContent = () => {
-  const { role, currentUser } = useApp();
+  const { activeView, currentUser } = useApp();
 
   if (!currentUser) {
     return <LoginView />;
@@ -818,12 +818,12 @@ const AppContent = () => {
 
   return (
     <Layout>
-      {role === 'MESERO' && <MeseroView />}
-      {role === 'PEDIDOS' && <PedidosView />}
-      {role === 'COCINA' && <CocinaView />}
-      {role === 'CAJA' && <CajaView />}
-      {role === 'CUENTAS' && <CustomersView />}
-      {role === 'ADMIN' && (
+      {activeView === 'MESERO' && <MeseroView />}
+      {activeView === 'PEDIDOS' && <PedidosView />}
+      {activeView === 'COCINA' && <CocinaView />}
+      {activeView === 'CAJA' && <CajaView />}
+      {activeView === 'CUENTAS' && <CustomersView />}
+      {activeView === 'ADMIN' && (
         <div className="flex flex-col items-center justify-start p-4 md:p-8 space-y-8 min-h-full">
           <div className="text-center space-y-2">
             <div className="w-24 h-24 bg-white rounded-[40px] flex items-center justify-center shadow-xl shadow-slate-200 border-2 border-slate-100 mx-auto overflow-hidden p-2">

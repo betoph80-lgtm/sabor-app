@@ -13,7 +13,7 @@ import { db, auth } from './firebase';
 import { 
   collection, doc, onSnapshot, setDoc, updateDoc, 
   deleteDoc, query, where, addDoc, getDocs, 
-  getDoc, writeBatch, serverTimestamp 
+  getDoc, writeBatch, serverTimestamp, runTransaction 
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -48,8 +48,8 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 }
 
 interface AppContextType {
-  role: Role;
-  setRole: (role: Role) => void;
+  activeView: Role;
+  setActiveView: (role: Role) => void;
   currentUser: AppUser | null;
   appUsers: AppUser[];
   addAppUser: (user: Omit<AppUser, 'id'>) => void;
@@ -81,8 +81,6 @@ interface AppContextType {
   resetStock: () => void;
   addMesa: (id: string, nombre: string) => void;
   deleteMesa: (id: string) => void;
-  lockMesa: (mesaId: string) => Promise<{ success: boolean; user?: string }>;
-  unlockMesa: (mesaId: string) => Promise<void>;
   toggleProductInMenu: (productId: string) => void;
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
@@ -120,7 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return `${d}/${m}/${y}`;
   };
 
-  const [role, setRole] = useState<Role>('MESERO'); // Default or read from currentUser
+  const [activeView, setActiveView] = useState<Role>('MESERO'); // Default or read from currentUser
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
@@ -284,95 +282,83 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const unlockMesa = async (mesaId: string) => {
-    const mesaRef = doc(db, 'mesas', mesaId);
-    const mesaSnap = await getDoc(mesaRef);
-    if (!mesaSnap.exists()) return;
-    const mesaData = mesaSnap.data() as Mesa;
-    if (mesaData?.ocupadaPor?.userId === currentUser?.id) {
-      await updateDoc(mesaRef, { ocupadaPor: null });
-    }
-  };
-
-  const lockMesa = async (mesaId: string): Promise<{ success: boolean; user?: string }> => {
-    if (!currentUser) return { success: false };
-    const mesaRef = doc(db, 'mesas', mesaId);
-    const mesaSnap = await getDoc(mesaRef);
-    if (!mesaSnap.exists()) return { success: false };
-    
-    const mesaData = mesaSnap.data() as Mesa;
-    const LOCK_TIMEOUT = 3 * 60 * 1000; // 3 minutos de gracia
-    const now = Date.now();
-
-    if (mesaData.ocupadaPor && mesaData.ocupadaPor.userId !== currentUser.id) {
-      if (now - mesaData.ocupadaPor.timestamp < LOCK_TIMEOUT) {
-        return { success: false, user: mesaData.ocupadaPor.usuario };
-      }
-    }
-
-    await updateDoc(mesaRef, {
-      ocupadaPor: {
-        userId: currentUser.id,
-        usuario: currentUser.usuario,
-        timestamp: now
-      }
-    });
-
-    return { success: true };
-  };
-
   const createOrder = async (mesaId: string, cliente: string, itemData: Partial<OrderItem>[]) => {
-    const dailyOrders = orders.filter(o => o.fecha === selectedDate);
-    const lastNum = dailyOrders.reduce((max, o) => {
-      const parts = o.id.split('-');
-      const num = parseInt(parts[1]);
-      return isNaN(num) ? max : Math.max(max, num);
-    }, 0);
-    const orderId = `PEDIDO-${(lastNum + 1).toString().padStart(3, '0')}`;
+    // Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
+    if (cashStatus?.estado === 'CERRADO') {
+      alert('La caja del día está cerrada. No se pueden realizar nuevos pedidos.');
+      return;
+    }
 
-    const newItems: OrderItem[] = itemData.map(item => ({
-      id: Math.random().toString(36).substr(2, 9),
-      productoId: item.productoId!,
-      cantidad: item.cantidad || 1,
-      precioUnitario: products.find(p => p.id === item.productoId)?.precio || 0,
-      estado: 'PEDIDO',
-      horaPedido: new Date().toLocaleTimeString(),
-      timestampPedido: Date.now(),
-      ...item
-    }));
+    try {
+      await runTransaction(db, async (transaction) => {
+        const mesaRef = doc(db, 'mesas', mesaId);
+        const mesaSnap = await transaction.get(mesaRef);
+        
+        if (mesaSnap.exists()) {
+          const mesaData = mesaSnap.data() as Mesa;
+          if (mesaData.estado === 'OCUPADA' && mesaId !== '13') {
+            throw new Error('MESA_OCUPADA');
+          }
+        }
 
-    const total = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
+        const dailyOrders = orders.filter(o => o.fecha === selectedDate);
+        const lastNum = dailyOrders.reduce((max, o) => {
+          const parts = o.id.split('-');
+          const num = parseInt(parts[1]);
+          return isNaN(num) ? max : Math.max(max, num);
+        }, 0);
+        const orderId = `PEDIDO-${(lastNum + 1).toString().padStart(3, '0')}`;
 
-    const newOrder: Order = {
-      id: orderId,
-      mesaId,
-      cliente,
-      items: newItems,
-      estado: 'ABIERTO',
-      total,
-      pagos: [],
-      usuarioId: 'user-1',
-      fecha: selectedDate,
-      hora: new Date().toLocaleTimeString(),
-      timestamp: Date.now()
-    };
+        const newItems: OrderItem[] = itemData.map(item => ({
+          id: Math.random().toString(36).substr(2, 9),
+          productoId: item.productoId!,
+          cantidad: item.cantidad || 1,
+          precioUnitario: products.find(p => p.id === item.productoId)?.precio || 0,
+          estado: 'PEDIDO',
+          horaPedido: new Date().toLocaleTimeString(),
+          timestampPedido: Date.now(),
+          ...item
+        }));
 
-    // Update stock and mark mesa
-    const batch = writeBatch(db);
-    batch.set(doc(db, 'pedidos', orderId), newOrder);
-    batch.update(doc(db, 'mesas', mesaId), { estado: 'OCUPADA', ocupadaPor: null });
+        const total = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
 
-    // Stock deduction
-    newItems.forEach(item => {
-      const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
-      if (menuI) {
-        batch.update(doc(db, 'menu_diario', menuI.id), {
-          stockActual: Math.max(0, menuI.stockActual - item.cantidad)
+        const newOrder: Order = {
+          id: orderId,
+          mesaId,
+          cliente,
+          items: newItems,
+          estado: 'ABIERTO',
+          total,
+          pagos: [],
+          usuarioId: currentUser?.id || 'unknown',
+          usuarioNombre: currentUser?.nombre || 'Desconocido',
+          fecha: selectedDate,
+          hora: new Date().toLocaleTimeString(),
+          timestamp: Date.now()
+        };
+
+        // Update stock and mark mesa
+        transaction.set(doc(db, 'pedidos', orderId), newOrder);
+        transaction.update(mesaRef, { estado: 'OCUPADA' });
+
+        // Stock deduction
+        newItems.forEach(item => {
+          const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
+          if (menuI) {
+            transaction.update(doc(db, 'menu_diario', menuI.id), {
+              stockActual: Math.max(0, menuI.stockActual - item.cantidad)
+            });
+          }
         });
+      });
+    } catch (error: any) {
+      if (error.message === 'MESA_OCUPADA') {
+        alert('¡ATENCIÓN! Esta mesa ya fue ocupada por otro mesero.');
+      } else {
+        handleFirestoreError(error, OperationType.CREATE, 'pedidos');
       }
-    });
-
-    await batch.commit();
+    }
   };
 
   const updateItemStatus = (orderId: string, itemId: string, status: ItemStatus) => {
@@ -445,13 +431,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       montoCierre: 0,
       estado: 'ABIERTA',
       horaApertura: new Date().toLocaleTimeString(),
-      usuarioId: 'admin-1'
+      usuarioId: currentUser?.id || 'admin-1'
     };
     setDoc(doc(db, 'control_caja', id), newControl);
   };
 
   const closeCash = () => {
     if (!currentCash || currentCash.estado !== 'ABIERTA') return;
+
+    // Verificar si hay órdenes abiertas para la fecha seleccionada
+    const hasOpenOrders = orders.some(o => o.fecha === selectedDate && o.estado === 'ABIERTO');
+    if (hasOpenOrders) {
+      alert('No se puede cerrar la caja. Hay pedidos pendientes por cobrar.');
+      return;
+    }
+
     requestConfirmation(
       'Cerrar Caja',
       `¿Estás seguro de cerrar la caja de hoy?`,
@@ -467,6 +461,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const reopenCash = () => {
     if (!currentCash || currentCash.estado !== 'CERRADA') return;
+    if (currentUser?.role !== 'ADMIN') {
+      alert('Solo el administrador puede reabrir la caja.');
+      return;
+    }
     requestConfirmation(
       'Reabrir Caja',
       '¿Deseas reabrir la caja de hoy?',
@@ -515,6 +513,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const payOrder = async (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', amount: number, customerId?: string) => {
+    // Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
+    if (cashStatus?.estado === 'CERRADA') {
+      alert('La caja del día está cerrada. No se pueden procesar pagos.');
+      return;
+    }
+
     const order = orders.find(o => o.id === orderId);
     if (!order || order.estado === 'PAGADO') return;
     if (!currentCash || currentCash.estado !== 'ABIERTA') {
@@ -527,6 +532,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       pedidoId: orderId,
       monto: amount,
       metodo: method,
+      usuarioNombre: currentUser?.nombre || 'Desconocido',
       fecha: selectedDate,
       hora: new Date().toLocaleTimeString(),
       timestamp: Date.now()
@@ -582,7 +588,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const user = appUsers.find(u => u.usuario && u.usuario.toLowerCase() === usuario.toLowerCase() && u.pin === pin);
     if (user) {
       setCurrentUser(user);
-      setRole(user.role);
+      setActiveView(user.role);
       localStorage.setItem('sabor_user_id', user.id);
       return true;
     }
@@ -621,12 +627,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const user = appUsers.find(u => u.id === savedId);
       if (user) {
         setCurrentUser(user);
-        setRole(user.role);
+        setActiveView(user.role);
       }
     }
   }, [appUsers]);
 
   const addItemsToOrder = async (orderId: string, itemData: Partial<OrderItem>[]) => {
+    // Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
+    if (cashStatus?.estado === 'CERRADA') {
+      alert('La caja del día está cerrada. No se pueden modificar pedidos.');
+      return;
+    }
+
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
@@ -662,6 +675,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateOrderInfo = (orderId: string, updates: Partial<Order>) => {
+    // Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
+    if (cashStatus?.estado === 'CERRADA') {
+      alert('La caja del día está cerrada. No se pueden modificar pedidos.');
+      return;
+    }
     updateDoc(doc(db, 'pedidos', orderId), updates);
   };
 
@@ -686,6 +705,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteOrder = async (orderId: string) => {
+    // Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
+    if (cashStatus?.estado === 'CERRADA') {
+      alert('La caja del día está cerrada. No se pueden eliminar pedidos.');
+      return;
+    }
+
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
@@ -774,9 +800,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      role, setRole, currentUser, appUsers, login, logout,
+      activeView, setActiveView, currentUser, appUsers, login, logout,
       addAppUser, updateAppUser, deleteAppUser,
-      lockMesa, unlockMesa,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
       createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction,
