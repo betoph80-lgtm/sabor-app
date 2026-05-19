@@ -13,13 +13,13 @@ import { PedidosView } from './components/PedidosView.tsx';
 import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
 import LoginView from './components/LoginView.tsx';
-import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download, LogOut } from 'lucide-react';
+import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download, LogOut, Check } from 'lucide-react';
 import { exportToExcel } from './utils/exportUtils.ts';
 
 const AdminPanel = () => {
   const { 
     resetStock, currentMenu, products, addProduct, updateProduct, 
-    deleteProduct, mesas, addMesa, deleteMesa, toggleProductInMenu, 
+    deleteProduct, mesas, addMesa, updateMesa, deleteMesa, toggleProductInMenu, 
     requestConfirmation, isTodaySelected, orders, selectedDate,
     updateMenuItemStock, customers, categories, addCategory, deleteCategory,
     seedDatabase, logout, currentUser, appUsers, addAppUser, updateAppUser, deleteAppUser
@@ -27,6 +27,9 @@ const AdminPanel = () => {
   const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'USUARIOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
   const [newMesaName, setNewMesaName] = useState('');
+  const [newMesaSillas, setNewMesaSillas] = useState('4');
+  const [editingMesaId, setEditingMesaId] = useState<string | null>(null);
+  const [tempMesaSillas, setTempMesaSillas] = useState<string>('');
   const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 });
   const [newUser, setNewUser] = useState({ nombre: '', usuario: '', role: 'MESERO' as Role, pin: '' });
   const [activeCategory, setActiveCategory] = useState<string>('MENÚ');
@@ -40,10 +43,10 @@ const AdminPanel = () => {
   const handleAddMesa = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMesaName.trim()) {
-      // Use numeric ID or random
       const id = Math.random().toString(36).substr(2, 5);
-      addMesa(id, newMesaName.trim());
+      addMesa(id, newMesaName.trim(), parseInt(newMesaSillas) || 0);
       setNewMesaName('');
+      setNewMesaSillas('4');
     }
   };
 
@@ -471,8 +474,18 @@ const AdminPanel = () => {
                  value={newMesaName}
                  onChange={(e) => setNewMesaName(e.target.value)}
                  placeholder="Ej: Mesa Terraza..."
-                 className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs md:text-sm font-bold outline-none"
+                 className="flex-[3] bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs md:text-sm font-bold outline-none"
                />
+               <div className="flex-[1] relative">
+                 <input 
+                   type="number" 
+                   value={newMesaSillas}
+                   onChange={(e) => setNewMesaSillas(e.target.value)}
+                   placeholder="Sillas"
+                   className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs md:text-sm font-bold outline-none text-center"
+                 />
+                 <span className="absolute -top-2 left-2 bg-white px-1 text-[7px] font-black text-slate-400 uppercase">Sillas</span>
+               </div>
                <button 
                  type="submit"
                  className="px-4 bg-violet-600 text-white rounded-xl font-black uppercase text-[9px] md:text-[10px] tracking-widest shadow-lg shadow-violet-100 transition-all"
@@ -596,13 +609,76 @@ const AdminPanel = () => {
               
               <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 max-h-[200px] overflow-auto pr-1 no-scrollbar">
                 {mesas.map(mesa => {
-                  const isOccupied = orders.some(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
+                  const activeOrder = orders.find(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
+                  const isOccupied = !!activeOrder;
+                  const isEditing = editingMesaId === mesa.id;
+                  
                   return (
-                    <div key={mesa.id} className="bg-white border border-slate-100 p-2.5 rounded-xl flex items-center justify-between shadow-sm">
-                      <span className="font-bold text-slate-700 text-[10px] truncate">
-                        {mesa.id === '13' ? 'Para Llevar' : mesa.nombre}
-                      </span>
-                      <div className={`shrink-0 w-2 h-2 rounded-full ${isOccupied ? 'bg-violet-400' : 'bg-emerald-400'}`}></div>
+                    <div key={mesa.id} className="group relative bg-white border border-slate-100 p-2.5 rounded-xl flex items-center justify-between shadow-sm hover:border-slate-200 transition-all">
+                      {isEditing ? (
+                        <div className="flex items-center gap-1.5 w-full">
+                          <input 
+                            type="number"
+                            className="flex-1 min-w-0 bg-slate-50 border border-brand-200 rounded-lg px-2 py-1 text-[10px] font-black outline-none focus:bg-white"
+                            value={tempMesaSillas}
+                            onChange={(e) => setTempMesaSillas(e.target.value)}
+                            onBlur={() => {
+                              // Small delay to allow button click
+                              setTimeout(() => setEditingMesaId(null), 200);
+                            }}
+                            autoFocus
+                          />
+                          <button 
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // Prevent onBlur before click
+                              updateMesa(mesa.id, { sillas: parseInt(tempMesaSillas) || 0 });
+                              setEditingMesaId(null);
+                            }}
+                            className="shrink-0 w-6 h-6 bg-emerald-500 text-white rounded-lg flex items-center justify-center shadow-sm"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div 
+                            className="flex flex-col min-w-0 cursor-pointer"
+                            onClick={() => {
+                              if (mesa.id !== '13') {
+                                setEditingMesaId(mesa.id);
+                                setTempMesaSillas((mesa.sillas || 0).toString());
+                              }
+                            }}
+                          >
+                            <span className="font-bold text-slate-700 text-[10px] truncate leading-tight">
+                              {mesa.id === '13' ? 'Para Llevar' : mesa.nombre}
+                            </span>
+                            {isOccupied && activeOrder ? (
+                               <div className="flex flex-col">
+                                 <span className="text-[7px] font-black text-violet-400 uppercase tracking-tighter">
+                                   {activeOrder.usuarioNombre?.split(' ')[0]} - #{activeOrder.id.split('-')[1]}
+                                 </span>
+                               </div>
+                            ) : (
+                              mesa.id !== '13' && (
+                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter hover:text-emerald-500 transition-colors">
+                                  Cap: {mesa.sillas || 0} <span className="opacity-50 font-medium">✎</span>
+                                </span>
+                              )
+                            )}
+                          </div>
+                          <div className={`shrink-0 w-2 h-2 rounded-full ${isOccupied ? 'bg-violet-400' : 'bg-emerald-400'}`}></div>
+                          
+                          {mesa.id !== '13' && (
+                            <button 
+                              onClick={() => deleteMesa(mesa.id)}
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white border border-slate-100 text-rose-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-rose-50 hover:text-rose-600 z-10"
+                            >
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   );
                 })}

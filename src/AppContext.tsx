@@ -79,7 +79,8 @@ interface AppContextType {
   updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number) => void;
   deleteOrder: (orderId: string) => void;
   resetStock: () => void;
-  addMesa: (id: string, nombre: string) => void;
+  addMesa: (id: string, nombre: string, sillas?: number) => void;
+  updateMesa: (id: string, updates: Partial<Mesa>) => void;
   deleteMesa: (id: string) => void;
   toggleProductInMenu: (productId: string) => void;
   customers: Customer[];
@@ -841,8 +842,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await batch.commit();
   };
 
-  const addMesa = (id: string, nombre: string) => {
-    setDoc(doc(db, 'mesas', id), { id, nombre, estado: 'LIBRE' });
+  const addMesa = (id: string, nombre: string, sillas?: number) => {
+    setDoc(doc(db, 'mesas', id), { id, nombre, estado: 'LIBRE', sillas });
+  };
+
+  const updateMesa = (id: string, updates: Partial<Mesa>) => {
+    updateDoc(doc(db, 'mesas', id), updates);
   };
 
   const deleteMesa = (id: string) => {
@@ -898,7 +903,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeView, setActiveView, currentUser, appUsers, login, logout,
       addAppUser, updateAppUser, deleteAppUser,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
-      createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, deleteMesa, toggleProductInMenu,
+      createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, updateMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction,
       cashControls, openCash, closeCash, reopenCash, currentCash,
       confirmAction, requestConfirmation, closeConfirmation,

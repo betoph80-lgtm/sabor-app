@@ -83,18 +83,36 @@ export const MeseroView: React.FC = () => {
                 }`}>
                   {label}
                 </div>
+                
+                {mesa.id !== '13' && (
+                  <div className="absolute top-2 right-3 text-[7px] md:text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                    {mesa.sillas || 0}
+                    <span className="ml-0.5 opacity-50"> sillas</span>
+                  </div>
+                )}
               
               {isOccupied && (
-                <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 flex gap-1 md:gap-1.5">
-                   {mesaActiveOrders[0]?.items.slice(0, 4).map((item, idx) => (
-                      <div 
-                        key={idx} 
-                        className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full border border-white/20 ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-brand-400 animate-pulse'}`} 
-                      />
-                   ))}
-                   {mesaActiveOrders[0]?.items.length > 4 && (
-                      <div className="text-[7px] font-bold text-slate-400">...</div>
-                   )}
+                <div className="absolute bottom-1.5 md:bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center w-full px-2">
+                  <div className="flex flex-col items-center leading-none mb-1">
+                    <span className="text-[6px] md:text-[8px] font-black text-rose-600/60 uppercase tracking-tighter truncate max-w-full">
+                      {allMesaActiveOrders[0]?.usuarioNombre?.split(' ')[0]}
+                    </span>
+                    <span className="text-[5px] md:text-[6px] font-black text-rose-300 uppercase tracking-widest mt-0.5">
+                      #{allMesaActiveOrders[0]?.id.split('-')[1]}
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-1 md:gap-1.5">
+                    {allMesaActiveOrders[0]?.items.slice(0, 4).map((item, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full border border-white/20 ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-brand-400 animate-pulse'}`} 
+                        />
+                    ))}
+                    {allMesaActiveOrders[0]?.items.length > 4 && (
+                        <div className="text-[5px] font-bold text-slate-400">...</div>
+                    )}
+                  </div>
                 </div>
               )}
             </button>
