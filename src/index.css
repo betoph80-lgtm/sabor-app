@@ -1,38 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;700;800;900&family=JetBrains+Mono:wght@500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-brand-600: #9F67FF;
-  --color-brand-500: #B794F4;
-  --color-brand-50: #F3EBFF;
+  --color-brand-600: #8B5CF6;
+  --color-brand-500: #A78BFA;
+  --color-brand-50: #F5F3FF;
   
   --color-violet-50: #F5F3FF;
   --color-violet-100: #EDE9FE;
   --color-violet-200: #DDD6FE;
   --color-violet-400: #C4B5FD;
-  --color-violet-500: #B794F4;
-  --color-violet-600: #9F67FF;
-  --color-violet-700: #805AD5;
+  --color-violet-500: #A78BFA;
+  --color-violet-600: #8B5CF6;
+  --color-violet-700: #7C3AED;
 }
 
 @layer base {
   body {
-    @apply font-sans bg-slate-50 text-slate-800;
+    @apply font-sans bg-slate-50/50 text-slate-800 antialiased selection:bg-violet-100 selection:text-violet-900;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+    @apply bg-white/75 backdrop-blur-lg border border-white/30 shadow-[0_4px_30px_rgba(0,0,0,0.02)];
   }
   
   .soft-shadow {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 12px 40px -12px rgba(139, 92, 246, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  .material-btn {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .safe-bottom {

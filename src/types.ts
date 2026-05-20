@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface AppIdentity {
+  nombre: string;
+  nombreCorto: string;
+  eslogan: string;
+  logoUrl: string;
+}
+
 export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA' | 'PEDIDOS' | 'CUENTAS';
 
 export interface AppUser {

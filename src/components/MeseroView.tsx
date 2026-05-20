@@ -50,7 +50,7 @@ export const MeseroView: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-1.5 md:gap-5">
+      <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-5">
         {sortedMesas.map((mesa) => {
           const allMesaActiveOrders = orders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
           const mesaActiveOrders = filteredOrders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
@@ -68,45 +68,44 @@ export const MeseroView: React.FC = () => {
                 }
               }}
               disabled={isCashClosed}
-              className={`relative aspect-square min-h-[90px] rounded-[24px] md:rounded-[36px] border flex flex-col items-center justify-center transition-all duration-300 group soft-shadow ${
-                isCashClosed ? 'opacity-50 cursor-not-allowed grayscale' : ''
+              className={`relative aspect-square min-h-[92px] rounded-2xl md:rounded-[32px] border flex flex-col items-center justify-center transition-all duration-300 group soft-shadow active:scale-[0.96] ${
+                isCashClosed ? 'opacity-40 cursor-not-allowed grayscale' : ''
               } ${
                 isOccupied
                   ? mesa.id === '13' 
-                    ? 'bg-brand-50 border-brand-300 text-brand-800 hover:bg-brand-100 -translate-y-1 shadow-md' 
-                    : 'bg-rose-50 border-rose-300 text-rose-800 hover:bg-rose-100 -translate-y-1 shadow-md'
-                  : 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                    ? 'bg-brand-50/90 border-brand-200 text-brand-800 shadow-[0_4px_16px_rgba(139,92,246,0.12)] -translate-y-0.5' 
+                    : 'bg-rose-50/90 border-rose-200 text-rose-800 shadow-[0_4px_16px_rgba(239,68,68,0.08)] -translate-y-0.5'
+                  : 'bg-emerald-50/70 border-emerald-200 text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300'
               }`}
             >
-                <div className={`font-display font-black leading-tight uppercase px-1 text-center ${
-                  label.length > 3 ? 'text-[11px] md:text-base' : 'text-2xl md:text-3xl'
+                <div className={`font-display font-black leading-none uppercase px-1 text-center select-none ${
+                  label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
                 }`}>
                   {label}
                 </div>
                 
                 {mesa.id !== '13' && (
-                  <div className="absolute top-2 right-3 text-[7px] md:text-[9px] font-black text-slate-300 uppercase tracking-tighter">
-                    {mesa.sillas || 0}
-                    <span className="ml-0.5 opacity-50"> sillas</span>
+                  <div className="absolute top-2 right-2 px-1 py-0.5 bg-slate-900/[0.04] rounded-md text-[6.5px] md:text-[8px] font-bold text-slate-400 capitalize whitespace-nowrap select-none">
+                    {mesa.sillas || 0} sil.
                   </div>
                 )}
               
               {isOccupied && (
-                <div className="absolute bottom-1.5 md:bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center w-full px-2">
+                <div className="absolute bottom-1.5 md:bottom-3 left-0 right-0 flex flex-col items-center px-1">
                   <div className="flex flex-col items-center leading-none mb-1">
-                    <span className="text-[6px] md:text-[8px] font-black text-rose-600/60 uppercase tracking-tighter truncate max-w-full">
+                    <span className="text-[6.5px] md:text-[8px] font-bold text-rose-700 uppercase tracking-tight truncate max-w-[85%]">
                       {allMesaActiveOrders[0]?.usuarioNombre?.split(' ')[0]}
                     </span>
-                    <span className="text-[5px] md:text-[6px] font-black text-rose-300 uppercase tracking-widest mt-0.5">
+                    <span className="text-[5px] md:text-[6.5px] font-mono text-rose-400 font-semibold uppercase tracking-widest mt-0.2">
                       #{allMesaActiveOrders[0]?.id.split('-')[1]}
                     </span>
                   </div>
                   
-                  <div className="flex gap-1 md:gap-1.5">
+                  <div className="flex gap-0.5 md:gap-1.5 justify-center">
                     {allMesaActiveOrders[0]?.items.slice(0, 4).map((item, idx) => (
                         <div 
                           key={idx} 
-                          className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full border border-white/20 ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-brand-400 animate-pulse'}`} 
+                          className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full border border-white/40 ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-brand-400 animate-pulse'}`} 
                         />
                     ))}
                     {allMesaActiveOrders[0]?.items.length > 4 && (

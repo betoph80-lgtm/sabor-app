@@ -13,7 +13,7 @@ import { PedidosView } from './components/PedidosView.tsx';
 import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
 import LoginView from './components/LoginView.tsx';
-import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download, LogOut, Check } from 'lucide-react';
+import { Database, Plus, Users, Utensils, CheckCircle2, Circle, Edit3, Trash2, X, TrendingUp, BarChart3, Download, LogOut, Check, Settings, Image, Tag } from 'lucide-react';
 import { exportToExcel } from './utils/exportUtils.ts';
 
 const AdminPanel = () => {
@@ -22,9 +22,10 @@ const AdminPanel = () => {
     deleteProduct, mesas, addMesa, updateMesa, deleteMesa, toggleProductInMenu, 
     requestConfirmation, isTodaySelected, orders, selectedDate,
     updateMenuItemStock, customers, categories, addCategory, deleteCategory,
-    seedDatabase, logout, currentUser, appUsers, addAppUser, updateAppUser, deleteAppUser
+    seedDatabase, logout, currentUser, appUsers, addAppUser, updateAppUser, deleteAppUser,
+    identity, updateIdentity
   } = useApp();
-  const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'USUARIOS' | 'MESAS' | 'CLIENTES' | 'DATABASE'>('PANEL');
+  const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'USUARIOS' | 'MESAS' | 'CLIENTES' | 'IDENTIDAD' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
   const [newMesaName, setNewMesaName] = useState('');
   const [newMesaSillas, setNewMesaSillas] = useState('4');
@@ -39,6 +40,25 @@ const AdminPanel = () => {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
   const [editUserForm, setEditUserForm] = useState<any>(null);
+
+  const [identidadForm, setIdentidadForm] = useState({
+    nombre: '',
+    nombreCorto: '',
+    eslogan: '',
+    logoUrl: ''
+  });
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  React.useEffect(() => {
+    if (identity) {
+      setIdentidadForm({
+        nombre: identity.nombre || '',
+        nombreCorto: identity.nombreCorto || '',
+        eslogan: identity.eslogan || '',
+        logoUrl: identity.logoUrl || ''
+      });
+    }
+  }, [identity]);
 
   const handleAddMesa = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +138,7 @@ const AdminPanel = () => {
     <>
     <div className="w-full max-w-6xl space-y-4 md:space-y-8 pb-10 md:pb-20">
        <div className="flex bg-white/80 backdrop-blur-md p-1 md:p-1.5 rounded-xl md:rounded-3xl border border-slate-100 shadow-sm overflow-x-auto no-scrollbar mx-auto max-w-fit md:sticky md:top-4 z-40">
-          {(['PANEL', 'PRODUCTOS', 'USUARIOS', 'MESAS', 'DATABASE'] as const).map(view => (
+          {(['PANEL', 'PRODUCTOS', 'USUARIOS', 'MESAS', 'IDENTIDAD', 'DATABASE'] as const).map(view => (
             <button 
               key={view}
               onClick={() => setAdminView(view as any)}
@@ -128,7 +148,7 @@ const AdminPanel = () => {
                   : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
               }`}
             >
-              {view === 'PANEL' ? 'Servicio' : view === 'DATABASE' ? 'DB' : view === 'USUARIOS' ? 'Personal' : view}
+              {view === 'PANEL' ? 'Servicio' : view === 'DATABASE' ? 'DB' : view === 'USUARIOS' ? 'Personal' : view === 'IDENTIDAD' ? 'Identidad' : view}
             </button>
           ))}
        </div>

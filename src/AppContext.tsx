@@ -7,7 +7,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   Order, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
   OrderItem, ItemStatus, Customer, CustomerTransaction, 
-  DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role 
+  DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role,
+  AppIdentity
 } from './types';
 import { db, auth } from './firebase';
 import { 
@@ -109,6 +110,8 @@ interface AppContextType {
   setSelectedDate: (date: string) => void;
   isTodaySelected: boolean;
   seedDatabase: () => Promise<void>;
+  identity: AppIdentity;
+  updateIdentity: (updates: Partial<AppIdentity>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -134,6 +137,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentMenu, setCurrentMenu] = useState<MenuItem[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [cashControls, setCashControls] = useState<DailyCashControl[]>([]);
+  const [identity, setIdentity] = useState<AppIdentity>({
+    nombre: 'Sabor Abanquino',
+    nombreCorto: 'SA',
+    eslogan: 'Gastronomía & Tradición',
+    logoUrl: '/logo.png'
+  });
   
   const [confirmAction, setConfirmAction] = useState({
     isOpen: false,
@@ -205,18 +214,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const uniqueCategories = Array.from(new Set(snapshot.docs.map(doc => doc.data().nombre)));
         setCategories(uniqueCategories);
       }
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'categorias'));
 
     // 4. CLIENTES
     const unsubscribeCustomers = onSnapshot(collection(db, 'clientes'), (snapshot) => {
       setCustomers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer)));
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, 'clientes'));
+
+    // 4.5. IDENTIDAD
+    const unsubscribeIdentity = onSnapshot(doc(db, 'config', 'identity'), (docSnap) => {
+      if (docSnap.exists()) {
+        setIdentity(docSnap.data() as AppIdentity);
+      } else {
+        const defaultIdentity: AppIdentity = {
+          nombre: 'Sabor Abanquino',
+          nombreCorto: 'SA',
+          eslogan: 'Gastronomía & Tradición',
+          logoUrl: '/logo.png',
+        };
+        setDoc(doc(db, 'config', 'identity'), defaultIdentity);
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, 'config/identity'));
 
     return () => {
       unsubscribeMesas();
       unsubscribeProducts();
       unsubscribeCategories();
       unsubscribeCustomers();
+      unsubscribeIdentity();
     };
   }, []);
 
@@ -348,19 +373,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         transaction.set(doc(db, 'pedidos', orderId), newOrder);
         transaction.update(mesaRef, { estado: 'OCUPADA' });
 
-        // Stock deduction
-        newItems.forEach(item => {
+        // Stock deduction with validation
+        for (const item of newItems) {
           const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
           if (menuI) {
+            if (menuI.stockActual < item.cantidad) {
+              const pName = products.find(p => p.id === item.productoId)?.nombre || 'Producto';
+              throw new Error(`STOCK_INSUFICIENTE:${pName}:${menuI.stockActual}`);
+            }
             transaction.update(doc(db, 'menu_diario', menuI.id), {
               stockActual: Math.max(0, menuI.stockActual - item.cantidad)
             });
           }
-        });
+        }
       });
     } catch (error: any) {
       if (error.message === 'MESA_OCUPADA') {
         alert('¡ATENCIÓN! Esta mesa ya fue ocupada por otro mesero.');
+      } else if (error.message && error.message.startsWith('STOCK_INSUFICIENTE')) {
+        const [_, pName, stock] = error.message.split(':');
+        alert(`¡ATENCIÓN! No hay stock suficiente del producto "${pName}". Stock actual disponible: ${stock}`);
       } else {
         handleFirestoreError(error, OperationType.CREATE, 'pedidos');
       }
@@ -410,13 +442,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!item) return;
 
     const diff = newQty - item.cantidad;
+    const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
+
+    // Validate if incrementing and we exceed stock
+    if (diff > 0 && menuI && menuI.stockActual < diff) {
+      const pName = products.find(p => p.id === item.productoId)?.nombre || 'Producto';
+      alert(`¡ATENCIÓN! No hay stock suficiente del producto "${pName}". Stock disponible: ${menuI.stockActual}`);
+      return;
+    }
+
     const newItems = order.items.map(i => i.id === itemId ? { ...i, cantidad: newQty } : i);
     const newTotal = newItems.reduce((acc, i) => acc + (i.precioUnitario * i.cantidad), 0);
 
     const batch = writeBatch(db);
     batch.update(doc(db, 'pedidos', orderId), { items: newItems, total: newTotal });
 
-    const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
     if (menuI) {
       batch.update(doc(db, 'menu_diario', menuI.id), {
         stockActual: Math.max(0, menuI.stockActual - diff)
@@ -738,6 +778,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
 
     const addedTotal = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
+
+    // Stock validation
+    const insufficientStock: string[] = [];
+    newItems.forEach(item => {
+      const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
+      if (menuI && menuI.stockActual < item.cantidad) {
+        const pName = products.find(p => p.id === item.productoId)?.nombre || 'Producto';
+        insufficientStock.push(`- ${pName}: Solicitado ${item.cantidad}, Disponible: ${menuI.stockActual}`);
+      }
+    });
+
+    if (insufficientStock.length > 0) {
+      alert(`¡ATENCIÓN! No hay stock suficiente para agregar estos productos:\n\n${insufficientStock.join('\n')}`);
+      return;
+    }
+
     const batch = writeBatch(db);
 
     batch.update(doc(db, 'pedidos', orderId), {
@@ -898,6 +954,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const updateIdentity = async (updates: Partial<AppIdentity>) => {
+    try {
+      await setDoc(doc(db, 'config', 'identity'), { ...identity, ...updates }, { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, 'config/identity');
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       activeView, setActiveView, currentUser, appUsers, login, logout,
@@ -908,7 +972,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       cashControls, openCash, closeCash, reopenCash, currentCash,
       confirmAction, requestConfirmation, closeConfirmation,
       selectedDate, setSelectedDate, isTodaySelected,
-      seedDatabase
+      seedDatabase,
+      identity,
+      updateIdentity
     }}>
       {children}
       <ConfirmModal 

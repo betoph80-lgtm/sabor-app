@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, UserPlus, Lock, ShieldCheck, User as UserIcon } from 'lucide-react';
 
 const LoginView = () => {
-  const { login, appUsers, seedDatabase, requestConfirmation } = useApp();
+  const { login, appUsers, seedDatabase, requestConfirmation, identity } = useApp();
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -58,7 +58,7 @@ const LoginView = () => {
              <div className="w-16 h-16 bg-violet-600 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-violet-100">
                <Lock className="w-8 h-8 text-white" />
              </div>
-             <h1 className="text-2xl font-display font-bold text-slate-800">Sabor Abanquino</h1>
+             <h1 className="text-2xl font-display font-bold text-slate-800">{identity?.nombre || 'Sabor Abanquino'}</h1>
              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Control de Acceso</p>
           </div>
 
@@ -147,7 +147,7 @@ const LoginView = () => {
 
         <div className="mt-8 text-center">
           <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-            Gastronomía & Tradición
+            {identity?.eslogan || 'Gastronomía & Tradición'}
           </p>
         </div>
       </motion.div>

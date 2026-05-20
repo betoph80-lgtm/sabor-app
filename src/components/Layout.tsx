@@ -9,7 +9,11 @@ import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, 
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { activeView, setActiveView, orders, currentMenu, products, customers, currentCash, selectedDate, setSelectedDate, logout, currentUser } = useApp();
+  const { activeView, setActiveView, orders, currentMenu, products, customers, currentCash, selectedDate, setSelectedDate, logout, currentUser, identity } = useApp();
+  
+  const brandParts = (identity?.nombre || 'Sabor Abanquino').split(' ');
+  const firstPart = brandParts.slice(0, -1).join(' ') || brandParts[0] || '';
+  const lastPart = brandParts.length > 1 ? brandParts[brandParts.length - 1] : '';
   
   const formatDate = (date: Date) => {
     const d = date.getDate();
@@ -97,8 +101,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="absolute -inset-1 bg-gradient-to-tr from-violet-500/20 to-brand-500/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
             <div className="relative w-12 h-12 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-1.5 md:p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
               <img 
-                src="/logo.png" 
-                alt="Sabor Abanquino" 
+                src={identity?.logoUrl || "/logo.png"} 
+                alt={identity?.nombre || "Logo"} 
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
@@ -109,36 +113,38 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div className="flex flex-col">
             <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight hidden sm:block uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
-              Sabor <span className="text-violet-600">Abanquino</span>
+              {firstPart} {lastPart && <span className="text-violet-600">{lastPart}</span>}
             </h1>
             <div className="flex items-center gap-3 mt-2">
               <span className="w-8 h-px bg-violet-200 hidden sm:block"></span>
-              <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase hidden sm:block">Gastronomía & Tradición</p>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase hidden sm:block">{identity?.eslogan || "Gastronomía & Tradición"}</p>
             </div>
           </div>
-          <h1 className="text-xl font-display font-bold tracking-tighter block sm:hidden uppercase italic text-violet-600">SA</h1>
+          <h1 className="text-xl font-display font-bold tracking-tighter block sm:hidden uppercase italic text-violet-600">{identity?.nombreCorto || "SA"}</h1>
         </div>
 
-        <div className="hidden lg:flex items-center gap-6 bg-violet-50/30 px-8 py-4 rounded-[32px] border border-violet-100/50">
-           <div className="flex items-center gap-4">
-              <Calendar className="w-5 h-5 text-violet-500" />
-              {currentUser?.role === 'ADMIN' ? (
-                <input 
-                  type="date" 
-                  value={toInputDate(selectedDate)}
-                  onChange={handleDateChange}
-                  className="bg-transparent text-sm font-display font-bold text-slate-700 outline-none cursor-pointer hover:text-violet-600 transition-colors"
-                />
-              ) : (
-                <span className="text-sm font-display font-bold text-slate-700">
-                  {selectedDate}
-                </span>
+        <div className="hidden lg:flex items-center gap-4 bg-white border border-slate-200 px-5 py-2.5 rounded-xl shadow-sm hover:border-violet-300 transition-all duration-300 relative group h-[46px]">
+           <div className="flex items-center gap-3">
+              <Calendar className="w-4.5 h-4.5 text-violet-500" />
+              <span className="text-sm font-display font-bold text-slate-700 select-none">
+                {selectedDate}
+              </span>
+              {currentUser?.role === 'ADMIN' && (
+                <div className="relative flex items-center justify-center w-6 h-6 rounded-md hover:bg-slate-100 transition-colors">
+                  <Calendar className="w-4 h-4 text-slate-400 group-hover:text-violet-500 transition-colors" />
+                  <input 
+                    type="date" 
+                    value={toInputDate(selectedDate)}
+                    onChange={handleDateChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </div>
               )}
            </div>
            {selectedDate !== today && currentUser?.role === 'ADMIN' && (
               <button 
                 onClick={() => setSelectedDate(today)}
-                className="px-5 py-2 bg-violet-600 text-white text-[10px] rounded-full font-bold uppercase tracking-widest hover:bg-violet-700 transition-all active:scale-95 shadow-lg shadow-violet-100"
+                className="px-3.5 py-1 bg-violet-600 text-white text-[9px] rounded-full font-bold uppercase tracking-wider hover:bg-violet-700 transition-all active:scale-95 shadow-sm ml-1"
               >
                 Hoy
               </button>
@@ -147,30 +153,33 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         <div className="flex gap-4 sm:gap-10 items-center ml-auto">
           <div className="flex items-center gap-4 md:gap-8 md:pr-12 md:border-r border-violet-100">
-            {/* Same as before... but we can add a mobile logout here */}
-            <button 
+            {/* Mobile logout button */}
+             <button 
               onClick={logout}
               className="xl:hidden p-3 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
             >
               <LogOut className="w-5 h-5" />
             </button>
-            <div className="text-right shrink-0 group">
-              <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-1.5 md:mb-2.5 px-1">Sopa</p>
-              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm group-hover:border-violet-200 group-hover:scale-105 transition-all duration-300">
-                <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
-                   {totalSoupStock} <span className="text-violet-400">/</span> <span className="text-slate-400">{totalSoupInitial}</span>
-                </p>
+            <div className="flex items-center max-w-[140px] xs:max-w-[220px] sm:max-w-[340px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth">
+              <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white text-center text-[10px] shadow-sm shrink-0 h-[46px]">
+                {[...soupStock, ...mainStock].map((m, index) => {
+                  const product = products.find(p => p.id === m.productoId);
+                  const isFirst = index === 0;
+                  return (
+                    <div key={m.id} className={`flex flex-col min-w-[55px] xs:min-w-[70px] md:min-w-[95px] ${!isFirst ? 'border-l border-slate-200' : ''}`}>
+                      <div className="bg-slate-50/50 border-b border-slate-200 px-2 py-0.5 md:py-1 font-bold text-slate-500 uppercase text-[7.5px] md:text-[8px] tracking-wider truncate max-w-[65px] xs:max-w-[80px] md:max-w-[110px]" title={product?.nombre}>
+                        {product?.nombre || 'Plato'}
+                      </div>
+                      <div className="flex-1 flex items-center justify-center px-1.5 py-1 font-sans font-extrabold text-slate-900 text-[11px] md:text-xs whitespace-nowrap">
+                        <span>{m.stockActual}</span>
+                        <span className="text-slate-400 font-semibold text-[9px] md:text-[10px]">/{m.stockInicial}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="text-right shrink-0 group">
-              <p className="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em] leading-none mb-2.5 px-1">Segundo</p>
-              <div className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm group-hover:border-violet-200 group-hover:scale-105 transition-all duration-300">
-                <p className="text-sm md:text-base leading-tight font-display font-bold text-slate-900 whitespace-nowrap">
-                  {totalMainStock} <span className="text-violet-400">/</span> <span className="text-slate-400">{totalMainInitial}</span>
-                </p>
-              </div>
-            </div>
-</div>
+          </div>
           
           <div className="hidden xl:flex items-center gap-5 pl-4 group">
             <div className="relative">
