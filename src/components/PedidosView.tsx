@@ -20,6 +20,7 @@ export const PedidosView: React.FC = () => {
     updateItemQuantity, 
     addItemsToOrder, 
     updateOrderInfo,
+    updateWholeOrder,
     deleteOrder,
     resetStock,
     requestConfirmation,
@@ -81,13 +82,9 @@ export const PedidosView: React.FC = () => {
       {editingOrder && orderToEdit && (
         <OrderModal
           onClose={() => setEditingOrder(null)}
-          onAdd={(items, newClienteName) => {
-            if (items.length > 0) {
-              addItemsToOrder(editingOrder, items);
-            }
-            if (newClienteName !== orderToEdit.cliente) {
-              updateOrderInfo(editingOrder, { cliente: newClienteName });
-            }
+          onAdd={() => {}}
+          onSaveEdit={async (qtys, notes, newClienteName, newMesaId) => {
+            await updateWholeOrder(editingOrder, newMesaId, newClienteName, qtys, notes);
             setEditingOrder(null);
           }}
           products={products}
@@ -95,6 +92,8 @@ export const PedidosView: React.FC = () => {
           mesaId={orderToEdit.mesaId}
           mesaName={mesas.find(m => m.id === orderToEdit.mesaId)?.nombre || orderToEdit.mesaId}
           initialClienteName={orderToEdit.cliente}
+          mesas={mesas}
+          initialItems={orderToEdit.items}
           title="Editar Pedido"
         />
       )}

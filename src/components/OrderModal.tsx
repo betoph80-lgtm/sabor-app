@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { Plus, Minus, X, User } from 'lucide-react';
 import { motion } from 'motion/react';
-import { OrderItem, Product, MenuItem } from '../types';
+import { OrderItem, Product, MenuItem, Mesa } from '../types';
 
 export const OrderModal: React.FC<{
   onClose: () => void;
@@ -17,9 +17,52 @@ export const OrderModal: React.FC<{
   mesaName: string;
   initialClienteName?: string;
   title?: string;
-}> = ({ onClose, onAdd, products, currentMenu, mesaId, mesaName, initialClienteName = '', title = 'Nuevo Pedido' }) => {
-  const [quantities, setQuantities] = useState<{[key: string]: number}>({});
-  const [notes, setNotes] = useState<{[key: string]: string}>({});
+  mesas?: Mesa[];
+  initialItems?: OrderItem[];
+  onSaveEdit?: (
+    quantities: { [productId: string]: number },
+    notes: { [productId: string]: string },
+    clienteName: string,
+    mesaId: string
+  ) => void;
+}> = ({
+  onClose,
+  onAdd,
+  products,
+  currentMenu,
+  mesaId,
+  mesaName,
+  initialClienteName = '',
+  title = 'Nuevo Pedido',
+  mesas,
+  initialItems,
+  onSaveEdit,
+}) => {
+  const [selectedMesaId, setSelectedMesaId] = useState(mesaId);
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>(() => {
+    if (initialItems) {
+      const qtys: { [key: string]: number } = {};
+      initialItems.forEach(item => {
+        qtys[item.productoId] = (qtys[item.productoId] || 0) + item.cantidad;
+      });
+      return qtys;
+    }
+    return {};
+  });
+
+  const [notes, setNotes] = useState<{ [key: string]: string }>(() => {
+    if (initialItems) {
+      const nts: { [key: string]: string } = {};
+      initialItems.forEach(item => {
+        if (item.notas) {
+          nts[item.productoId] = item.notas;
+        }
+      });
+      return nts;
+    }
+    return {};
+  });
+
   const [clienteName, setClienteName] = useState(initialClienteName);
 
   const updateQuantity = (id: string, delta: number) => {
@@ -28,8 +71,12 @@ export const OrderModal: React.FC<{
       const nextVal = current + delta;
       if (delta > 0) {
         const menuI = currentMenu.find(m => m.productoId === id);
-        if (menuI && menuI.stockActual < nextVal) {
-          alert(`¡ATENCIÓN! No hay stock suficiente para este producto. Stock disponible: ${menuI.stockActual}`);
+        const initialQty = initialItems
+          ? initialItems.filter(item => item.productoId === id).reduce((acc, item) => acc + item.cantidad, 0)
+          : 0;
+        const extraQtyNeeded = nextVal - initialQty;
+        if (extraQtyNeeded > 0 && menuI && menuI.stockActual < extraQtyNeeded) {
+          alert(`¡ATENCIÓN! No hay stock suficiente para este producto. Stock disponible extra: ${menuI.stockActual}`);
           return prev;
         }
       }
@@ -49,43 +96,52 @@ export const OrderModal: React.FC<{
     if (isNaN(parsed) || parsed < 0) return;
 
     const menuI = currentMenu.find(m => m.productoId === id);
-    if (menuI && menuI.stockActual < parsed) {
-      alert(`¡ATENCIÓN! No hay stock suficiente para este producto. Stock disponible: ${menuI.stockActual}`);
-      setQuantities(prev => ({ ...prev, [id]: menuI.stockActual }));
+    const initialQty = initialItems
+      ? initialItems.filter(item => item.productoId === id).reduce((acc, item) => acc + item.cantidad, 0)
+      : 0;
+    const extraQtyNeeded = parsed - initialQty;
+    if (extraQtyNeeded > 0 && menuI && menuI.stockActual < extraQtyNeeded) {
+      alert(`¡ATENCIÓN! No hay stock suficiente para este producto. Stock disponible extra: ${menuI.stockActual}`);
+      setQuantities(prev => ({ ...prev, [id]: initialQty + (menuI.stockActual > 0 ? menuI.stockActual : 0) }));
       return;
     }
     setQuantities(prev => ({ ...prev, [id]: parsed }));
   };
 
   const handleAdd = () => {
-    const items = Object.keys(quantities)
-      .filter(id => quantities[id] > 0)
-      .map(id => ({ 
-        productoId: id, 
-        cantidad: quantities[id], 
-        notas: notes[id] || '' 
-      }));
+    if (onSaveEdit) {
+      onSaveEdit(quantities, notes, clienteName, selectedMesaId);
+    } else {
+      const items = Object.keys(quantities)
+        .filter(id => quantities[id] > 0)
+        .map(id => ({
+          productoId: id,
+          cantidad: quantities[id],
+          notas: notes[id] || ''
+        }));
 
-    // Real-time stock verification inside modal
-    const insufficientStock: string[] = [];
-    for (const item of items) {
-      const menuI = currentMenu.find(m => m.productoId === item.productoId);
-      const product = products.find(p => p.id === item.productoId);
-      if (menuI && menuI.stockActual < item.cantidad) {
-        insufficientStock.push(`- ${product?.nombre || 'Producto'}: Solicitado ${item.cantidad}, Disponible: ${menuI.stockActual}`);
+      // Real-time stock verification inside modal
+      const insufficientStock: string[] = [];
+      for (const item of items) {
+        const menuI = currentMenu.find(m => m.productoId === item.productoId);
+        const product = products.find(p => p.id === item.productoId);
+        if (menuI && menuI.stockActual < item.cantidad) {
+          insufficientStock.push(`- ${product?.nombre || 'Producto'}: Solicitado ${item.cantidad}, Disponible: ${menuI.stockActual}`);
+        }
       }
-    }
 
-    if (insufficientStock.length > 0) {
-      alert(`¡ATENCIÓN! No hay stock suficiente para confirmar este pedido:\n\n${insufficientStock.join('\n')}\n\nPor favor, ajuste las cantidades.`);
-      return;
-    }
+      if (insufficientStock.length > 0) {
+        alert(`¡ATENCIÓN! No hay stock suficiente para confirmar este pedido:\n\n${insufficientStock.join('\n')}\n\nPor favor, ajuste las cantidades.`);
+        return;
+      }
 
-    onAdd(items, clienteName);
+      onAdd(items, clienteName);
+    }
   };
 
+  // Categories list
   const categories = Array.from(new Set(products.map(p => p.categoria))) as string[];
-  
+
   // Custom sorting to keep MENU first, then others
   const sortedCategories = categories.sort((a, b) => {
     if (a === 'MENÚ') return -1;
@@ -95,7 +151,35 @@ export const OrderModal: React.FC<{
 
   const totalSelected = Object.keys(quantities).reduce((acc, id) => acc + quantities[id], 0);
   const isNameChanged = clienteName.trim() !== initialClienteName.trim();
-  const canConfirm = totalSelected > 0 || (isNameChanged && clienteName.trim() !== '');
+  const isMesaChanged = selectedMesaId !== mesaId;
+
+  let isQtyOrNotesChanged = false;
+  if (initialItems) {
+    const allPIds = Array.from(new Set([
+      ...initialItems.map(i => i.productoId),
+      ...Object.keys(quantities)
+    ]));
+    for (const pId of allPIds) {
+      const initQ = initialItems.filter(i => i.productoId === pId).reduce((acc, i) => acc + i.cantidad, 0);
+      const initNote = initialItems.find(i => i.productoId === pId)?.notas || '';
+      const currQ = quantities[pId] || 0;
+      const currNote = notes[pId] || '';
+      if (initQ !== currQ || (currQ > 0 && initNote !== currNote)) {
+        isQtyOrNotesChanged = true;
+        break;
+      }
+    }
+  } else {
+    isQtyOrNotesChanged = totalSelected > 0;
+  }
+
+  const hasAnyItems = Object.keys(quantities).some(id => quantities[id] > 0);
+  const canConfirm = hasAnyItems && (
+    !initialItems
+    || isNameChanged
+    || isMesaChanged
+    || isQtyOrNotesChanged
+  );
 
   const renderProductRow = (p: Product, showNote: boolean = false) => {
     const qty = quantities[p.id] || 0;
@@ -105,22 +189,39 @@ export const OrderModal: React.FC<{
 
     return (
       <div
+        key={p.id}
         className={`flex items-center gap-3 py-2 px-3 rounded-2xl border-2 transition-all duration-300 ${
           qty > 0
             ? 'bg-violet-50/70 border-brand-500 ring-4 ring-brand-50/80 shadow-md shadow-brand-50/20'
             : 'bg-slate-50/60 border-slate-100/50 hover:bg-slate-100/50 hover:border-slate-200/60'
         }`}
       >
-        <div className="flex-1 min-w-0 pr-1">
-          <div className={`font-display font-bold text-xs uppercase tracking-tight truncate transition-colors duration-200 ${
-            qty > 0 ? 'text-violet-900' : 'text-slate-800'
-          }`}>
-            {p.nombre}
-            {hasCustomPrice && <span className="text-violet-600 ml-1 text-[9px] font-black" title="Precio adaptado hoy">★</span>}
+        <div className="flex-1 min-w-0 pr-1 flex items-center justify-between gap-1.5 sm:gap-2">
+          <div>
+            <div className={`font-display font-bold text-xs uppercase tracking-tight truncate transition-colors duration-200 ${
+              qty > 0 ? 'text-violet-900' : 'text-slate-800'
+            }`}>
+              {p.nombre}
+              {hasCustomPrice && <span className="text-violet-600 ml-1 text-[9px] font-black" title="Precio adaptado hoy">★</span>}
+            </div>
+            <div className="text-[10px] font-mono font-bold text-slate-400 mt-0.5">
+              S/ {displayedPrice.toFixed(2)}
+            </div>
           </div>
-          <div className="text-[10px] font-mono font-bold text-slate-400 mt-0.5">
-            S/ {displayedPrice.toFixed(2)}
-          </div>
+
+          {menuI && (
+            <div className="shrink-0">
+              <span className={`px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest border transition-all ${
+                menuI.stockActual === 0
+                  ? 'bg-rose-50 text-rose-500 border-rose-100/50'
+                  : menuI.stockActual < 5
+                    ? 'bg-amber-50 text-amber-600 border-amber-100/50'
+                    : 'bg-emerald-50/70 text-emerald-600 border-emerald-100/50'
+              }`}>
+                Stock: {menuI.stockActual}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center bg-white rounded-xl p-0.5 shrink-0 border border-slate-200/70 shadow-sm transition-all duration-300 hover:border-brand-300">
@@ -161,8 +262,8 @@ export const OrderModal: React.FC<{
               }}
               placeholder={qty > 0 ? "Sin ají, extra..." : "Activar primero"}
               className={`w-full border rounded-xl px-2.5 py-1.5 text-[10px] sm:text-xs font-semibold outline-none transition-all duration-305 ${
-                qty > 0 
-                  ? 'bg-white text-slate-800 border-slate-200 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10' 
+                qty > 0
+                  ? 'bg-white text-slate-800 border-slate-200 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10'
                   : 'bg-slate-100/50 text-slate-400 border-slate-100 cursor-not-allowed opacity-40 placeholder:text-slate-350'
               }`}
             />
@@ -183,7 +284,35 @@ export const OrderModal: React.FC<{
           <div>
             <h3 className="text-base sm:text-2xl font-display font-bold text-slate-900 tracking-tight leading-none">{title}</h3>
             <div className="flex items-center gap-2 mt-1 sm:mt-1.5">
-              <span className="text-brand-600 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.2em] bg-brand-50 px-2 py-0.5 rounded-full">{mesaName}</span>
+              {mesas && onSaveEdit ? (
+                <div className="flex items-center gap-1.5 bg-brand-50/80 border border-brand-100/30 rounded-xl px-2 py-0.5 select-none animate-in fade-in duration-300">
+                  <span className="text-brand-500 text-[8px] sm:text-[9px] font-black uppercase tracking-wider">Mesa / Ubicación:</span>
+                  <select
+                    value={selectedMesaId}
+                    onChange={(e) => setSelectedMesaId(e.target.value)}
+                    className="bg-transparent text-brand-700 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-[0.1em] outline-none cursor-pointer pr-1"
+                  >
+                    {mesas
+                      .filter(m => {
+                        if (m.id === '13') return false;
+                        if (m.estado === 'OCUPADA' && m.id !== mesaId) return false;
+                        return true;
+                      })
+                      .map(m => (
+                        <option key={m.id} value={m.id}>
+                          {m.nombre}
+                        </option>
+                      ))}
+                    {mesaId === '13' && (
+                      <option value="13">
+                        Para Llevar
+                      </option>
+                    )}
+                  </select>
+                </div>
+              ) : (
+                <span className="text-brand-600 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.2em] bg-brand-50 px-2 py-0.5 rounded-full">{mesaName}</span>
+              )}
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 sm:p-2.5 bg-slate-50 rounded-lg sm:rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-colors border border-slate-100">
@@ -212,8 +341,11 @@ export const OrderModal: React.FC<{
         </div>
 
         {sortedCategories.map(cat => {
-          const catProducts = products.filter(p => 
-            p.categoria === cat && currentMenu.some(m => m.productoId === p.id)
+          const catProducts = products.filter(p =>
+            p.categoria === cat && (
+              currentMenu.some(m => m.productoId === p.id) ||
+              (initialItems && initialItems.some(item => item.productoId === p.id))
+            )
           );
 
           if (catProducts.length === 0) return null;
@@ -273,7 +405,7 @@ export const OrderModal: React.FC<{
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3.5 sm:py-4 bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] transition-all active:scale-95 text-center"
+            className="flex-1 py-3.5 sm:py-4 bg-rose-50/70 border border-rose-100/50 hover:bg-rose-100/80 text-rose-600 font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] transition-all active:scale-95 text-center"
           >
             Cancelar
           </button>
@@ -281,9 +413,9 @@ export const OrderModal: React.FC<{
             type="button"
             onClick={handleAdd}
             disabled={!canConfirm}
-            className="flex-1.5 flex-[2] py-3.5 sm:py-4 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] soft-shadow disabled:opacity-20 disabled:grayscale transition-all active:scale-95 hover:bg-slate-800 text-center"
+            className="flex-1.5 flex-[2] py-3.5 sm:py-4 bg-emerald-50 border border-emerald-150/60 hover:bg-emerald-100/90 text-emerald-700 font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] shadow-sm shadow-emerald-100/50 disabled:opacity-35 transition-all active:scale-95 text-center"
           >
-            {totalSelected > 0 ? `Confirmar Pedido (${totalSelected})` : 'Confirmar Pedido'}
+            {onSaveEdit ? 'Guardar Cambios' : (totalSelected > 0 ? `Confirmar Pedido (${totalSelected})` : 'Confirmar Pedido')}
           </button>
         </div>
       </motion.div>

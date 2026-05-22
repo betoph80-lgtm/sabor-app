@@ -191,7 +191,7 @@ export const MeseroView: React.FC = () => {
       </div>
 
       {/* Order Detail Panel */}
-      {selectedMesa && (
+      {selectedMesa && !showOrderModal && (
         <div className="space-y-6">
           <div className="flex justify-end items-center px-2 md:px-4">
              <button onClick={() => setSelectedMesa(null)} className="p-2 md:p-3 bg-white soft-shadow text-slate-400 hover:text-rose-500 rounded-xl md:rounded-2xl border border-slate-100 transition-colors">

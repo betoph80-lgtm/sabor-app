@@ -53,7 +53,7 @@ export const CocinaView: React.FC = () => {
     })
     .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-  // Filter main dishes from current menu to show stock
+  // Filter main dishes and soup from current menu to show stock
   const menuStock = currentMenu
     .filter(m => m.fecha === selectedDate)
     .map(item => {
@@ -66,7 +66,12 @@ export const CocinaView: React.FC = () => {
         stockInicial: item.stockInicial
       };
     })
-    .filter(item => item.tipo === 'SEGUNDO');
+    .filter(item => item.tipo === 'SEGUNDO' || item.tipo === 'SOPA')
+    .sort((a, b) => {
+      if (a.tipo === 'SOPA' && b.tipo !== 'SOPA') return -1;
+      if (a.tipo !== 'SOPA' && b.tipo === 'SOPA') return 1;
+      return a.nombre.localeCompare(b.nombre);
+    });
 
   if (itemsToPrepare.length === 0 && menuStock.length === 0) {
     return (
@@ -266,7 +271,9 @@ export const CocinaView: React.FC = () => {
               })()}
 
               <div className="space-y-1">
-                {items.map((item) => {
+                {items
+                  .filter(item => item.estado !== 'SERVIDO')
+                  .map((item) => {
                   const product = products.find(p => p.id === item.productoId);
                   const isSoup = product?.tipo === 'SOPA';
                   
@@ -321,7 +328,7 @@ export const CocinaView: React.FC = () => {
 };
 
 export const CajaView: React.FC = () => {
-  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu, mesas } = useApp();
+  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, updateWholeOrder, currentMenu, mesas } = useApp();
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [efectivoModalFor, setEfectivoModalFor] = useState<{
@@ -344,7 +351,7 @@ export const CajaView: React.FC = () => {
   const [cashCounted, setCashCounted] = useState('');
 
   const openOrders = [...orders]
-    .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.items.every(i => i.estado === 'SERVIDO'))
+    .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.total > 0 && o.items.every(i => i.estado === 'SERVIDO'))
     .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
   const allPaymentsToday = orders
@@ -505,16 +512,12 @@ export const CajaView: React.FC = () => {
 
   return (
     <div className="p-2 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
-      {editingOrderId && orderToEdit && (
+       {editingOrderId && orderToEdit && (
         <OrderModal
           onClose={() => setEditingOrderId(null)}
-          onAdd={(items, newClienteName) => {
-            if (items.length > 0) {
-              addItemsToOrder(editingOrderId, items);
-            }
-            if (newClienteName !== orderToEdit.cliente) {
-              updateOrderInfo(editingOrderId, { cliente: newClienteName });
-            }
+          onAdd={() => {}}
+          onSaveEdit={async (qtys, notes, newClienteName, newMesaId) => {
+            await updateWholeOrder(editingOrderId, newMesaId, newClienteName, qtys, notes);
             setEditingOrderId(null);
           }}
           products={products}
@@ -522,6 +525,8 @@ export const CajaView: React.FC = () => {
           mesaId={orderToEdit.mesaId}
           mesaName={mesas.find(m => m.id === orderToEdit.mesaId)?.nombre || orderToEdit.mesaId}
           initialClienteName={orderToEdit.cliente}
+          mesas={mesas}
+          initialItems={orderToEdit.items}
           title="Modificar Pedido en Caja"
         />
       )}

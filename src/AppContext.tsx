@@ -77,6 +77,13 @@ interface AppContextType {
   payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', amount: number, customerId?: string) => void;
   addItemsToOrder: (orderId: string, items: Partial<OrderItem>[]) => void;
   updateOrderInfo: (orderId: string, updates: Partial<Order>) => void;
+  updateWholeOrder: (
+    orderId: string,
+    newMesaId: string,
+    newCliente: string,
+    newQuantities: { [productId: string]: number },
+    newNotes: { [productId: string]: string }
+  ) => Promise<void>;
   updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number, precioPersonalizado?: number) => void;
   deleteOrder: (orderId: string) => void;
   resetStock: () => void;
@@ -845,6 +852,143 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateDoc(doc(db, 'pedidos', orderId), updates);
   };
 
+  const updateWholeOrder = async (
+    orderId: string,
+    newMesaId: string,
+    newCliente: string,
+    newQuantities: { [productId: string]: number },
+    newNotes: { [productId: string]: string }
+  ) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
+    if (cashStatus?.estado === 'CERRADA') {
+      alert('La caja del día está cerrada. No se pueden modificar pedidos.');
+      return;
+    }
+
+    // 1. Verify mesa change
+    const oldMesaId = order.mesaId;
+    if (newMesaId !== oldMesaId && newMesaId !== '13') {
+      // Check if new mesa already has an active order
+      const isNewMesaOccupied = orders.some(o => o.id !== orderId && o.estado === 'ABIERTO' && o.mesaId === newMesaId && o.fecha === selectedDate);
+      if (isNewMesaOccupied) {
+        alert('¡ATENCIÓN! La mesa de destino tiene un pedido activo.');
+        return;
+      }
+    }
+
+    // 2. Stock validation & changes calculation
+    const allProductIds = Array.from(new Set([
+      ...order.items.map(i => i.productoId),
+      ...Object.keys(newQuantities)
+    ]));
+
+    const stockAdjustments: { [productId: string]: number } = {};
+    const insufficientStock: string[] = [];
+
+    allProductIds.forEach(productId => {
+      const oldQty = order.items.filter(i => i.productoId === productId).reduce((acc, i) => acc + i.cantidad, 0);
+      const newQty = newQuantities[productId] || 0;
+      const diff = newQty - oldQty;
+
+      if (diff > 0) {
+        const menuI = currentMenu.find(m => m.productoId === productId && m.fecha === selectedDate);
+        if (menuI && menuI.stockActual < diff) {
+          const pName = products.find(p => p.id === productId)?.nombre || 'Producto';
+          insufficientStock.push(`- ${pName}: Necesario ${diff}, Disponible: ${menuI.stockActual}`);
+        }
+      }
+      stockAdjustments[productId] = diff;
+    });
+
+    if (insufficientStock.length > 0) {
+      alert(`¡ATENCIÓN! No hay stock suficiente para realizar estos cambios:\n\n${insufficientStock.join('\n')}`);
+      return;
+    }
+
+    // 3. Build new items list
+    const newItems: OrderItem[] = [];
+
+    // First process existing items to see if they are kept or changed
+    order.items.forEach(oldItem => {
+      const newQty = newQuantities[oldItem.productoId] || 0;
+      if (newQty > 0) {
+        newItems.push({
+          ...oldItem,
+          cantidad: newQty,
+          notas: newNotes[oldItem.productoId] !== undefined ? newNotes[oldItem.productoId] : (oldItem.notas || '')
+        });
+      }
+    });
+
+    // Then add any completely new items
+    Object.keys(newQuantities).forEach(productId => {
+      const isAlreadyInNewItems = newItems.some(i => i.productoId === productId);
+      const qty = newQuantities[productId];
+      if (qty > 0 && !isAlreadyInNewItems) {
+        const product = products.find(p => p.id === productId);
+        const menuI = currentMenu.find(m => m.productoId === productId && m.fecha === selectedDate);
+        const precioUnitario = menuI?.precioPersonalizado !== undefined ? menuI.precioPersonalizado : (product?.precio || 0);
+
+        newItems.push({
+          id: Math.random().toString(36).substr(2, 9),
+          productoId: productId,
+          cantidad: qty,
+          precioUnitario,
+          estado: 'PEDIDO',
+          notas: newNotes[productId] || '',
+          horaPedido: new Date().toLocaleTimeString(),
+          timestampPedido: Date.now(),
+          usuarioId: currentUser?.id || 'unknown',
+          usuarioNombre: currentUser?.nombre || 'Desconocido'
+        });
+      }
+    });
+
+    // Calculate new total
+    const newTotal = newItems.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
+
+    const batch = writeBatch(db);
+
+    // Update order
+    batch.update(doc(db, 'pedidos', orderId), {
+      mesaId: newMesaId,
+      cliente: newCliente,
+      items: newItems,
+      total: newTotal
+    });
+
+    // Update mesa statuses
+    if (newMesaId !== oldMesaId) {
+      if (oldMesaId !== '13') {
+        const otherOrdersOnOldMesa = orders.some(o => o.id !== orderId && o.estado === 'ABIERTO' && o.mesaId === oldMesaId && o.fecha === selectedDate);
+        if (!otherOrdersOnOldMesa) {
+          batch.update(doc(db, 'mesas', oldMesaId), { estado: 'LIBRE' });
+        }
+      }
+      if (newMesaId !== '13') {
+        batch.update(doc(db, 'mesas', newMesaId), { estado: 'OCUPADA' });
+      }
+    }
+
+    // Update daily menu stock
+    Object.entries(stockAdjustments).forEach(([productId, diff]) => {
+      if (diff !== 0) {
+        const menuI = currentMenu.find(m => m.productoId === productId && m.fecha === selectedDate);
+        if (menuI) {
+          batch.update(doc(db, 'menu_diario', menuI.id), {
+            stockActual: Math.max(0, menuI.stockActual - diff)
+          });
+        }
+      }
+    });
+
+    await batch.commit();
+  };
+
   const updateMenuItemStock = (productId: string, stockInicial: number, stockActual?: number, precioPersonalizado?: number) => {
     const exists = currentMenu.find(m => m.productoId === productId && m.fecha === selectedDate);
     
@@ -1013,7 +1157,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeView, setActiveView, currentUser, appUsers, login, logout,
       addAppUser, updateAppUser, deleteAppUser,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
-      createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateMenuItemStock, deleteOrder, resetStock, addMesa, updateMesa, deleteMesa, toggleProductInMenu,
+      createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateWholeOrder, updateMenuItemStock, deleteOrder, resetStock, addMesa, updateMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction,
       cashControls, openCash, closeCash, reopenCash, currentCash,
       confirmAction, requestConfirmation, closeConfirmation,
