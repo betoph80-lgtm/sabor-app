@@ -19,6 +19,7 @@ export const OrderModal: React.FC<{
   title?: string;
 }> = ({ onClose, onAdd, products, currentMenu, mesaId, mesaName, initialClienteName = '', title = 'Nuevo Pedido' }) => {
   const [quantities, setQuantities] = useState<{[key: string]: number}>({});
+  const [notes, setNotes] = useState<{[key: string]: string}>({});
   const [clienteName, setClienteName] = useState(initialClienteName);
 
   const updateQuantity = (id: string, delta: number) => {
@@ -59,7 +60,11 @@ export const OrderModal: React.FC<{
   const handleAdd = () => {
     const items = Object.keys(quantities)
       .filter(id => quantities[id] > 0)
-      .map(id => ({ productoId: id, cantidad: quantities[id] }));
+      .map(id => ({ 
+        productoId: id, 
+        cantidad: quantities[id], 
+        notas: notes[id] || '' 
+      }));
 
     // Real-time stock verification inside modal
     const insufficientStock: string[] = [];
@@ -92,27 +97,37 @@ export const OrderModal: React.FC<{
   const isNameChanged = clienteName.trim() !== initialClienteName.trim();
   const canConfirm = totalSelected > 0 || (isNameChanged && clienteName.trim() !== '');
 
-  const ProductCard = ({ p }: { p: Product }) => {
+  const renderProductRow = (p: Product, showNote: boolean = false) => {
     const qty = quantities[p.id] || 0;
+    const menuI = currentMenu.find(m => m.productoId === p.id);
+    const hasCustomPrice = menuI && menuI.precioPersonalizado !== undefined;
+    const displayedPrice = hasCustomPrice ? menuI.precioPersonalizado! : p.precio;
 
     return (
       <div
-        className={`p-2.5 sm:p-3 rounded-xl sm:rounded-[20px] border-2 transition-all flex flex-col justify-between soft-shadow ${
+        className={`flex items-center gap-3 py-2 px-3 rounded-2xl border-2 transition-all duration-300 ${
           qty > 0
-            ? 'bg-brand-50 border-brand-500 ring-2 ring-brand-50/50'
-            : 'bg-slate-50 border-transparent hover:bg-slate-100/80 hover:border-slate-200'
+            ? 'bg-violet-50/70 border-brand-500 ring-4 ring-brand-50/80 shadow-md shadow-brand-50/20'
+            : 'bg-slate-50/60 border-slate-100/50 hover:bg-slate-100/50 hover:border-slate-200/60'
         }`}
       >
-        <div className="flex justify-between items-start gap-1.5">
-          <div className="font-display font-bold text-slate-900 text-[11px] sm:text-xs md:text-sm leading-tight uppercase line-clamp-2">{p.nombre}</div>
-          <div className="text-[9px] md:text-[10px] text-brand-600 font-bold bg-white px-1.5 py-0.5 rounded-md sm:rounded-lg soft-shadow shrink-0">S/ {p.precio}</div>
+        <div className="flex-1 min-w-0 pr-1">
+          <div className={`font-display font-bold text-xs uppercase tracking-tight truncate transition-colors duration-200 ${
+            qty > 0 ? 'text-violet-900' : 'text-slate-800'
+          }`}>
+            {p.nombre}
+            {hasCustomPrice && <span className="text-violet-600 ml-1 text-[9px] font-black" title="Precio adaptado hoy">★</span>}
+          </div>
+          <div className="text-[10px] font-mono font-bold text-slate-400 mt-0.5">
+            S/ {displayedPrice.toFixed(2)}
+          </div>
         </div>
-        
-        <div className="flex items-center justify-between mt-1.5 bg-white/60 backdrop-blur-sm rounded-lg sm:rounded-xl p-0.5 sm:p-1 border border-white/20 soft-shadow">
+
+        <div className="flex items-center bg-white rounded-xl p-0.5 shrink-0 border border-slate-200/70 shadow-sm transition-all duration-300 hover:border-brand-300">
           <button
             type="button"
             onClick={() => updateQuantity(p.id, -1)}
-            className="w-7 h-7 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-transform shadow-sm hover:text-rose-500"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 active:scale-90 transition-transform bg-transparent"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
@@ -122,17 +137,37 @@ export const OrderModal: React.FC<{
             pattern="[0-9]*"
             value={qty === 0 ? '' : qty}
             onChange={(e) => handleInputChange(p.id, e.target.value)}
-            className="font-display font-black text-slate-800 w-10 sm:w-12 text-center text-sm sm:text-base focus:bg-slate-200/50 rounded-lg outline-none border border-transparent transition-all py-0.5 sm:py-1"
+            className="font-display font-black text-slate-800 w-8 text-center text-sm outline-none bg-transparent"
             placeholder="0"
           />
           <button
             type="button"
             onClick={() => updateQuantity(p.id, 1)}
-            className="w-7 h-7 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform soft-shadow hover:bg-brand-700"
+            className="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform shadow-sm hover:bg-brand-700"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {showNote && (
+          <div className="w-[120px] xs:w-[155px] sm:w-[200px] shrink-0">
+            <input
+              type="text"
+              value={notes[p.id] || ''}
+              disabled={qty === 0}
+              onChange={(e) => {
+                const val = e.target.value;
+                setNotes(prev => ({ ...prev, [p.id]: val }));
+              }}
+              placeholder={qty > 0 ? "Sin ají, extra..." : "Activar primero"}
+              className={`w-full border rounded-xl px-2.5 py-1.5 text-[10px] sm:text-xs font-semibold outline-none transition-all duration-305 ${
+                qty > 0 
+                  ? 'bg-white text-slate-800 border-slate-200 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10' 
+                  : 'bg-slate-100/50 text-slate-400 border-slate-100 cursor-not-allowed opacity-40 placeholder:text-slate-350'
+              }`}
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -190,54 +225,31 @@ export const OrderModal: React.FC<{
             return (
               <React.Fragment key={cat}>
                 <section className="space-y-1.5">
-                  <h4 className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] px-1 flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400 shadow-sm shadow-brand-200"></div>
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400"></div>
                     Entrada (Menú)
                   </h4>
-                  <div className="grid grid-cols-1 gap-1.5">
+                  <div className="flex flex-col gap-1.5">
                     {soups.map(p => (
-                      <div key={p.id} className="flex items-center justify-between p-2.5 sm:p-3 bg-brand-50 rounded-xl sm:rounded-[20px] border border-brand-100/70 soft-shadow">
-                        <div className="flex flex-col">
-                          <span className="font-display font-bold text-brand-900 uppercase tracking-tight text-xs sm:text-base leading-none">{p.nombre}</span>
-                          <span className="text-[8px] sm:text-[9px] font-bold text-brand-500 uppercase mt-0.5 tracking-widest">Entrada del día</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-0.5 sm:p-1 border border-white/40 font-semibold text-slate-800">
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(p.id, -1)}
-                            className="w-7 h-7 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-transform"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={(quantities[p.id] || 0) === 0 ? '' : (quantities[p.id] || 0)}
-                            onChange={(e) => handleInputChange(p.id, e.target.value)}
-                            className="font-display font-black text-slate-800 w-10 sm:w-12 text-center text-sm sm:text-xl focus:bg-slate-200/50 rounded-lg outline-none border border-transparent transition-all py-0.5"
-                            placeholder="0"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(p.id, 1)}
-                            className="w-7 h-7 sm:w-9 sm:h-9 rounded-md sm:rounded-lg bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                      <div key={p.id}>
+                        {renderProductRow(p, false)}
                       </div>
                     ))}
                   </div>
                 </section>
 
                 <section className="space-y-1.5">
-                  <h4 className="text-[8px] sm:text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
-                    Segundos del Menú
-                  </h4>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {mains.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
+                  <div className="flex items-center justify-between px-1 pb-0.5">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+                      Segundos del Menú
+                    </h4>
+                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest w-[120px] xs:w-[155px] sm:w-[200px] text-center shrink-0">
+                      NOTA
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {mains.map(p => <div key={p.id}>{renderProductRow(p, true)}</div>)}
                   </div>
                 </section>
               </React.Fragment>
@@ -246,24 +258,32 @@ export const OrderModal: React.FC<{
 
           return (
             <section key={cat} className="space-y-1.5">
-              <h4 className="text-[8px] sm:text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
                 {cat}
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {catProducts.map(p => <div key={p.id}><ProductCard p={p} /></div>)}
+              <div className="flex flex-col gap-1.5">
+                {catProducts.map(p => <div key={p.id}>{renderProductRow(p, false)}</div>)}
               </div>
             </section>
           );
         })}
 
-        <div className="sticky bottom-0 bg-white/90 backdrop-blur-md pt-3 -mx-3 px-3 sm:-mx-6 sm:px-6 mt-1 border-t border-slate-50 pb-1 z-20">
+        <div className="sticky bottom-0 bg-white/90 backdrop-blur-md pt-3 -mx-3 px-3 sm:-mx-6 sm:px-6 mt-1 border-t border-slate-50 pb-1 z-20 flex gap-3">
           <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-3.5 sm:py-4 bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] transition-all active:scale-95 text-center"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
             onClick={handleAdd}
             disabled={!canConfirm}
-            className="w-full py-3.5 sm:py-4 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] soft-shadow disabled:opacity-20 disabled:grayscale transition-all active:scale-95 hover:bg-slate-800"
+            className="flex-1.5 flex-[2] py-3.5 sm:py-4 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-xl sm:rounded-[20px] soft-shadow disabled:opacity-20 disabled:grayscale transition-all active:scale-95 hover:bg-slate-800 text-center"
           >
-            {totalSelected > 0 ? `Confirmar ${totalSelected} Items` : 'Actualizar Información'}
+            {totalSelected > 0 ? `Confirmar Pedido (${totalSelected})` : 'Confirmar Pedido'}
           </button>
         </div>
       </motion.div>

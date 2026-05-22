@@ -77,7 +77,7 @@ interface AppContextType {
   payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', amount: number, customerId?: string) => void;
   addItemsToOrder: (orderId: string, items: Partial<OrderItem>[]) => void;
   updateOrderInfo: (orderId: string, updates: Partial<Order>) => void;
-  updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number) => void;
+  updateMenuItemStock: (productId: string, stockInicial: number, stockActual?: number, precioPersonalizado?: number) => void;
   deleteOrder: (orderId: string) => void;
   resetStock: () => void;
   addMesa: (id: string, nombre: string, sillas?: number) => void;
@@ -339,18 +339,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }, 0);
         const orderId = `PEDIDO-${(lastNum + 1).toString().padStart(3, '0')}`;
 
-        const newItems: OrderItem[] = itemData.map(item => ({
-          id: Math.random().toString(36).substr(2, 9),
-          productoId: item.productoId!,
-          cantidad: item.cantidad || 1,
-          precioUnitario: products.find(p => p.id === item.productoId)?.precio || 0,
-          estado: 'PEDIDO',
-          horaPedido: new Date().toLocaleTimeString(),
-          timestampPedido: Date.now(),
-          usuarioId: currentUser?.id || 'unknown',
-          usuarioNombre: currentUser?.nombre || 'Desconocido',
-          ...item
-        }));
+        const newItems: OrderItem[] = itemData.map(item => {
+          const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
+          const precioUnitario = menuI && menuI.precioPersonalizado !== undefined 
+            ? menuI.precioPersonalizado 
+            : (products.find(p => p.id === item.productoId)?.precio || 0);
+
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            productoId: item.productoId!,
+            cantidad: item.cantidad || 1,
+            precioUnitario,
+            estado: 'PEDIDO',
+            horaPedido: new Date().toLocaleTimeString(),
+            timestampPedido: Date.now(),
+            usuarioId: currentUser?.id || 'unknown',
+            usuarioNombre: currentUser?.nombre || 'Desconocido',
+            ...item
+          };
+        });
 
         const total = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
 
@@ -402,7 +409,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateItemStatus = (orderId: string, itemId: string, status: ItemStatus) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
-    const newItems = order.items.map(i => i.id === itemId ? { ...i, estado: status } : i);
+    const newItems = order.items.map(i => 
+      i.id === itemId 
+        ? { 
+            ...i, 
+            estado: status, 
+            timestampServido: status === 'SERVIDO' ? Date.now() : i.timestampServido 
+          } 
+        : i
+    );
     updateDoc(doc(db, 'pedidos', orderId), { items: newItems });
   };
 
@@ -764,18 +779,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
-    const newItems: OrderItem[] = itemData.map(item => ({
-      id: Math.random().toString(36).substr(2, 9),
-      productoId: item.productoId!,
-      cantidad: item.cantidad || 1,
-      precioUnitario: products.find(p => p.id === item.productoId)?.precio || 0,
-      estado: 'PEDIDO',
-      horaPedido: new Date().toLocaleTimeString(),
-      timestampPedido: Date.now(),
-      usuarioId: currentUser?.id || 'unknown',
-      usuarioNombre: currentUser?.nombre || 'Desconocido',
-      ...item
-    }));
+    const newItems: OrderItem[] = itemData.map(item => {
+      const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
+      const precioUnitario = menuI && menuI.precioPersonalizado !== undefined 
+        ? menuI.precioPersonalizado 
+        : (products.find(p => p.id === item.productoId)?.precio || 0);
+
+      return {
+        id: Math.random().toString(36).substr(2, 9),
+        productoId: item.productoId!,
+        cantidad: item.cantidad || 1,
+        precioUnitario,
+        estado: 'PEDIDO',
+        horaPedido: new Date().toLocaleTimeString(),
+        timestampPedido: Date.now(),
+        usuarioId: currentUser?.id || 'unknown',
+        usuarioNombre: currentUser?.nombre || 'Desconocido',
+        ...item
+      };
+    });
 
     const addedTotal = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
 
@@ -823,23 +845,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateDoc(doc(db, 'pedidos', orderId), updates);
   };
 
-  const updateMenuItemStock = (productId: string, stockInicial: number, stockActual?: number) => {
+  const updateMenuItemStock = (productId: string, stockInicial: number, stockActual?: number, precioPersonalizado?: number) => {
     const exists = currentMenu.find(m => m.productoId === productId && m.fecha === selectedDate);
+    
+    // Calculate how many of this product have already been ordered today (not canceled)
+    const orderedQty = orders
+      .filter(o => o.estado !== 'CANCELADO')
+      .reduce((acc, o) => {
+        const items = o.items.filter(item => item.productoId === productId);
+        return acc + items.reduce((sum, item) => sum + item.cantidad, 0);
+      }, 0);
+
+    const calculatedStockActual = Math.max(0, stockInicial - orderedQty);
+
     if (!exists) {
       const id = Math.random().toString(36).substr(2, 9);
       setDoc(doc(db, 'menu_diario', id), {
         id,
         productoId: productId,
         stockInicial,
-        stockActual: stockActual !== undefined ? stockActual : stockInicial,
+        stockActual: calculatedStockActual,
         estado: true,
-        fecha: selectedDate
+        fecha: selectedDate,
+        ...(precioPersonalizado !== undefined ? { precioPersonalizado } : {})
       });
     } else {
-      updateDoc(doc(db, 'menu_diario', exists.id), {
+      const updates: any = {
         stockInicial,
-        stockActual: stockActual !== undefined ? stockActual : stockInicial
-      });
+        stockActual: calculatedStockActual
+      };
+      if (precioPersonalizado !== undefined) {
+        updates.precioPersonalizado = precioPersonalizado;
+      }
+      updateDoc(doc(db, 'menu_diario', exists.id), updates);
     }
   };
 
@@ -942,12 +980,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (exists) {
       deleteDoc(doc(db, 'menu_diario', exists.id));
     } else {
+      // Calculate how many of this product have already been ordered today (not canceled)
+      const orderedQty = orders
+        .filter(o => o.estado !== 'CANCELADO')
+        .reduce((acc, o) => {
+          const items = o.items.filter(item => item.productoId === productId);
+          return acc + items.reduce((sum, item) => sum + item.cantidad, 0);
+        }, 0);
+
       const id = Math.random().toString(36).substr(2, 9);
       setDoc(doc(db, 'menu_diario', id), {
         id,
         productoId: productId,
         stockInicial: 25,
-        stockActual: 25,
+        stockActual: Math.max(0, 25 - orderedQty),
         estado: true,
         fecha: selectedDate
       });

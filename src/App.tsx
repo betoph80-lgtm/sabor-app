@@ -592,21 +592,41 @@ const AdminPanel = () => {
                               </button>
 
                               {isInMenu && (
-                                <div className="mx-2 bg-white/50 p-2.5 rounded-xl border border-violet-100 shadow-sm flex items-center gap-3">
-                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest shrink-0">Stock</span>
-                                  <input 
-                                    type="number"
-                                    value={menuItem?.stockInicial}
-                                    onChange={(e) => {
-                                      const val = parseInt(e.target.value) || 0;
-                                      if (product.categoria === 'BEBIDA') {
-                                          updateMenuItemStock(product.id, val, val);
-                                      } else {
-                                          updateMenuItemStock(product.id, val);
+                                <div className="mx-2 bg-slate-50/60 p-2.5 rounded-xl border border-violet-100 shadow-sm flex flex-col sm:flex-row gap-3">
+                                  <div className="flex-1 flex items-center gap-2">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest shrink-0">Stock</span>
+                                    <input 
+                                      type="number"
+                                      value={menuItem?.stockInicial ?? 25}
+                                      onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 0;
+                                        const currentPrice = menuItem?.precioPersonalizado;
+                                        if (product.categoria === 'BEBIDA') {
+                                            updateMenuItemStock(product.id, val, val, currentPrice);
+                                        } else {
+                                            updateMenuItemStock(product.id, val, undefined, currentPrice);
                                         }
-                                    }}
-                                    className="w-full bg-white border border-slate-100 rounded-lg px-2 py-1 text-xs font-bold outline-none text-center"
-                                  />
+                                      }}
+                                      className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold outline-none text-center focus:border-violet-400"
+                                    />
+                                  </div>
+                                  <div className="flex-1 flex items-center gap-2">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest shrink-0">Precio s/.</span>
+                                    <input 
+                                      type="number"
+                                      step="0.10"
+                                      value={menuItem?.precioPersonalizado !== undefined ? menuItem.precioPersonalizado : ''}
+                                      placeholder={product.precio.toFixed(2)}
+                                      onChange={(e) => {
+                                        const raw = e.target.value;
+                                        const priceVal = raw === '' ? undefined : parseFloat(raw);
+                                        const currentStock = menuItem?.stockInicial ?? 25;
+                                        const currentStockActual = menuItem?.stockActual ?? 25;
+                                        updateMenuItemStock(product.id, currentStock, currentStockActual, priceVal);
+                                      }}
+                                      className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold outline-none text-center focus:border-violet-400"
+                                    />
+                                  </div>
                                 </div>
                               )}
                             </div>

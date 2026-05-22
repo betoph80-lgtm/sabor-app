@@ -9,6 +9,7 @@ import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Mea
 import { motion } from 'motion/react';
 import { OrderItem, ItemStatus, Mesa } from '../types';
 import { OrderModal } from './OrderModal.tsx';
+import { OrderTimer } from './OrderTimer.tsx';
 
 export const MeseroView: React.FC = () => {
   const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, cashControls, currentUser } = useApp();
@@ -57,6 +58,8 @@ export const MeseroView: React.FC = () => {
           const isOccupied = allMesaActiveOrders.length > 0;
           const label = getMesaLabel(mesa);
 
+          const activeOrder = allMesaActiveOrders[0];
+
           return (
             <button
               key={mesa.id}
@@ -68,51 +71,119 @@ export const MeseroView: React.FC = () => {
                 }
               }}
               disabled={isCashClosed}
-              className={`relative aspect-square min-h-[92px] rounded-2xl md:rounded-[32px] border flex flex-col items-center justify-center transition-all duration-300 group soft-shadow active:scale-[0.96] ${
+              className={`relative aspect-square min-h-[92px] rounded-2xl md:rounded-[32px] border flex flex-col items-center justify-between transition-all duration-300 group soft-shadow active:scale-[0.96] w-full p-2 md:p-3 ${
                 isCashClosed ? 'opacity-40 cursor-not-allowed grayscale' : ''
               } ${
                 isOccupied
                   ? mesa.id === '13' 
-                    ? 'bg-brand-50/90 border-brand-200 text-brand-800 shadow-[0_4px_16px_rgba(139,92,246,0.12)] -translate-y-0.5' 
-                    : 'bg-rose-50/90 border-rose-200 text-rose-800 shadow-[0_4px_16px_rgba(239,68,68,0.08)] -translate-y-0.5'
-                  : 'bg-emerald-50/70 border-emerald-200 text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300'
+                    ? 'bg-violet-50/95 border-violet-200 text-violet-900 shadow-[0_4px_16px_rgba(139,92,246,0.12)]' 
+                    : 'bg-rose-50/95 border-rose-200 text-rose-900 shadow-[0_4px_16px_rgba(239,68,68,0.10)]'
+                  : 'bg-emerald-50/70 border-emerald-200 text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300 justify-center'
               }`}
             >
-                <div className={`font-display font-black leading-none uppercase px-1 text-center select-none ${
-                  label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
-                }`}>
-                  {label}
-                </div>
-                
-                {mesa.id !== '13' && (
-                  <div className="absolute top-2 right-2 px-1 py-0.5 bg-slate-900/[0.04] rounded-md text-[6.5px] md:text-[8px] font-bold text-slate-400 capitalize whitespace-nowrap select-none">
-                    {mesa.sillas || 0} sil.
+              {isOccupied ? (() => {
+                const soupItems = activeOrder?.items.filter(item => {
+                  const p = products.find(prod => prod.id === item.productoId);
+                  return p?.tipo === 'SOPA' || p?.categoria === 'SOPA';
+                }) || [];
+
+                const segundoItems = activeOrder?.items.filter(item => {
+                  const p = products.find(prod => prod.id === item.productoId);
+                  return p?.tipo === 'SEGUNDO' || p?.categoria === 'MENÚ' && p?.tipo !== 'SOPA';
+                }) || [];
+
+                const totalSopas = soupItems.reduce((acc, item) => acc + item.cantidad, 0);
+                const totalSegundos = segundoItems.reduce((acc, item) => acc + item.cantidad, 0);
+
+                const areAllSopasServidas = soupItems.length > 0 && soupItems.every(item => item.estado === 'SERVIDO');
+                const areAllSegundosServidos = segundoItems.length > 0 && segundoItems.every(item => item.estado === 'SERVIDO');
+
+                return (
+                  <div className="w-full h-full flex flex-col justify-between text-center overflow-hidden">
+                    {/* Top Ticket metadata */}
+                    <div className="flex flex-col select-none w-full">
+                      <p className="text-[5.5px] xs:text-[6.5px] md:text-[8px] font-extrabold uppercase tracking-tight text-rose-600/90 leading-none">
+                        PEDIDO: #{(activeOrder?.id || '').split('-').pop()}
+                      </p>
+                      <p className="text-[5px] xs:text-[6.0px] md:text-[7px] font-medium text-slate-500 leading-none mt-0.5">
+                        A LAS {activeOrder?.hora}
+                      </p>
+                      <div className="flex items-center justify-center gap-1 mt-0.5 select-none w-full leading-none">
+                        <span className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase text-slate-700 truncate max-w-[80%]">
+                          {activeOrder?.cliente || 'CONSU. FINAL'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Big table label */}
+                    <div className="relative flex items-center justify-center my-0.5 shrink-0">
+                      <div className={`font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl ${
+                        mesa.id === '13' ? 'text-violet-700' : 'text-rose-600'
+                      }`}>
+                        {label}
+                      </div>
+                    </div>
+
+                    {/* Integrated list of Sopas and Segundos with status */}
+                    <div className="w-full flex flex-col justify-center space-y-0.5 overflow-hidden border-t border-rose-200/50 pt-1">
+                      {totalSopas > 0 && (
+                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
+                          areAllSopasServidas ? 'text-emerald-700 bg-emerald-50/50 rounded py-0.5 px-1' : 'text-slate-800'
+                        }`}>
+                          <span className="uppercase text-left truncate">
+                            {totalSopas}X SOPAS
+                          </span>
+                          {areAllSopasServidas ? (
+                            <span className="text-emerald-600 font-extrabold text-[6px] xs:text-[7px]">✓</span>
+                          ) : (
+                            <span className="text-amber-600 font-bold text-[5px] xs:text-[6px] md:text-[7px]">Pend.</span>
+                          )}
+                        </div>
+                      )}
+                      {totalSegundos > 0 && (
+                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
+                          areAllSegundosServidos ? 'text-emerald-700 bg-emerald-50/50 rounded py-0.5 px-1' : 'text-slate-800'
+                        }`}>
+                          <span className="uppercase text-left truncate">
+                            {totalSegundos}X SEGUNDOS
+                          </span>
+                          {areAllSegundosServidos ? (
+                            <span className="text-emerald-600 font-extrabold text-[6px] xs:text-[7px]">✓</span>
+                          ) : (
+                            <span className="text-amber-600 font-bold text-[5px] xs:text-[6px] md:text-[7px]">Pend.</span>
+                          )}
+                        </div>
+                      )}
+                      {activeOrder?.items.some(item => {
+                        const p = products.find(prod => prod.id === item.productoId);
+                        return p?.tipo !== 'SOPA' && p?.tipo !== 'SEGUNDO' && p?.categoria !== 'MENÚ';
+                      }) && (
+                        <div className="text-[5px] xs:text-[6.0px] md:text-[6.5px] font-bold text-slate-400 text-center leading-none mt-0.5 uppercase">
+                          + OTROS
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer - who took the order */}
+                    <div className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase tracking-wider text-slate-500 truncate max-w-full leading-none border-t border-rose-500/10 pt-1 mt-0.5 shrink-0">
+                      {activeOrder?.usuarioNombre?.split(' ')[0] || 'ADMINISTRADOR'}
+                    </div>
                   </div>
-                )}
-              
-              {isOccupied && (
-                <div className="absolute bottom-1.5 md:bottom-3 left-0 right-0 flex flex-col items-center px-1">
-                  <div className="flex flex-col items-center leading-none mb-1">
-                    <span className="text-[6.5px] md:text-[8px] font-bold text-rose-700 uppercase tracking-tight truncate max-w-[85%]">
-                      {allMesaActiveOrders[0]?.usuarioNombre?.split(' ')[0]}
-                    </span>
-                    <span className="text-[5px] md:text-[6.5px] font-mono text-rose-400 font-semibold uppercase tracking-widest mt-0.2">
-                      #{allMesaActiveOrders[0]?.id.split('-')[1]}
-                    </span>
+                );
+              })() : (
+                <>
+                  <div className={`font-display font-black leading-none uppercase px-1 text-center select-none ${
+                    label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
+                  }`}>
+                    {label}
                   </div>
                   
-                  <div className="flex gap-0.5 md:gap-1.5 justify-center">
-                    {allMesaActiveOrders[0]?.items.slice(0, 4).map((item, idx) => (
-                        <div 
-                          key={idx} 
-                          className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full border border-white/40 ${item.estado === 'SERVIDO' ? 'bg-emerald-500' : 'bg-brand-400 animate-pulse'}`} 
-                        />
-                    ))}
-                    {allMesaActiveOrders[0]?.items.length > 4 && (
-                        <div className="text-[5px] font-bold text-slate-400">...</div>
-                    )}
-                  </div>
-                </div>
+                  {mesa.id !== '13' && (
+                    <div className="absolute top-2 right-2 px-1 py-0.5 bg-slate-900/[0.04] rounded-md text-[6.5px] md:text-[8px] font-bold text-slate-400 capitalize whitespace-nowrap select-none">
+                      {mesa.sillas || 0} sil.
+                    </div>
+                  )}
+                </>
               )}
             </button>
           );

@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2, Lock } from 'lucide-react';
+import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2, Lock, Coins, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderTimer } from './OrderTimer.tsx';
 import { OrderModal } from './OrderModal.tsx';
@@ -13,6 +13,14 @@ import * as XLSX from 'xlsx';
 
 export const CocinaView: React.FC = () => {
   const { orders, products, updateItemStatus, currentMenu, selectedDate, isTodaySelected, mesas } = useApp();
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const itemsToPrepare = orders
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
@@ -144,6 +152,43 @@ export const CocinaView: React.FC = () => {
           const orderTimestamp = items[0].timestamp || Date.now();
           const elapsedMinutes = Math.floor((Date.now() - orderTimestamp) / 60000);
           
+          const orderId = items[0].orderId;
+          const fullOrder = orders.find(o => o.id === orderId);
+
+          // "Falta Segundo" alert check
+          const totalSoupItems = fullOrder?.items.filter(i => {
+            const p = products.find(prod => prod.id === i.productoId);
+            return p?.tipo === 'SOPA';
+          }) || [];
+          
+          const totalSecondItems = fullOrder?.items.filter(i => {
+            const p = products.find(prod => prod.id === i.productoId);
+            return p?.tipo === 'SEGUNDO';
+          }) || [];
+
+          const hasSoup = totalSoupItems.length > 0;
+          const hasNoSecondsOrderedYet = totalSecondItems.length === 0;
+          const isOnlySoupAndNoSeconds = hasSoup && hasNoSecondsOrderedYet;
+
+          // Find if there's any soup item marked as SERVIDO ("Listo")
+          const servedSoup = totalSoupItems.find(i => i.estado === 'SERVIDO');
+          const isSoupServed = !!servedSoup;
+
+          let isFaltaSegundoAlert = false;
+          let elapsedMsSinceSoupListo = 0;
+          let minutesSinceSoupListo = 0;
+          let secondsSinceSoupListo = 0;
+
+          if (isOnlySoupAndNoSeconds && isSoupServed && servedSoup) {
+            const baseTime = servedSoup.timestampServido || servedSoup.timestampPedido || fullOrder?.timestamp || orderTimestamp;
+            elapsedMsSinceSoupListo = now - baseTime;
+            minutesSinceSoupListo = Math.floor(elapsedMsSinceSoupListo / 60000);
+            secondsSinceSoupListo = Math.floor((elapsedMsSinceSoupListo % 60000) / 1000);
+
+            // Warning is red after 10 minutes (600,000 ms) of marked "Listo"
+            isFaltaSegundoAlert = elapsedMsSinceSoupListo >= 600000;
+          }
+
           let headerColorClass = 'bg-brand-600';
           let textColorClass = 'text-brand-100';
           
@@ -159,7 +204,9 @@ export const CocinaView: React.FC = () => {
             <div 
               key={key} 
               className={`bg-white rounded-[32px] md:rounded-[40px] border shadow-sm overflow-hidden flex flex-col transition-all duration-300 ${
-                elapsedMinutes >= 20 ? 'border-rose-300 ring-2 ring-rose-50' : 'border-slate-200'
+                isFaltaSegundoAlert
+                  ? 'border-rose-500 ring-2 ring-rose-200 shadow-[0_4px_24px_rgba(239,68,68,0.12)]'
+                  : (elapsedMinutes >= 20 ? 'border-rose-300 ring-2 ring-rose-50' : 'border-slate-200')
               }`}
             >
             <div className={`${headerColorClass} px-4 md:px-5 py-3 md:py-4 flex justify-between items-center text-white relative transition-colors duration-500`}>
@@ -180,6 +227,24 @@ export const CocinaView: React.FC = () => {
             </div>
 
             <div className="p-3 md:p-4 space-y-2 md:space-y-3 flex-1 overflow-auto">
+              {/* Alerta de Falta Segundo */}
+              {isOnlySoupAndNoSeconds && isSoupServed && (
+                <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center transition-all duration-300 ${
+                  isFaltaSegundoAlert 
+                    ? 'bg-rose-500 border-rose-600 text-white shadow-md shadow-rose-200 animate-pulse' 
+                    : 'bg-amber-50 border-amber-200 text-amber-900 border-dashed'
+                }`}>
+                  <div className="flex items-center gap-1.5 justify-center">
+                    <span className="text-sm">⚠️</span>
+                    <span className="text-xs font-black uppercase tracking-wider">
+                      {isFaltaSegundoAlert ? '¡FALTA SEGUNDO!' : 'Sopa Servida (Esperando Segundo)'}
+                    </span>
+                  </div>
+                  <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isFaltaSegundoAlert ? 'text-rose-100' : 'text-amber-600'}`}>
+                    Sopa lista hace: {minutesSinceSoupListo}m {secondsSinceSoupListo}s
+                  </p>
+                </div>
+              )}
               {/* Items already served for this mesa in this order */}
               {(() => {
                 const orderId = items[0].orderId;
@@ -200,13 +265,13 @@ export const CocinaView: React.FC = () => {
                 );
               })()}
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {items.map((item) => {
                   const product = products.find(p => p.id === item.productoId);
                   const isSoup = product?.tipo === 'SOPA';
                   
                   return (
-                    <div key={item.id} className="flex items-center justify-between group py-0.5 border-b border-slate-50 last:border-0 pb-2 last:pb-0.5">
+                    <div key={item.id} className="flex items-center justify-between group py-1 border-b border-slate-50 last:border-0 pb-1.5 last:pb-0.5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${
                           isSoup ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-brand-50 text-brand-600 border border-brand-100'
@@ -214,19 +279,19 @@ export const CocinaView: React.FC = () => {
                           {item.cantidad}
                         </div>
                         <div className="flex flex-col">
-                           <p className="font-bold text-slate-800 uppercase tracking-tight leading-tight mb-0.5 text-[13px]">{product?.nombre}</p>
-                           <div className="flex items-center gap-2">
-                             <p className={`text-[8px] font-bold uppercase tracking-widest ${isSoup ? 'text-violet-400' : 'text-slate-400'}`}>
-                                {isSoup ? 'Entrada/Sopa' : (product?.categoria === 'MENÚ' ? 'Plato Fondo' : product?.categoria)}
-                             </p>
+                           <div className="flex items-center gap-1.5 flex-wrap">
+                             <p className="font-bold text-slate-800 uppercase tracking-tight leading-tight text-[13px]">{product?.nombre}</p>
                              {item.estado !== 'SERVIDO' && item.timestampPedido && (
                                <OrderTimer 
                                  timestamp={item.timestampPedido} 
                                  hideIcon
-                                 className="flex items-center gap-1 bg-slate-900 px-1 py-0.5 rounded-md scale-90 origin-left ml-1 text-white text-[9px] font-mono"
+                                 className="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded-md text-white text-[9.5px] font-mono font-bold leading-none shrink-0"
                                />
                              )}
                            </div>
+                           <p className={`text-[8.5px] font-bold uppercase tracking-widest mt-0.5 ${isSoup ? 'text-violet-400' : 'text-slate-400'} leading-none`}>
+                              {isSoup ? 'Entrada/Sopa' : (item.notas ? `⚠️ NOTA: ${item.notas.toUpperCase()}` : (product?.categoria === 'MENÚ' ? 'Plato Fondo' : product?.categoria))}
+                           </p>
                         </div>
                       </div>
 
@@ -259,6 +324,15 @@ export const CajaView: React.FC = () => {
   const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, currentMenu, mesas } = useApp();
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [efectivoModalFor, setEfectivoModalFor] = useState<{
+    id: string;
+    cliente: string;
+    total: number;
+    balance: number;
+    defaultMonto: number;
+  } | null>(null);
+  const [efectivoMontoAPagar, setEfectivoMontoAPagar] = useState('');
+  const [efectivoDineroRecibido, setEfectivoDineroRecibido] = useState('');
 
   const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
   const [customerSearch, setCustomerSearch] = useState('');
@@ -324,8 +398,8 @@ export const CajaView: React.FC = () => {
           'USUARIO': order.usuarioNombre || 'Desconocido',
           'PRODUCTO': product?.nombre || 'Desconocido',
           'CANTIDAD': item.cantidad,
-          'PRECIO UNIT.': product?.precio || 0,
-          'SUBTOTAL': item.cantidad * (product?.precio || 0),
+          'PRECIO UNIT.': item.precioUnitario || 0,
+          'SUBTOTAL': item.cantidad * (item.precioUnitario || 0),
           'ESTADO PEDIDO': order.estado
         };
       })
@@ -411,6 +485,21 @@ export const CajaView: React.FC = () => {
       const numB = parseInt(b.id.split('-')[1] || '0');
       return numB - numA;
     });
+
+  const getMesaNumber = (mesaId: string) => {
+    const found = mesas.find(m => m.id === mesaId);
+    const name = found ? found.nombre : mesaId;
+    const numOnly = name.replace(/\D/g, '');
+    return numOnly ? numOnly.padStart(2, '0') : name;
+  };
+
+  const getMetodoBadgeStyle = (metodo: string) => {
+    const m = metodo.toUpperCase();
+    if (m === 'YAPE') return 'text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100/50';
+    if (m === 'EFECTIVO') return 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/50';
+    if (m === 'CREDITO') return 'text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50';
+    return 'text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-150';
+  };
 
   const orderToEdit = orders.find(o => o.id === editingOrderId);
 
@@ -788,12 +877,15 @@ export const CajaView: React.FC = () => {
                           const amount = parseFloat(partialAmounts[order.id] || balance.toString());
                           if (amount > 0) {
                             const finalAmount = Math.min(amount, balance);
-                            payOrder(order.id, 'EFECTIVO', finalAmount);
-                            setPartialAmounts(prev => {
-                              const next = { ...prev };
-                              delete next[order.id];
-                              return next;
+                            setEfectivoModalFor({
+                              id: order.id,
+                              cliente: order.cliente,
+                              total: order.total,
+                              balance: balance,
+                              defaultMonto: finalAmount
                             });
+                            setEfectivoMontoAPagar(finalAmount.toFixed(2));
+                            setEfectivoDineroRecibido('');
                           }
                         }}
                         disabled={!isReadyToPay}
@@ -1047,6 +1139,204 @@ export const CajaView: React.FC = () => {
             </motion.div>
           </div>
         )}
+
+        {efectivoModalFor && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[40px] w-full max-w-md shadow-2xl overflow-hidden"
+            >
+              <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                    <Coins className="w-5 h-5 text-emerald-500 animate-pulse" />
+                    Lógica de Vuelto
+                  </h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                    Pago de {efectivoModalFor.cliente} • Ticket #{efectivoModalFor.id.split('-').pop()}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setEfectivoModalFor(null)} 
+                  className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="p-6 md:p-8 space-y-5">
+                {/* Campo A: Monto a pagar */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] block">
+                    Campo A: Monto a pagar con efectivo
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">S/</span>
+                    <input 
+                      type="number"
+                      step="0.1"
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3.5 pl-10 pr-4 text-base font-bold outline-none focus:bg-white focus:border-brand-500 transition-all text-slate-800"
+                      value={efectivoMontoAPagar}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setEfectivoMontoAPagar('');
+                          return;
+                        }
+                        const numVal = parseFloat(val);
+                        if (numVal > efectivoModalFor.balance) {
+                          setEfectivoMontoAPagar(efectivoModalFor.balance.toFixed(2));
+                        } else if (numVal < 0) {
+                          setEfectivoMontoAPagar('0.00');
+                        } else {
+                          setEfectivoMontoAPagar(val);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase px-0.5">
+                    <span>Saldo pendiente: S/ {efectivoModalFor.balance.toFixed(2)}</span>
+                    <button 
+                      onClick={() => setEfectivoMontoAPagar(efectivoModalFor.balance.toFixed(2))}
+                      className="text-brand-600 hover:text-brand-700 font-extrabold"
+                    >
+                      Pagar total
+                    </button>
+                  </div>
+                </div>
+
+                {/* Campo B: Dinero Recibido */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] block">
+                    Campo B: Dinero Recibido
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">S/</span>
+                    <input 
+                      autoFocus
+                      type="number"
+                      step="0.5"
+                      placeholder="0.00"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-4.5 pl-10 pr-4 text-xl font-bold outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-slate-800 text-left"
+                      value={efectivoDineroRecibido}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setEfectivoDineroRecibido('');
+                        } else {
+                          setEfectivoDineroRecibido(val);
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Quick cash bills selection */}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <button 
+                      onClick={() => setEfectivoDineroRecibido(parseFloat(efectivoMontoAPagar || '0').toFixed(2))}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-tight rounded-lg transition-colors border border-slate-200"
+                    >
+                      Monto Exacto
+                    </button>
+                    {[10, 20, 50, 100, 200].map((bill) => (
+                      <button
+                        key={bill}
+                        onClick={() => {
+                          setEfectivoDineroRecibido(bill.toFixed(2));
+                        }}
+                        className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-lg transition-colors border border-emerald-100"
+                      >
+                        S/ {bill}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Campo C: Vuelto / Cambio */}
+                {(() => {
+                  const valA = parseFloat(efectivoMontoAPagar) || 0;
+                  const valB = parseFloat(efectivoDineroRecibido) || 0;
+                  const diff = valB - valA;
+                  const isInsufficient = valB > 0 && valB < valA;
+                  const isExact = valB === 0 || !efectivoDineroRecibido || Math.abs(diff) < 0.001;
+
+                  return (
+                    <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-100 flex flex-col justify-center items-center text-center space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                        Campo C: Vuelto (Solo Lectura)
+                      </p>
+                      
+                      {isInsufficient ? (
+                        <div className="space-y-1">
+                          <p className="text-xl font-display font-extrabold text-rose-500 tracking-tight">
+                            Dinero Insuficiente
+                          </p>
+                          <p className="text-[9.5px] font-bold text-rose-400 uppercase tracking-tight">
+                            Faltan S/ {Math.abs(diff).toFixed(2)} para completar el pago
+                          </p>
+                        </div>
+                      ) : isExact ? (
+                        <div className="space-y-0.5">
+                          <p className="text-2xl font-display font-extrabold text-slate-600 tracking-tight">
+                            S/ 0.00
+                          </p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                            Monto exacto (No requiere vuelto)
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-0.5">
+                          <p className="text-3xl font-display font-extrabold text-emerald-600 tracking-tight">
+                            S/ {diff.toFixed(2)}
+                          </p>
+                          <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest font-mono">
+                            Entregar vuelto al cliente
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button 
+                    onClick={() => setEfectivoModalFor(null)}
+                    className="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const amount = parseFloat(efectivoMontoAPagar);
+                      if (amount > 0) {
+                        const finalAmount = Math.min(amount, efectivoModalFor.balance);
+                        payOrder(efectivoModalFor.id, 'EFECTIVO', finalAmount);
+                        setPartialAmounts(prev => {
+                          const next = { ...prev };
+                          delete next[efectivoModalFor.id];
+                          return next;
+                        });
+                        setEfectivoModalFor(null);
+                      }
+                    }}
+                    disabled={
+                      !efectivoMontoAPagar || 
+                      parseFloat(efectivoMontoAPagar) <= 0 || 
+                      ((parseFloat(efectivoDineroRecibido) || 0) > 0 && (parseFloat(efectivoDineroRecibido) || 0) < (parseFloat(efectivoMontoAPagar) || 0))
+                    }
+                    className="py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-slate-100 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-100/50 hover:shadow-emerald-200/50 transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    Confirmar Pago
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Orders Summary Table Compact */}
@@ -1056,41 +1346,126 @@ export const CajaView: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-100 soft-shadow overflow-hidden overflow-x-auto no-scrollbar">
-           <table className="w-full text-left border-collapse min-w-[700px]">
+           <table className="w-full text-left border-collapse min-w-[850px]">
              <thead>
-               <tr className="bg-slate-50/50 border-b border-slate-100">
-                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">ID</th>
-                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Comensal</th>
-                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Cant.</th>
-                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</th>
-                 <th className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+               <tr className="bg-slate-50/60 border-b border-slate-100">
+                 <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Pedido</th>
+                 <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Mesa</th>
+                 <th className="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Comensal</th>
+                 <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Cant.</th>
+                 <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center border-l border-slate-100/80 bg-slate-50/30">metodo</th>
+                 <th className="px-4 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right border-l border-slate-100/80 bg-slate-50/30">parcial</th>
+                 <th className="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-l border-slate-100/80 text-center">Total</th>
+                 <th className="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-l border-slate-100/80 text-center">Estado</th>
+                 <th className="px-5 py-3.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-l border-slate-100/80 text-center">hora de pago</th>
                </tr>
              </thead>
-             <tbody className="divide-y divide-slate-50">
-               {orderSummary.map((order) => (
-                 <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                   <td className="px-5 py-3 text-[9px] font-bold text-slate-400 tracking-widest font-mono">#{order.id.split('-').pop()}</td>
-                   <td className="px-5 py-3">
-                     <div className="flex flex-col">
-                       <span className="text-xs font-bold text-slate-800 uppercase truncate max-w-[180px]">{order.cliente}</span>
-                       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.1em]">Por: {order.usuarioNombre || 'Desconocido'}</span>
-                     </div>
-                   </td>
-                   <td className="px-5 py-3 text-center">
-                     <span className="text-[10px] font-bold text-slate-400">{order.items.length}</span>
-                   </td>
-                   <td className="px-5 py-3 text-xs font-display font-bold text-slate-900 tracking-tight">S/ {order.total.toFixed(2)}</td>
-                   <td className="px-5 py-3">
-                     <span className={`text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest ${
-                        order.estado === 'PAGADO' ? 'bg-emerald-50 text-emerald-600' : 
-                        order.estado === 'CREDITO' ? 'bg-slate-900 text-white' : 'bg-rose-50 text-rose-500'
-                      }`}>
-                        {order.estado}
-                      </span>
-                   </td>
-                 </tr>
-               ))}
+             <tbody className="divide-y divide-slate-100 animate-fade-in">
+               {orderSummary.map((order) => {
+                 const shortId = order.id.split('-').pop() || '';
+                 const parsedNum = parseInt(shortId, 10);
+                 const formattedId = !isNaN(parsedNum) ? String(parsedNum).padStart(3, '0') : shortId;
+
+                 const totalQty = (order.items || []).reduce((acc, item) => acc + item.cantidad, 0);
+
+                 const paymentsList = (order.pagos && order.pagos.length > 0)
+                   ? order.pagos
+                   : (order.estado === 'PAGADO'
+                       ? [{ id: `fallback-${order.id}-pay`, metodo: order.metodoPago || 'EFECTIVO', monto: order.total, hora: order.hora }]
+                       : order.estado === 'CREDITO'
+                         ? [{ id: `fallback-${order.id}-cred`, metodo: 'CREDITO', monto: order.total, hora: order.hora }]
+                         : [{ id: `fallback-${order.id}-open`, metodo: 'PENDIENTE', monto: 0, hora: '-' }]
+                     );
+
+                 return (
+                   <tr key={order.id} className="hover:bg-slate-50/40 transition-colors">
+                     {/* Pedido */}
+                     <td className="px-4 py-3 text-[11px] font-bold text-slate-500 tracking-wider font-mono text-center">
+                       #{formattedId}
+                     </td>
+
+                     {/* Mesa */}
+                     <td className="px-4 py-3 text-center">
+                       <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100/80 text-xs font-display font-black text-slate-700 border border-slate-150">
+                         {getMesaNumber(order.mesaId)}
+                       </span>
+                     </td>
+
+                     {/* Comensal */}
+                     <td className="px-5 py-3">
+                       <div className="flex flex-col">
+                         <span className="text-xs font-bold text-slate-800 uppercase truncate max-w-[155px]">
+                           {order.cliente}
+                         </span>
+                         <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest mt-0.5">
+                           Por: {order.usuarioNombre || 'Administrador'}
+                         </span>
+                       </div>
+                     </td>
+
+                     {/* Cant. */}
+                     <td className="px-4 py-3 text-center">
+                       <span className="text-[11px] font-black text-slate-600 bg-slate-100/60 px-2.5 py-1 rounded-lg border border-slate-150/40 shadow-sm">
+                         {totalQty}
+                       </span>
+                     </td>
+
+                     {/* Metodo stacked row subdivision */}
+                     <td className="p-0 border-l border-slate-100 bg-slate-50/10">
+                       <div className="flex flex-col h-full divide-y divide-slate-100">
+                         {paymentsList.map((p, idx) => (
+                           <div key={p.id || idx} className="px-4 h-11 flex items-center justify-center">
+                             <span className={`text-[9.5px] font-extrabold uppercase tracking-widest text-center min-w-[75px] ${getMetodoBadgeStyle(p.metodo)}`}>
+                               {p.metodo.toLowerCase()}
+                             </span>
+                           </div>
+                         ))}
+                       </div>
+                     </td>
+
+                     {/* Parcial stacked row subdivision */}
+                     <td className="p-0 border-l border-slate-100 bg-slate-50/10 text-right">
+                       <div className="flex flex-col h-full divide-y divide-slate-100">
+                         {paymentsList.map((p, idx) => (
+                           <div key={p.id || idx} className="px-4 h-11 flex items-center justify-end text-xs font-mono font-bold text-slate-600 min-w-[70px]">
+                             {p.monto.toFixed(2)}
+                           </div>
+                         ))}
+                       </div>
+                     </td>
+
+                     {/* Total */}
+                     <td className="px-5 py-3 text-xs font-display font-black text-slate-800 tracking-tight text-center border-l border-slate-100">
+                       S/ {order.total.toFixed(2)}
+                     </td>
+
+                     {/* Estado */}
+                     <td className="px-5 py-3 text-center border-l border-slate-100">
+                       <span className={`text-[8.5px] font-black px-2.5 py-1 rounded-xl uppercase tracking-widest leading-none ${
+                          order.estado === 'PAGADO' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50' : 
+                          order.estado === 'CREDITO' ? 'bg-amber-50 text-amber-600 border border-amber-100/50' : 
+                          order.estado === 'CANCELADO' ? 'bg-rose-50 text-rose-500 border border-rose-100/50' : 
+                          'bg-slate-100 text-slate-500 border border-slate-200/50'
+                        }`}>
+                         {order.estado === 'CREDITO' ? 'CRÉDITO' : order.estado}
+                       </span>
+                     </td>
+
+                     {/* Hora de Pago */}
+                     <td className="p-0 border-l border-slate-100 text-center">
+                       <div className="flex flex-col h-full divide-y divide-slate-100">
+                         {paymentsList.map((p, idx) => (
+                           <div key={p.id || idx} className="px-4 h-11 flex items-center justify-center text-[10px] font-mono text-slate-400 font-bold min-w-[85px]">
+                             {p.hora || order.hora || '-'}
+                           </div>
+                         ))}
+                       </div>
+                     </td>
+                   </tr>
+                 );
+               })}
              </tbody>
+
            </table>
         </div>
       </div>

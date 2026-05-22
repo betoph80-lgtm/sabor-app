@@ -74,6 +74,7 @@ export interface MenuItem {
   stockActual: number;
   estado: boolean;
   fecha: string;
+  precioPersonalizado?: number;
 }
 
 export interface OrderItem {
@@ -87,6 +88,7 @@ export interface OrderItem {
   timestampPedido: number;
   usuarioId?: string;
   usuarioNombre?: string;
+  timestampServido?: number;
 }
 
 export interface Payment {
