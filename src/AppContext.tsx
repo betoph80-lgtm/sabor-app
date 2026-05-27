@@ -16,7 +16,7 @@ import {
   deleteDoc, query, where, addDoc, getDocs, 
   getDoc, writeBatch, serverTimestamp, runTransaction 
 } from 'firebase/firestore';
-import { signInAnonymously } from 'firebase/auth';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 enum OperationType {
   CREATE = 'create',
@@ -140,6 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const isTodaySelected = selectedDate === formatDate(new Date());
   
+  const [authInitialized, setAuthInitialized] = useState(false);
   const [dbConnectedStatus, setDbConnectedStatus] = useState<'conectando' | 'conectado' | 'error'>('conectando');
   const [dbConnectionErrorMessage, setDbConnectionErrorMessage] = useState<string | undefined>(undefined);
 
@@ -159,6 +160,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   useEffect(() => {
+    if (!authInitialized) return;
+
     const handleOnline = () => {
       recheckDbConnection();
     };
@@ -181,7 +184,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [authInitialized]);
   
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -224,17 +227,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // 🔥 AUTH
   useEffect(() => {
-    signInAnonymously(auth).catch(err => {
-      // ignore if already signed in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setAuthInitialized(true);
+      } else {
+        signInAnonymously(auth).catch(err => {
+          console.error("Error al iniciar sesión de forma anónima: ", err);
+        });
+      }
     });
+    return () => unsubscribe();
   }, []);
 
   // 🔥 REAL-TIME LISTENERS
   useEffect(() => {
+    if (!authInitialized) return;
+
     // 0. USUARIOS
     const unsubscribeUsers = onSnapshot(collection(db, 'usuarios'), (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AppUser));
-      setAppUsers(data);
+      if (data.length === 0) {
+        // Automatically seed base users so login is immediately available
+        USUARIOS_BASE.forEach(u => setDoc(doc(db, 'usuarios', u.id), u));
+      } else {
+        setAppUsers(data);
+      }
     }, (err) => handleFirestoreError(err, OperationType.LIST, 'usuarios'));
 
     // 1. MESAS
@@ -296,40 +313,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     return () => {
+      unsubscribeUsers();
       unsubscribeMesas();
       unsubscribeProducts();
       unsubscribeCategories();
       unsubscribeCustomers();
       unsubscribeIdentity();
     };
-  }, []);
+  }, [authInitialized]);
 
   // FILTRADO POR FECHA (Real-time para la fecha seleccionada)
   useEffect(() => {
+    if (!authInitialized) return;
+
     // 5. PEDIDOS
     const qOrders = query(collection(db, 'pedidos'), where('fecha', '==', selectedDate));
     const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
       setOrders(snapshot.docs.map(doc => ({ ...doc.data() } as Order)));
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, `pedidos?fecha=${selectedDate}`));
 
     // 6. MENU DIARIO
     const qMenu = query(collection(db, 'menu_diario'), where('fecha', '==', selectedDate));
     const unsubscribeMenu = onSnapshot(qMenu, (snapshot) => {
       setCurrentMenu(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MenuItem)));
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, `menu_diario?fecha=${selectedDate}`));
 
     // 7. CONTROL DE CAJA
     const qCash = query(collection(db, 'control_caja'), where('fecha', '==', selectedDate));
     const unsubscribeCash = onSnapshot(qCash, (snapshot) => {
       setCashControls(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DailyCashControl)));
-    });
+    }, (err) => handleFirestoreError(err, OperationType.LIST, `control_caja?fecha=${selectedDate}`));
 
     return () => {
       unsubscribeOrders();
       unsubscribeMenu();
       unsubscribeCash();
     };
-  }, [selectedDate]);
+  }, [selectedDate, authInitialized]);
 
   const currentCash = cashControls.find(c => c.fecha === selectedDate);
 
@@ -780,7 +800,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const login = async (usuario: string, pin: string): Promise<boolean> => {
-    const user = appUsers.find(u => u.usuario && u.usuario.toLowerCase() === usuario.toLowerCase() && u.pin === pin);
+    let user = appUsers.find(u => u.usuario && u.usuario.toLowerCase() === usuario.toLowerCase() && u.pin === pin);
+    
+    // Fallback: If appUsers hasn't loaded or is empty, check USUARIOS_BASE directly
+    if (!user && appUsers.length === 0) {
+      const fallbackUser = USUARIOS_BASE.find(u => u.usuario && u.usuario.toLowerCase() === usuario.toLowerCase() && u.pin === pin);
+      if (fallbackUser) {
+        user = fallbackUser;
+        // Optionally seed this user to Firestore immediately
+        try {
+          await setDoc(doc(db, 'usuarios', fallbackUser.id), fallbackUser);
+        } catch (e) {
+          console.error("Error auto-seeding user during fallback login:", e);
+        }
+      }
+    }
+
     if (user) {
       setCurrentUser(user);
       setActiveView(user.role);
