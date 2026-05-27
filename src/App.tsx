@@ -23,7 +23,7 @@ const AdminPanel = () => {
     requestConfirmation, isTodaySelected, orders, selectedDate,
     updateMenuItemStock, customers, categories, addCategory, deleteCategory,
     seedDatabase, logout, currentUser, appUsers, addAppUser, updateAppUser, deleteAppUser,
-    identity, updateIdentity
+    identity, updateIdentity, dbConnectedStatus, dbConnectionErrorMessage, recheckDbConnection
   } = useApp();
   const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'USUARIOS' | 'MESAS' | 'CLIENTES' | 'IDENTIDAD' | 'DATABASE'>('PANEL');
   const [showReport, setShowReport] = useState(false);
@@ -154,6 +154,79 @@ const AdminPanel = () => {
        </div>
        {adminView === 'DATABASE' && (
          <div className="space-y-4 md:space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+             {/* Firebase Connection Diagnostic Panel */}
+             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100/80 mb-6 md:mb-8 text-slate-800">
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
+                 <div className="flex items-center gap-3">
+                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                     dbConnectedStatus === 'conectado' ? 'bg-emerald-50 text-emerald-600' :
+                     dbConnectedStatus === 'conectando' ? 'bg-amber-50 text-amber-600' :
+                     'bg-rose-50 text-rose-600'
+                   }`}>
+                     <Database className="w-5 h-5" />
+                   </div>
+                   <div>
+                     <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider leading-none mb-1">Diagnóstico de Firebase</h3>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Estado de la conexión y configuración de la nube</p>
+                   </div>
+                 </div>
+                 
+                 <button
+                   onClick={recheckDbConnection}
+                   disabled={dbConnectedStatus === 'conectando'}
+                   className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                     dbConnectedStatus === 'conectando'
+                       ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                       : 'bg-violet-50 text-violet-600 hover:bg-violet-100'
+                   }`}
+                 >
+                   {dbConnectedStatus === 'conectando' ? 'Verificando...' : 'Probar Conexión'}
+                 </button>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                 <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Proyecto ID</p>
+                   <p className="text-xs font-bold text-slate-700 font-mono">agile-extension-262716</p>
+                 </div>
+                 <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Base de Datos Firestore</p>
+                   <p className="text-violet-600 text-[11px] font-bold font-mono truncate" title="ai-studio-da6577ff-ae85-4cef-8d41-c13a2b89245b">
+                     ai-studio-da6577ff_db
+                   </p>
+                 </div>
+                 <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                   <div>
+                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Servidor Cloud</p>
+                     <p className="text-xs font-bold text-slate-700 uppercase">Enterprise Edition</p>
+                   </div>
+                   <div className="flex gap-1.5 items-center bg-white px-2.5 py-1 rounded-lg border border-slate-100 shadow-sm">
+                     <span className={`w-2.5 h-2.5 rounded-full ${
+                       dbConnectedStatus === 'conectado' ? 'bg-emerald-500 animate-pulse' :
+                       dbConnectedStatus === 'conectando' ? 'bg-amber-500 animate-bounce' :
+                       'bg-rose-500'
+                     }`}></span>
+                     <span className="text-[10px] font-black uppercase text-slate-700">
+                       {dbConnectedStatus === 'conectado' ? 'Activo' :
+                        dbConnectedStatus === 'conectando' ? 'Buscando' :
+                        'Caído'}
+                     </span>
+                   </div>
+                 </div>
+               </div>
+
+               {dbConnectedStatus === 'error' && (
+                 <div className="mt-5 p-4 bg-rose-50 rounded-2xl border border-rose-100 flex gap-3 text-rose-700 items-start">
+                   <div className="text-xs font-black uppercase tracking-widest bg-rose-100 px-2.5 py-1 rounded-lg">Error</div>
+                   <div className="flex-1 min-w-0">
+                     <p className="text-xs font-bold font-mono tracking-tight leading-relaxed select-all">
+                       {dbConnectionErrorMessage || 'No se pudo establecer conexión con Firebase Firestore. Verifique la conexión a internet.'}
+                     </p>
+                   </div>
+                 </div>
+               )}
+             </div>
+
             <div className="bg-violet-600 p-6 md:p-10 rounded-3xl md:rounded-[48px] text-white shadow-xl relative overflow-hidden">
                <Database className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 text-white/5 -translate-y-6 md:-translate-y-12 translate-x-6 md:translate-x-12" />
                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">

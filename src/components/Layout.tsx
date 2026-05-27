@@ -9,7 +9,12 @@ import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, 
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { activeView, setActiveView, orders, currentMenu, products, customers, currentCash, selectedDate, setSelectedDate, logout, currentUser, identity } = useApp();
+  const { 
+    activeView, setActiveView, orders, currentMenu, products, 
+    customers, currentCash, selectedDate, setSelectedDate, logout, 
+    currentUser, identity, dbConnectedStatus, dbConnectionErrorMessage, 
+    recheckDbConnection 
+  } = useApp();
   
   const brandParts = (identity?.nombre || 'Sabor Abanquino').split(' ');
   const firstPart = brandParts.slice(0, -1).join(' ') || brandParts[0] || '';
@@ -301,12 +306,37 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
 
       {/* Footer */}
-      <footer className="h-10 bg-slate-800 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium">
+      <footer className="h-10 bg-slate-800 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium z-50">
         <div>Personal en turno: <strong className="text-slate-300">{currentUser?.nombre || 'Ninguno'}</strong></div>
         <div className="flex gap-4 items-center">
-          <span className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-            Estatus: <strong className="text-slate-300 uppercase tracking-tighter">Conectado</strong>
+          <span 
+            className="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 transition-colors"
+            title={dbConnectedStatus === 'error' ? `Error: ${dbConnectionErrorMessage}` : 'Conexión activa con Firebase'}
+            onClick={() => {
+              if (dbConnectedStatus === 'error') {
+                recheckDbConnection();
+              }
+            }}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              dbConnectedStatus === 'conectado' ? 'bg-emerald-500 animate-pulse' :
+              dbConnectedStatus === 'conectando' ? 'bg-amber-500 animate-bounce' :
+              'bg-rose-500'
+            }`}></div>
+            Firebase: <strong className={`font-bold transition-colors uppercase tracking-tighter ${
+              dbConnectedStatus === 'conectado' ? 'text-emerald-400' :
+              dbConnectedStatus === 'conectando' ? 'text-amber-400' :
+              'text-rose-400'
+            }`}>
+              {dbConnectedStatus === 'conectado' ? 'Conectado' :
+               dbConnectedStatus === 'conectando' ? 'Conectando...' :
+               'Error de Conexión'}
+            </strong>
+            {dbConnectedStatus === 'error' && (
+              <span className="text-[8px] bg-rose-900/40 text-rose-300 px-1.5 py-0.5 rounded ml-1 hover:bg-rose-800 transition-colors">
+                Reintentar
+              </span>
+            )}
           </span>
           <span className="text-slate-600">|</span>
           <span className="font-mono">V 2.5.0</span>

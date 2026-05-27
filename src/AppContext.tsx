@@ -119,6 +119,9 @@ interface AppContextType {
   seedDatabase: () => Promise<void>;
   identity: AppIdentity;
   updateIdentity: (updates: Partial<AppIdentity>) => Promise<void>;
+  dbConnectedStatus: 'conectando' | 'conectado' | 'error';
+  dbConnectionErrorMessage: string | undefined;
+  recheckDbConnection: () => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -136,6 +139,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const isTodaySelected = selectedDate === formatDate(new Date());
+  
+  const [dbConnectedStatus, setDbConnectedStatus] = useState<'conectando' | 'conectado' | 'error'>('conectando');
+  const [dbConnectionErrorMessage, setDbConnectionErrorMessage] = useState<string | undefined>(undefined);
+
+  const recheckDbConnection = async (): Promise<boolean> => {
+    setDbConnectedStatus('conectando');
+    try {
+      const { getDocFromServer } = await import('firebase/firestore');
+      await getDocFromServer(doc(db, 'config', 'identity'));
+      setDbConnectedStatus('conectado');
+      setDbConnectionErrorMessage(undefined);
+      return true;
+    } catch (err: any) {
+      setDbConnectedStatus('error');
+      setDbConnectionErrorMessage(err?.message || String(err));
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const handleOnline = () => {
+      recheckDbConnection();
+    };
+    const handleOffline = () => {
+      setDbConnectedStatus('error');
+      setDbConnectionErrorMessage('El navegador está offline / Sin conexión a Internet.');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    if (!window.navigator.onLine) {
+      setDbConnectedStatus('error');
+      setDbConnectionErrorMessage('El navegador está offline / Sin conexión a Internet.');
+    } else {
+      recheckDbConnection();
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -230,6 +276,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 4.5. IDENTIDAD
     const unsubscribeIdentity = onSnapshot(doc(db, 'config', 'identity'), (docSnap) => {
+      setDbConnectedStatus('conectado');
+      setDbConnectionErrorMessage(undefined);
       if (docSnap.exists()) {
         setIdentity(docSnap.data() as AppIdentity);
       } else {
@@ -241,7 +289,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         setDoc(doc(db, 'config', 'identity'), defaultIdentity);
       }
-    }, (err) => handleFirestoreError(err, OperationType.GET, 'config/identity'));
+    }, (err) => {
+      setDbConnectedStatus('error');
+      setDbConnectionErrorMessage(err.message);
+      handleFirestoreError(err, OperationType.GET, 'config/identity');
+    });
 
     return () => {
       unsubscribeMesas();
@@ -1164,7 +1216,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       selectedDate, setSelectedDate, isTodaySelected,
       seedDatabase,
       identity,
-      updateIdentity
+      updateIdentity,
+      dbConnectedStatus,
+      dbConnectionErrorMessage,
+      recheckDbConnection
     }}>
       {children}
       <ConfirmModal 

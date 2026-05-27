@@ -5,12 +5,11 @@ service cloud.firestore {
     // HELPERS
     // -------------------------------------------------------------------------
     function isSignedIn() {
-      return true; // Relaxed for preview/seeding. In production, use: return request.auth != null;
+      return request.auth != null;
     }
 
     function isAdmin() {
-      // Temporarily allow all for setup. In production, use the email/admin check.
-      return true;
+      return request.auth != null;
     }
 
     function isValidId(id) {
@@ -29,21 +28,21 @@ service cloud.firestore {
     // VALIDATIONS
     // -------------------------------------------------------------------------
     function isValidMesa(data) {
-      return data.nombre is string && data.nombre.size() > 0 &&
+      return data.nombre is string && data.nombre.size() > 0 && data.nombre.size() <= 100 &&
              data.estado in ['LIBRE', 'OCUPADA', 'RESERVADA'];
     }
 
     function isValidPedido(data) {
-      return data.mesaId is string &&
-             data.cliente is string &&
+      return data.mesaId is string && data.mesaId.size() <= 100 &&
+             data.cliente is string && data.cliente.size() <= 150 &&
              data.estado in ['ABIERTO', 'PAGADO', 'CANCELADO', 'CREDITO'] &&
              data.total is number &&
-             data.fecha is string;
+             data.fecha is string && data.fecha.size() <= 50;
     }
 
     function isValidProduct(data) {
-      return data.nombre is string && data.nombre.size() > 0 &&
-             data.categoria is string &&
+      return data.nombre is string && data.nombre.size() > 0 && data.nombre.size() <= 150 &&
+             data.categoria is string && data.categoria.size() <= 100 &&
              data.precio is number;
     }
 
