@@ -5,11 +5,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2, Lock, Coins, Calculator } from 'lucide-react';
+import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2, Lock, Coins, Calculator, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderTimer } from './OrderTimer.tsx';
 import { OrderModal } from './OrderModal.tsx';
 import * as XLSX from 'xlsx';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export const CocinaView: React.FC = () => {
   const { orders, products, updateItemStatus, currentMenu, selectedDate, isTodaySelected, mesas } = useApp();
@@ -227,7 +229,7 @@ export const CocinaView: React.FC = () => {
                </div>
                <div className="flex flex-col items-end gap-1 md:gap-2 relative z-10">
                   <OrderTimer timestamp={orderTimestamp} className="text-base md:text-lg" />
-                  <p className="text-[7px] md:text-[8px] font-mono font-bold uppercase tracking-widest tabular-nums px-1.5 py-0.5 bg-black/20 rounded-md md:rounded-lg backdrop-blur-sm border border-white/5">A las {items[0].horaPedido}</p>
+                  <p className="text-[7px] md:text-[8px] font-sans font-extrabold uppercase tracking-widest tabular-nums px-1.5 py-0.5 bg-black/20 rounded-md md:rounded-lg backdrop-blur-sm border border-white/5">A las {items[0].horaPedido}</p>
                </div>
             </div>
 
@@ -292,12 +294,12 @@ export const CocinaView: React.FC = () => {
                                <OrderTimer 
                                  timestamp={item.timestampPedido} 
                                  hideIcon
-                                 className="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded-md text-white text-[9.5px] font-mono font-bold leading-none shrink-0"
+                                 className="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded-md text-white text-[9.5px] font-sans font-extrabold leading-none shrink-0"
                                />
                              )}
                            </div>
                            <p className={`text-[8.5px] font-bold uppercase tracking-widest mt-0.5 ${isSoup ? 'text-violet-400' : 'text-slate-400'} leading-none`}>
-                              {isSoup ? 'Entrada/Sopa' : (item.notas ? `⚠️ NOTA: ${item.notas.toUpperCase()}` : (product?.categoria === 'MENÚ' ? 'Plato Fondo' : product?.categoria))}
+                              {isSoup ? 'Entrada/Sopa' : (item.notas ? `⚠️ ${item.notas.toUpperCase()}` : (product?.categoria === 'MENÚ' ? 'Plato Fondo' : product?.categoria))}
                            </p>
                         </div>
                       </div>
@@ -329,6 +331,25 @@ export const CocinaView: React.FC = () => {
 
 export const CajaView: React.FC = () => {
   const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, updateWholeOrder, currentMenu, mesas } = useApp();
+  const [desdeDate, setDesdeDate] = useState<string>(() => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const y = firstDay.getFullYear();
+    const m = String(firstDay.getMonth() + 1).padStart(2, '0');
+    const d = String(firstDay.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  });
+
+  const [hastaDate, setHastaDate] = useState<string>(() => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  });
+
+  const [isExporting, setIsExporting] = useState(false);
+
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [efectivoModalFor, setEfectivoModalFor] = useState<{
@@ -389,99 +410,134 @@ export const CajaView: React.FC = () => {
   // CAJA REAL (Efectivo) = (Efectivo Ventas + Efectivo Cobros) + Base
   const totalCajaEfectivo = totalEfectivoVentas + totalEfectivoCobros + baseCaja;
 
-  const exportFullDatabaseExcel = () => {
-    const workbook = XLSX.utils.book_new();
+  const exportFullDatabaseExcel = async () => {
+    setIsExporting(true);
+    try {
+      const [ordersSnapshot, cashSnapshot] = await Promise.all([
+        getDocs(collection(db, 'pedidos')),
+        getDocs(collection(db, 'control_caja'))
+      ]);
 
-    // 1. Detalle de Ventas (Row per item)
-    const allSales = orders.flatMap(order => 
-      order.items.map(item => {
-        const product = products.find(p => p.id === item.productoId);
-        return {
-          'FECHA': order.fecha,
-          'HORA': order.hora,
-          'TICKET': order.id.split('-').pop(),
-          'MESA': order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre || order.mesaId),
+      const allOrders = ordersSnapshot.docs.map(doc => doc.data() as any);
+      const allCashControls = cashSnapshot.docs.map(doc => doc.data() as any);
+
+      // Helper function to check if a Date (from dd/mm/yyyy format) is in the range
+      const start = new Date(desdeDate + 'T00:00:00');
+      const end = new Date(hastaDate + 'T23:59:59');
+
+      const isDateInRange = (dateStr: string) => {
+        if (!dateStr) return false;
+        const [d, m, y] = dateStr.split('/').map(Number);
+        const dObj = new Date(y, m - 1, d);
+        return dObj >= start && dObj <= end;
+      };
+
+      const filteredOrders = allOrders.filter(o => isDateInRange(o.fecha));
+      const filteredCash = allCashControls.filter(c => isDateInRange(c.fecha));
+
+      const workbook = XLSX.utils.book_new();
+
+      // 1. Detalle de Ventas (Row per item)
+      const allSales = filteredOrders.flatMap(order => 
+        (order.items || []).map((item: any) => {
+          const product = products.find(p => p.id === item.productoId);
+          return {
+            'FECHA': order.fecha,
+            'HORA': order.hora,
+            'TICKET': order.id ? order.id.split('-').pop() : '',
+            'MESA': order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre || order.mesaId),
+            'CLIENTE': order.cliente,
+            'USUARIO': order.usuarioNombre || 'Desconocido',
+            'PRODUCTO': product?.nombre || 'Desconocido',
+            'CANTIDAD': item.cantidad,
+            'PRECIO UNIT.': item.precioUnitario || 0,
+            'SUBTOTAL': item.cantidad * (item.precioUnitario || 0),
+            'ESTADO PEDIDO': order.estado
+          };
+        })
+      );
+      const saleSheet = XLSX.utils.json_to_sheet(allSales);
+      XLSX.utils.book_append_sheet(workbook, saleSheet, "Ventas Detalladas");
+
+      // 2. Historial de Pagos
+      const allPayments = filteredOrders.flatMap(order => 
+        (order.pagos || []).map((p: any) => ({
+          'FECHA': p.fecha,
+          'HORA': p.hora,
+          'PEDIDO ID': order.id ? order.id.split('-').pop() : '',
           'CLIENTE': order.cliente,
-          'USUARIO': order.usuarioNombre || 'Desconocido',
-          'PRODUCTO': product?.nombre || 'Desconocido',
-          'CANTIDAD': item.cantidad,
-          'PRECIO UNIT.': item.precioUnitario || 0,
-          'SUBTOTAL': item.cantidad * (item.precioUnitario || 0),
-          'ESTADO PEDIDO': order.estado
-        };
-      })
-    );
-    const saleSheet = XLSX.utils.json_to_sheet(allSales);
-    XLSX.utils.book_append_sheet(workbook, saleSheet, "Ventas Detalladas");
-
-    // 2. Historial de Pagos
-    const allPayments = orders.flatMap(order => 
-      (order.pagos || []).map(p => ({
-        'FECHA': p.fecha,
-        'HORA': p.hora,
-        'PEDIDO ID': order.id.split('-').pop(),
-        'CLIENTE': order.cliente,
-        'MONTO': p.monto,
-        'METODO': p.metodo,
-        'USUARIO': p.usuarioNombre || order.usuarioNombre || 'Desconocido',
-        'ESTADO FINAL': order.estado
-      }))
-    );
-    const paymentSheet = XLSX.utils.json_to_sheet(allPayments);
-    XLSX.utils.book_append_sheet(workbook, paymentSheet, "Historial Pagos");
-
-    // 3. Control de Caja
-    const cashSheet = XLSX.utils.json_to_sheet(cashControls.map(c => ({
-      'FECHA': c.fecha,
-      'ESTADO': c.estado,
-      'APERTURA': c.montoApertura,
-      'EFECTIVO': c.ingresosEfectivo,
-      'YAPE': c.ingresosYape,
-      'FIAR (CREDITOS)': c.ingresosFiar,
-      'CIERRE TOTAL': c.montoCierre,
-      'H. APERTURA': c.horaApertura,
-      'H. CIERRE': c.horaCierre || '-'
-    })));
-    XLSX.utils.book_append_sheet(workbook, cashSheet, "Control Diario Caja");
-
-    // 4. Clientes y Saldos
-    const clientSheet = XLSX.utils.json_to_sheet(customers.map(c => ({
-       'NOMBRE/RAZON SOCIAL': c.nombre,
-       'TELEFONO': c.telefono,
-       'SALDO ACUMULADO': c.saldo,
-       'TOTAL TRANSACCIONES': c.historial.length
-    })));
-    XLSX.utils.book_append_sheet(workbook, clientSheet, "Base Clientes");
-
-    // 5. Movimientos de Cuentas (Solo hoy)
-    const movementsToday = customers.flatMap(c => 
-      c.historial
-        .filter(t => t.fecha === selectedDate)
-        .map(t => ({
-          'FECHA': t.fecha,
-          'HORA': t.hora,
-          'CLIENTE': c.nombre,
-          'TIPO': t.tipo,
-          'DESCRIPCION': t.descripcion,
-          'METODO': t.metodoPago || '-',
-          'MONTO': t.monto
+          'MONTO': p.monto,
+          'METODO': p.metodo,
+          'USUARIO': p.usuarioNombre || order.usuarioNombre || 'Desconocido',
+          'ESTADO FINAL': order.estado
         }))
-    ).sort((a, b) => a.HORA.localeCompare(b.HORA));
-    
-    const movementSheet = XLSX.utils.json_to_sheet(movementsToday);
-    XLSX.utils.book_append_sheet(workbook, movementSheet, "Movimientos Cuentas");
+      );
+      const paymentSheet = XLSX.utils.json_to_sheet(allPayments);
+      XLSX.utils.book_append_sheet(workbook, paymentSheet, "Historial Pagos");
 
-    // 6. Menu/Productos
-    const productSheet = XLSX.utils.json_to_sheet(products.map(p => ({
-      'CATEGORIA': p.categoria,
-      'PRODUCTO': p.nombre,
-      'PRECIO': p.precio,
-      'STOCK INICIAL': p.stockInicial,
-      'STOCK ACTUAL': p.stockActual
-    })));
-    XLSX.utils.book_append_sheet(workbook, productSheet, "Catalogo Menu");
+      // 3. Control de Caja
+      const cashSheet = XLSX.utils.json_to_sheet(filteredCash.map((c: any) => ({
+        'FECHA': c.fecha,
+        'ESTADO': c.estado,
+        'APERTURA': c.montoApertura,
+        'EFECTIVO': c.ingresosEfectivo,
+        'YAPE': c.ingresosYape,
+        'FIAR (CREDITOS)': c.ingresosFiar,
+        'CIERRE TOTAL': c.montoCierre,
+        'H. APERTURA': c.horaApertura,
+        'H. CIERRE': c.horaCierre || '-'
+      })));
+      XLSX.utils.book_append_sheet(workbook, cashSheet, "Control Diario Caja");
 
-    XLSX.writeFile(workbook, `SaborAbanquino_DB_Full_${new Date().toISOString().split('T')[0]}.xlsx`);
+      // 4. Clientes y Saldos
+      const clientSheet = XLSX.utils.json_to_sheet(customers.map(c => ({
+         'NOMBRE/RAZON SOCIAL': c.nombre,
+         'TELEFONO': c.telefono,
+         'SALDO ACUMULADO': c.saldo,
+         'TOTAL TRANSACCIONES': c.historial ? c.historial.length : 0
+      })));
+      XLSX.utils.book_append_sheet(workbook, clientSheet, "Base Clientes");
+
+      // 5. Movimientos de Cuentas (En el rango de fechas)
+      const movementsRanged = customers.flatMap(c => 
+        (c.historial || [])
+          .filter(t => isDateInRange(t.fecha))
+          .map(t => ({
+            'FECHA': t.fecha,
+            'HORA': t.hora,
+            'CLIENTE': c.nombre,
+            'TIPO': t.tipo,
+            'DESCRIPCION': t.descripcion,
+            'METODO': t.metodoPago || '-',
+            'MONTO': t.monto
+          }))
+      ).sort((a, b) => {
+        const orderA = a.FECHA.split('/').reverse().join('') + a.HORA;
+        const orderB = b.FECHA.split('/').reverse().join('') + a.HORA;
+        return orderA.localeCompare(orderB);
+      });
+      
+      const movementSheet = XLSX.utils.json_to_sheet(movementsRanged);
+      XLSX.utils.book_append_sheet(workbook, movementSheet, "Movimientos Cuentas");
+
+      // 6. Menu/Productos
+      const productSheet = XLSX.utils.json_to_sheet(products.map(p => ({
+        'CATEGORIA': p.categoria,
+        'PRODUCTO': p.nombre,
+        'PRECIO': p.precio,
+        'STOCK INICIAL': p.stockInicial || 0,
+        'STOCK ACTUAL': p.stockActual || 0
+      })));
+      XLSX.utils.book_append_sheet(workbook, productSheet, "Catalogo Menu");
+
+      const rangeString = `${desdeDate.split('-').reverse().join('-')}_al_${hastaDate.split('-').reverse().join('-')}`;
+      XLSX.writeFile(workbook, `SaborAbanquino_DB_Rango_${rangeString}.xlsx`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      alert("Hubo un error al descargar el archivo Excel.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Order summary for the table (all orders today)
@@ -531,7 +587,7 @@ export const CajaView: React.FC = () => {
         />
       )}
       {/* Control de Jornada Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white/50 p-4 md:p-6 rounded-2xl md:rounded-[32px] border border-slate-100 mb-1 md:mb-2">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/50 p-4 md:p-6 rounded-2xl md:rounded-[32px] border border-slate-100 mb-1 md:mb-2">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-brand-50 rounded-xl md:rounded-2xl flex items-center justify-center text-brand-600 shadow-sm border border-brand-100 shrink-0">
             <LayoutDashboard className="w-5 h-5 md:w-6 md:h-6" />
@@ -541,15 +597,59 @@ export const CajaView: React.FC = () => {
             <p className="text-slate-400 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5">Gestión de ingresos</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button 
-            onClick={exportFullDatabaseExcel}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.1em] hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-100/50 group"
-          >
-            <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            Descargar Excel Completo
-          </button>
-        </div>
+        
+        {currentUser?.role === 'ADMIN' && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white border border-slate-900 p-3.5 rounded-3xl w-full lg:w-auto shadow-sm">
+            <div className="grid grid-cols-2 gap-3 shrink-0">
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1 select-none">DESDE</span>
+                <div className="relative flex items-center justify-between bg-white border border-slate-900 px-3.5 py-1.5 rounded-xl h-[42px] hover:border-slate-800 transition-all cursor-pointer">
+                  <span className="text-[11px] md:text-sm font-sans font-black text-slate-900 select-none">
+                    {(() => {
+                      if (!desdeDate) return '';
+                      const [y, m, d] = desdeDate.split('-');
+                      return `${d}/${m}/${y}`;
+                    })()}
+                  </span>
+                  <Calendar className="w-4 h-4 text-slate-700 shrink-0 ml-1.5" />
+                  <input 
+                    type="date"
+                    value={desdeDate}
+                    onChange={(e) => setDesdeDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1 select-none">HASTA</span>
+                <div className="relative flex items-center justify-between bg-white border border-slate-900 px-3.5 py-1.5 rounded-xl h-[42px] hover:border-slate-800 transition-all cursor-pointer">
+                  <span className="text-[11px] md:text-sm font-sans font-black text-slate-900 select-none">
+                    {(() => {
+                      if (!hastaDate) return '';
+                      const [y, m, d] = hastaDate.split('-');
+                      return `${d}/${m}/${y}`;
+                    })()}
+                  </span>
+                  <Calendar className="w-4 h-4 text-slate-700 shrink-0 ml-1.5" />
+                  <input 
+                    type="date"
+                    value={hastaDate}
+                    onChange={(e) => setHastaDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+            <button 
+              onClick={exportFullDatabaseExcel}
+              disabled={isExporting}
+              className="flex items-center justify-center gap-1.5 px-5 h-[42px] sm:mt-4.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-350 disabled:text-slate-400 text-white rounded-3xl font-black uppercase text-[10px] tracking-wider transition-all active:scale-95 shadow-md shadow-emerald-100/50 group shrink-0 cursor-pointer"
+            >
+              <Download className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce' : 'group-hover:scale-110 transition-transform'}`} />
+              {isExporting ? 'Exportando...' : 'Descargar Excel Completo'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Caja Status Banner */}
@@ -1146,43 +1246,43 @@ export const CajaView: React.FC = () => {
         )}
 
         {efectivoModalFor && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 md:p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[40px] w-full max-w-md shadow-2xl overflow-hidden"
+              className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden mx-auto"
             >
-              <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="px-4 py-3.5 md:px-6 md:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>
-                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-emerald-500 animate-pulse" />
-                    Lógica de Vuelto
+                  <h3 className="text-base md:text-lg font-black text-slate-800 uppercase tracking-tight flex items-center gap-1.5">
+                    <Coins className="w-4 md:w-5 h-4 md:h-5 text-emerald-500" />
+                    Pago en Efectivo
                   </h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                    Pago de {efectivoModalFor.cliente} • Ticket #{efectivoModalFor.id.split('-').pop()}
+                  <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                    {efectivoModalFor.cliente} • Ticket #{efectivoModalFor.id.split('-').pop()}
                   </p>
                 </div>
                 <button 
                   onClick={() => setEfectivoModalFor(null)} 
-                  className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                  className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-slate-400" />
+                  <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
 
-              <div className="p-6 md:p-8 space-y-5">
-                {/* Campo A: Monto a pagar */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] block">
-                    Campo A: Monto a pagar con efectivo
+              <div className="p-4 md:p-6 space-y-4">
+                {/* Monto a pagar */}
+                <div className="space-y-1">
+                  <label className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider block">
+                    Monto a Pagar
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">S/</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-extrabold text-slate-400 text-xs md:text-sm">S/</span>
                     <input 
                       type="number"
                       step="0.1"
-                      className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3.5 pl-10 pr-4 text-base font-bold outline-none focus:bg-white focus:border-brand-500 transition-all text-slate-800"
+                      className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 md:py-2.5 pl-8 md:pl-9 pr-3 text-sm md:text-base font-extrabold outline-none focus:bg-white focus:border-brand-500 transition-all text-slate-800"
                       value={efectivoMontoAPagar}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1201,30 +1301,30 @@ export const CajaView: React.FC = () => {
                       }}
                     />
                   </div>
-                  <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase px-0.5">
+                  <div className="flex justify-between text-[8.5px] text-slate-400 font-extrabold uppercase px-0.5 mt-0.5">
                     <span>Saldo pendiente: S/ {efectivoModalFor.balance.toFixed(2)}</span>
                     <button 
                       onClick={() => setEfectivoMontoAPagar(efectivoModalFor.balance.toFixed(2))}
-                      className="text-brand-600 hover:text-brand-700 font-extrabold"
+                      className="text-brand-600 hover:text-brand-700 font-black uppercase tracking-wider"
                     >
                       Pagar total
                     </button>
                   </div>
                 </div>
 
-                {/* Campo B: Dinero Recibido */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] block">
-                    Campo B: Dinero Recibido
+                {/* Dinero Recibido */}
+                <div className="space-y-1">
+                  <label className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider block">
+                    Efectivo Recibido
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">S/</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-extrabold text-slate-400 text-xs md:text-sm">S/</span>
                     <input 
                       autoFocus
                       type="number"
                       step="0.5"
                       placeholder="0.00"
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-4.5 pl-10 pr-4 text-xl font-bold outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-slate-800 text-left"
+                      className="w-full bg-emerald-50/20 border-2 border-emerald-500/10 rounded-xl py-2.5 md:py-3 pl-8 md:pl-9 pr-3 text-base md:text-lg font-extrabold outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50/50 transition-all text-slate-800 text-left"
                       value={efectivoDineroRecibido}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1238,12 +1338,12 @@ export const CajaView: React.FC = () => {
                   </div>
                   
                   {/* Quick cash bills selection */}
-                  <div className="flex flex-wrap gap-1.5 mt-2">
+                  <div className="flex flex-wrap gap-1 mt-1">
                     <button 
                       onClick={() => setEfectivoDineroRecibido(parseFloat(efectivoMontoAPagar || '0').toFixed(2))}
-                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-tight rounded-lg transition-colors border border-slate-200"
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] md:text-[9.5px] font-extrabold uppercase tracking-tight rounded-lg transition-colors border border-slate-200"
                     >
-                      Monto Exacto
+                      Exacto
                     </button>
                     {[10, 20, 50, 100, 200].map((bill) => (
                       <button
@@ -1251,7 +1351,7 @@ export const CajaView: React.FC = () => {
                         onClick={() => {
                           setEfectivoDineroRecibido(bill.toFixed(2));
                         }}
-                        className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-lg transition-colors border border-emerald-100"
+                        className="px-2.5 py-1 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 text-[9px] md:text-[9.5px] font-extrabold rounded-lg transition-colors border border-emerald-100"
                       >
                         S/ {bill}
                       </button>
@@ -1259,7 +1359,7 @@ export const CajaView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Campo C: Vuelto / Cambio */}
+                {/* Vuelto / Cambio */}
                 {(() => {
                   const valA = parseFloat(efectivoMontoAPagar) || 0;
                   const valB = parseFloat(efectivoDineroRecibido) || 0;
@@ -1268,35 +1368,35 @@ export const CajaView: React.FC = () => {
                   const isExact = valB === 0 || !efectivoDineroRecibido || Math.abs(diff) < 0.001;
 
                   return (
-                    <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-100 flex flex-col justify-center items-center text-center space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                        Campo C: Vuelto (Solo Lectura)
+                    <div className="bg-slate-50 p-3 md:p-4 rounded-2xl border border-slate-100 flex flex-col justify-center items-center text-center space-y-0.5">
+                      <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-wider">
+                        Vuelto a Entregar
                       </p>
                       
                       {isInsufficient ? (
-                        <div className="space-y-1">
-                          <p className="text-xl font-display font-extrabold text-rose-500 tracking-tight">
+                        <div className="space-y-0.5">
+                          <p className="text-base md:text-lg font-sans font-extrabold text-rose-500 tracking-tight">
                             Dinero Insuficiente
                           </p>
-                          <p className="text-[9.5px] font-bold text-rose-400 uppercase tracking-tight">
-                            Faltan S/ {Math.abs(diff).toFixed(2)} para completar el pago
+                          <p className="text-[8.5px] md:text-[9px] font-black text-rose-400 uppercase tracking-tight">
+                            Faltan S/ {Math.abs(diff).toFixed(2)}
                           </p>
                         </div>
                       ) : isExact ? (
                         <div className="space-y-0.5">
-                          <p className="text-2xl font-display font-extrabold text-slate-600 tracking-tight">
+                          <p className="text-xl md:text-2xl font-sans font-extrabold text-slate-600 tracking-tight">
                             S/ 0.00
                           </p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                          <p className="text-[8.5px] md:text-[9px] font-black text-slate-400 uppercase tracking-tight">
                             Monto exacto (No requiere vuelto)
                           </p>
                         </div>
                       ) : (
                         <div className="space-y-0.5">
-                          <p className="text-3xl font-display font-extrabold text-emerald-600 tracking-tight">
+                          <p className="text-2xl md:text-3xl font-sans font-extrabold text-emerald-600 tracking-tight">
                             S/ {diff.toFixed(2)}
                           </p>
-                          <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest font-mono">
+                          <p className="text-[8.5px] md:text-[9px] font-black text-emerald-500 uppercase tracking-wider">
                             Entregar vuelto al cliente
                           </p>
                         </div>
@@ -1306,10 +1406,10 @@ export const CajaView: React.FC = () => {
                 })()}
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <button 
                     onClick={() => setEfectivoModalFor(null)}
-                    className="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-colors"
+                    className="py-2.5 md:py-3.5 bg-slate-100 text-slate-500 rounded-xl font-extrabold uppercase text-[10px] tracking-wider hover:bg-slate-200 transition-colors"
                   >
                     Cancelar
                   </button>
@@ -1332,7 +1432,7 @@ export const CajaView: React.FC = () => {
                       parseFloat(efectivoMontoAPagar) <= 0 || 
                       ((parseFloat(efectivoDineroRecibido) || 0) > 0 && (parseFloat(efectivoDineroRecibido) || 0) < (parseFloat(efectivoMontoAPagar) || 0))
                     }
-                    className="py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-slate-100 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-100/50 hover:shadow-emerald-200/50 transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="py-2.5 md:py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-100 disabled:text-slate-300 disabled:border-slate-100 text-white rounded-xl font-extrabold uppercase text-[10px] tracking-wider shadow-md shadow-emerald-100/50 hover:shadow-emerald-200/50 transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
                     Confirmar Pago

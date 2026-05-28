@@ -37,9 +37,9 @@ export const OrderTimer: React.FC<{
   }, [timestamp, isCompleted]);
 
   return (
-    <div className={`flex items-center gap-1 font-mono ${className}`}>
+    <div className={`flex items-center gap-1 font-sans font-extrabold tabular-nums tracking-wide ${className}`}>
       {!hideIcon && <Clock className="w-3.5 h-3.5 shrink-0" />}
-      <span>{elapsed}</span>
+      <span className="select-none">{elapsed}</span>
     </div>
   );
 };

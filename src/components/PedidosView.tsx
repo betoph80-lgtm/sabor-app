@@ -226,7 +226,7 @@ export const PedidosView: React.FC = () => {
                           {isFaltaSegundoAlert ? '¡FALTA SEGUNDO!' : 'Sopa Servida (Espera)'}
                         </span>
                       </div>
-                      <p className={`text-[8px] font-mono tracking-tight mt-0.5 ${isFaltaSegundoAlert ? 'text-rose-100' : 'text-amber-600'}`}>
+                      <p className={`text-[8px] font-sans font-bold tracking-tight mt-0.5 ${isFaltaSegundoAlert ? 'text-rose-100' : 'text-amber-600'}`}>
                         Sopa hace: {minutesSinceSoupListo}m {secondsSinceSoupListo}s
                       </p>
                     </div>
@@ -397,7 +397,7 @@ export const PedidosView: React.FC = () => {
                                   {isFaltaSegundoAlert ? '¡SEGUNDO!' : 'Sopa Lista'}
                                 </span>
                               </div>
-                              <span className={`text-[8px] font-mono tracking-tight ${isFaltaSegundoAlert ? 'text-rose-100' : 'text-amber-600'}`}>
+                              <span className={`text-[8px] font-sans font-bold tracking-tight ${isFaltaSegundoAlert ? 'text-rose-100' : 'text-amber-600'}`}>
                                 {minutesSinceSoupListo}m {secondsSinceSoupListo}s
                               </span>
                             </div>
@@ -435,7 +435,7 @@ export const PedidosView: React.FC = () => {
                                 </div>
                                 {item.notas && (
                                   <div className="text-[7.5px] text-amber-600 font-extrabold truncate max-w-[120px] bg-amber-50 px-1 py-0.2 rounded border border-amber-100 uppercase">
-                                    Nota: {item.notas}
+                                    {item.notas}
                                   </div>
                                 )}
                               </div>
