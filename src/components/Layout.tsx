@@ -100,11 +100,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="h-[72px] md:h-28 bg-white border-b border-violet-100 flex items-center justify-between px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
-        <div className="flex items-center gap-4 md:gap-10 shrink-0 group cursor-pointer">
+      <nav className="min-h-[72px] py-2 md:h-28 md:py-0 bg-white border-b border-violet-100 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
+        <div className="flex items-center gap-2 xs:gap-4 md:gap-10 shrink-0 group cursor-pointer">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-violet-500/20 to-brand-500/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-            <div className="relative w-12 h-12 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-1.5 md:p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
+            <div className="relative w-10 h-10 xs:w-12 xs:h-12 md:w-20 md:h-20 bg-white rounded-xl md:rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-1 md:p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
               <img 
                 src={identity?.logoUrl || "/logo.png"} 
                 alt={identity?.nombre || "Logo"} 
@@ -117,15 +117,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight hidden sm:block uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
+            <h1 className="text-[13px] xs:text-base sm:text-lg md:text-2xl font-display font-bold tracking-tight uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
               {firstPart} {lastPart && <span className="text-violet-600">{lastPart}</span>}
             </h1>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="w-8 h-px bg-violet-200 hidden sm:block"></span>
-              <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase hidden sm:block">{identity?.eslogan || "Gastronomía & Tradición"}</p>
+            <div className="flex items-center gap-1 mt-0.5 md:mt-2">
+              <span className="w-4 xs:w-8 h-px bg-violet-200 hidden xs:block"></span>
+              <p className="text-[7px] xs:text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.1em] xs:tracking-[0.4em] uppercase">{identity?.eslogan || "Gastronomía & Tradición"}</p>
             </div>
           </div>
-          <h1 className="text-xl font-display font-bold tracking-tighter block sm:hidden uppercase italic text-violet-600">{identity?.nombreCorto || "SA"}</h1>
         </div>
 
         <div className="hidden lg:flex items-center gap-4 bg-white border border-slate-200 px-5 py-2.5 rounded-xl shadow-sm hover:border-violet-300 transition-all duration-300 relative group h-[46px]">
@@ -156,28 +155,28 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
            )}
         </div>
 
-        <div className="flex gap-4 sm:gap-10 items-center ml-auto">
-          <div className="flex items-center gap-4 md:gap-8 md:pr-12 md:border-r border-violet-100">
+        <div className="flex gap-2 xs:gap-4 sm:gap-10 items-center ml-auto">
+          <div className="flex items-center gap-2 xs:gap-4 md:gap-8 md:pr-12 md:border-r border-violet-100">
             {/* Mobile logout button */}
              <button 
               onClick={logout}
-              className="xl:hidden p-3 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
+              className="xl:hidden p-2 xs:p-3 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4.5 h-4.5 xs:w-5 h-5" />
             </button>
-            <div className="flex items-center max-w-[140px] xs:max-w-[220px] sm:max-w-[340px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth">
-              <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white text-center text-[10px] shadow-sm shrink-0 h-[46px]">
+            <div className="flex items-center max-w-[100px] xxs:max-w-[140px] xs:max-w-[220px] sm:max-w-[340px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth">
+              <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white text-center text-[10px] shadow-sm shrink-0 h-[40px] xs:h-[46px]">
                 {[...soupStock, ...mainStock].map((m, index) => {
                   const product = products.find(p => p.id === m.productoId);
                   const isFirst = index === 0;
                   return (
-                    <div key={m.id} className={`flex flex-col min-w-[55px] xs:min-w-[70px] md:min-w-[95px] ${!isFirst ? 'border-l border-slate-200' : ''}`}>
-                      <div className="bg-slate-50/50 border-b border-slate-200 px-2 py-0.5 md:py-1 font-bold text-slate-500 uppercase text-[7.5px] md:text-[8px] tracking-wider truncate max-w-[65px] xs:max-w-[80px] md:max-w-[110px]" title={product?.nombre}>
+                    <div key={m.id} className={`flex flex-col min-w-[45px] xs:min-w-[70px] md:min-w-[95px] ${!isFirst ? 'border-l border-slate-200' : ''}`}>
+                      <div className="bg-slate-50/50 border-b border-slate-200 px-1 xs:px-2 py-0.5 md:py-1 font-bold text-slate-500 uppercase text-[6.5px] xs:text-[8px] tracking-wider truncate max-w-[55px] xs:max-w-[80px] md:max-w-[110px]" title={product?.nombre}>
                         {product?.nombre || 'Plato'}
                       </div>
-                      <div className="flex-1 flex items-center justify-center px-1.5 py-1 font-sans font-extrabold text-slate-900 text-[11px] md:text-xs whitespace-nowrap">
+                      <div className="flex-1 flex items-center justify-center px-1 py-0.5 font-sans font-extrabold text-slate-900 text-[10px] xs:text-xs whitespace-nowrap">
                         <span>{m.stockActual}</span>
-                        <span className="text-slate-400 font-semibold text-[9px] md:text-[10px]">/{m.stockInicial}</span>
+                        <span className="text-slate-400 font-semibold text-[8px] xs:text-[10px]">/{m.stockInicial}</span>
                       </div>
                     </div>
                   );
