@@ -117,25 +117,25 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-[13px] xs:text-base sm:text-lg md:text-2xl font-display font-bold tracking-tight uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
+            <h1 className="text-[12px] xs:text-base sm:text-lg md:text-2xl font-display font-bold tracking-tight uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
               {firstPart} {lastPart && <span className="text-violet-600">{lastPart}</span>}
             </h1>
-            <div className="flex items-center gap-1 mt-0.5 md:mt-2">
-              <span className="w-4 xs:w-8 h-px bg-violet-200 hidden xs:block"></span>
-              <p className="text-[7px] xs:text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.1em] xs:tracking-[0.4em] uppercase">{identity?.eslogan || "Gastronomía & Tradición"}</p>
+            <div className="hidden sm:flex items-center gap-1 mt-2">
+              <span className="w-8 h-px bg-violet-200"></span>
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase">{identity?.eslogan || "Gastronomía & Tradición"}</p>
             </div>
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center gap-4 bg-white border border-slate-200 px-5 py-2.5 rounded-xl shadow-sm hover:border-violet-300 transition-all duration-300 relative group h-[46px]">
-           <div className="flex items-center gap-3">
-              <Calendar className="w-4.5 h-4.5 text-violet-500" />
-              <span className="text-sm font-display font-bold text-slate-700 select-none">
+        <div className="flex items-center gap-1.5 xs:gap-3 bg-white border border-slate-200 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-violet-300 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
+           <div className="flex items-center gap-1.5 xs:gap-3">
+              <Calendar className="w-3.5 h-3.5 xs:w-4.5 xs:h-4.5 text-violet-500 hidden xs:block" />
+              <span className="text-[10px] xs:text-xs sm:text-sm font-sans sm:font-display font-bold text-slate-700 select-none">
                 {selectedDate}
               </span>
               {currentUser?.role === 'ADMIN' && (
-                <div className="relative flex items-center justify-center w-6 h-6 rounded-md hover:bg-slate-100 transition-colors">
-                  <Calendar className="w-4 h-4 text-slate-400 group-hover:text-violet-500 transition-colors" />
+                <div className="relative flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6 rounded-md hover:bg-slate-100 transition-colors">
+                  <Calendar className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-slate-400 group-hover:text-violet-500 transition-colors" />
                   <input 
                     type="date" 
                     value={toInputDate(selectedDate)}
@@ -148,7 +148,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
            {selectedDate !== today && currentUser?.role === 'ADMIN' && (
               <button 
                 onClick={() => setSelectedDate(today)}
-                className="px-3.5 py-1 bg-violet-600 text-white text-[9px] rounded-full font-bold uppercase tracking-wider hover:bg-violet-700 transition-all active:scale-95 shadow-sm ml-1"
+                className="px-1.5 xs:px-3 py-0.5 xs:py-1 bg-violet-600 text-white text-[7.5px] xs:text-[9px] rounded-full font-bold uppercase tracking-wider hover:bg-violet-700 transition-all active:scale-95 shadow-sm ml-0.5 xs:ml-1"
               >
                 Hoy
               </button>
