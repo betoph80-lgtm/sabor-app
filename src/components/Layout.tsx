@@ -115,10 +115,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 }}
               />
             </div>
-            {/* Nombre de la marca debajo del logo en texto pequeño */}
-            <span className="text-[8px] xs:text-[10px] md:text-xs font-display font-black tracking-wider uppercase text-slate-700 group-hover:text-violet-600 transition-colors duration-300 mt-1 md:mt-1.5 whitespace-nowrap">
-              {identity?.nombre || "Sabor Abanquino"}
-            </span>
+            {/* Nombre de la marca debajo del logo en texto pequeño flanqueado por líneas estilo guion elegante */}
+            <div className="flex items-center justify-center w-full mt-1 md:mt-2.5 gap-1 md:gap-1.5 select-none">
+              <span className="h-[1px] w-3 md:w-5 bg-slate-300"></span>
+              <span className="text-[8px] xs:text-[10px] md:text-sm font-display font-black tracking-widest uppercase text-slate-700 group-hover:text-violet-600 transition-colors duration-300 whitespace-nowrap">
+                {identity?.nombre || "Sabor Abanquino"}
+              </span>
+              <span className="h-[1px] w-3 md:w-5 bg-slate-300"></span>
+            </div>
           </div>
         </div>
 
@@ -203,38 +207,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </nav>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - Aside (Simplified for mobile, full on desktop) */}
-        <aside className="hidden lg:flex w-72 bg-white border-r border-violet-50 p-8 flex-col gap-10 shrink-0">
-          <section>
-            <h2 className="text-[10px] font-bold text-slate-400 uppercase mb-5 tracking-[0.2em]">Visión General</h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-violet-50/50 rounded-[24px] border border-violet-100/30 shadow-sm">
-                <span className="font-semibold text-sm text-violet-900">Comandas en Curso</span>
-                <span className="bg-violet-600 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">{String(activeOrdersCount).padStart(2, '0')}</span>
-              </div>
-              <div className="flex justify-between items-center p-4 bg-slate-50/50 rounded-[24px] border border-slate-100 opacity-60">
-                <span className="font-semibold text-sm text-slate-600">Mesas Libres</span>
-                <span className="bg-slate-300 text-white px-3 py-1 rounded-full text-xs font-bold leading-none">00</span>
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-auto space-y-4">
-            <div className="bg-violet-50/50 p-6 rounded-[32px] border border-violet-100/50 shadow-sm relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-20 h-20 bg-violet-200/20 rounded-full blur-2xl -translate-y-10 translate-x-10 group-hover:bg-violet-300/30 transition-colors" />
-              <p className="text-[10px] text-violet-600 font-bold uppercase mb-2 tracking-widest relative z-10">Caja Total</p>
-              <p className="text-4xl font-display font-bold text-violet-800 tracking-tight leading-none relative z-10">S/ {cajaTotalGlobal.toFixed(2)}</p>
-              <p className="text-[8px] text-violet-400 mt-2 font-black uppercase tracking-widest relative z-10">EFECTIVO + YAPE + BASE</p>
-            </div>
-
-            <div className="bg-emerald-50/30 p-5 rounded-[28px] border border-emerald-100/50 shadow-sm">
-              <p className="text-[9px] text-emerald-600 font-bold uppercase mb-1.5 tracking-widest">Caja Real (Efectivo)</p>
-              <p className="text-2xl font-display font-bold text-slate-800 tracking-tight leading-none">S/ {cajaEfectivoOnly.toFixed(2)}</p>
-              <p className="text-[8px] text-slate-400 mt-1 font-bold uppercase">Solo para cuadre</p>
-            </div>
-          </section>
-        </aside>
-
         {/* Main Content */}
         <main className="flex-1 flex flex-col overflow-hidden bg-slate-50 relative">
           <div className="flex-1 overflow-auto no-scrollbar">
