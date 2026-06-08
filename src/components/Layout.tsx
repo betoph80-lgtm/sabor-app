@@ -102,9 +102,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Header / Navbar */}
       <nav className="min-h-[72px] py-2 md:h-28 md:py-0 bg-white border-b border-violet-100 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
         <div className="flex items-center gap-2 xs:gap-4 md:gap-10 shrink-0 group cursor-pointer">
-          <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-violet-500/20 to-brand-500/20 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-            <div className="relative w-10 h-10 xs:w-12 xs:h-12 md:w-20 md:h-20 bg-white rounded-xl md:rounded-[28px] flex items-center justify-center overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-violet-50 p-1 md:p-2.5 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
+          <div className="relative flex flex-col items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-brand-500/10 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+            <div className="relative w-10 h-10 xs:w-12 xs:h-12 md:w-16 md:h-16 bg-white rounded-xl md:rounded-[20px] flex items-center justify-center overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-violet-50 p-1 md:p-2 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
               <img 
                 src={identity?.logoUrl || "/logo.png"} 
                 alt={identity?.nombre || "Logo"} 
@@ -115,15 +115,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 }}
               />
             </div>
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-[12px] xs:text-base sm:text-lg md:text-2xl font-display font-bold tracking-tight uppercase italic leading-none text-slate-900 group-hover:text-violet-600 transition-colors duration-300">
-              {firstPart} {lastPart && <span className="text-violet-600">{lastPart}</span>}
-            </h1>
-            <div className="hidden sm:flex items-center gap-1 mt-2">
-              <span className="w-8 h-px bg-violet-200"></span>
-              <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.4em] uppercase">{identity?.eslogan || "Gastronomía & Tradición"}</p>
-            </div>
+            {/* Nombre de la marca debajo del logo en texto pequeño */}
+            <span className="text-[8px] xs:text-[10px] md:text-xs font-display font-black tracking-wider uppercase text-slate-700 group-hover:text-violet-600 transition-colors duration-300 mt-1 md:mt-1.5 whitespace-nowrap">
+              {identity?.nombre || "Sabor Abanquino"}
+            </span>
           </div>
         </div>
 

@@ -38,8 +38,16 @@ export const MeseroView: React.FC = () => {
     return mesa.nombre.replace(/mesa\s+/i, '');
   };
 
+  // Table statistics
+  const listTables = sortedMesas.filter(m => m.id !== '13');
+  const occupiedCount = listTables.filter(m => 
+    orders.some(o => o.mesaId === m.id && o.estado === 'ABIERTO' && o.fecha === selectedDate)
+  ).length;
+  const freeCount = listTables.length - occupiedCount;
+  const deliveryOrdersCount = orders.filter(o => o.mesaId === '13' && o.estado === 'ABIERTO' && o.fecha === selectedDate).length;
+
   return (
-    <div className="p-1 md:p-8 space-y-3 md:space-y-8 max-w-5xl mx-auto">
+    <div className="p-1 md:p-8 space-y-4 md:space-y-8 max-w-5xl mx-auto">
       {isCashClosed && (
         <div className="bg-amber-50 border border-amber-200 p-3 md:p-4 rounded-[24px] md:rounded-3xl flex items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-100 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
@@ -51,6 +59,31 @@ export const MeseroView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Floor Plan Header and Status chips */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+        <div>
+          <span className="text-[9px] font-black uppercase tracking-[0.22em] text-violet-600 mb-1 block">Distribución</span>
+          <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-none">Piso Principal - Salón</h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold border border-emerald-100 transition-all">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Libres: {freeCount}
+          </span>
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 rounded-full text-xs font-bold border border-rose-100 transition-all">
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            Ocupadas: {occupiedCount}
+          </span>
+          {deliveryOrdersCount > 0 && (
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 text-violet-700 rounded-full text-xs font-bold border border-violet-100 transition-all animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-violet-600"></span>
+              Llevar: {deliveryOrdersCount}
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-5">
         {sortedMesas.map((mesa) => {
           const allMesaActiveOrders = orders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
