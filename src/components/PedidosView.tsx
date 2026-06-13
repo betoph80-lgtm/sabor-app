@@ -97,33 +97,31 @@ export const PedidosView: React.FC = () => {
           title="Editar Pedido"
         />
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-        <div className="space-y-0.5 text-left">
-          <h2 className="text-lg md:text-2xl font-display font-black text-slate-950 tracking-tight leading-none">
-            {view === 'ACTIVOS' ? 'Servicio Activo' : 'Ventas de Hoy'}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 bg-white/50 p-4 rounded-3xl border border-slate-100 shadow-sm backdrop-blur-sm">
+        <div className="space-y-1 text-left">
+          <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 tracking-tight leading-none">
+            {view === 'ACTIVOS' ? 'Servicio Activo' : 'Cierre de Caja'}
           </h2>
-          <div className="flex items-center gap-2 mt-0.5">
-            <div className="px-2 py-0.5 bg-slate-100 rounded-full">
-              <p className="text-[8px] md:text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">
-                {view === 'ACTIVOS' ? `${activeOrders.length} Mesas` : `${paidOrders.length} Cerradas`}
-              </p>
-            </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="flex items-center gap-1 bg-violet-50 text-violet-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-violet-100">
+              {view === 'ACTIVOS' ? `${activeOrders.length} Mesas` : `${paidOrders.length} Cerradas`}
+            </span>
           </div>
         </div>
 
-        <div className="flex bg-slate-100/80 p-0.5 rounded-xl w-full sm:w-auto soft-shadow-sm border border-slate-200/50 backdrop-blur-sm">
+        <div className="flex bg-slate-100/90 p-1.5 rounded-full w-full sm:w-auto border border-slate-200/40 backdrop-blur-md">
           <button
             onClick={() => setView('ACTIVOS')}
-            className={`flex-1 sm:flex-none sm:px-6 py-1.5 md:py-2 rounded-lg text-[9px] md:text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
-              view === 'ACTIVOS' ? 'bg-white text-brand-600 soft-shadow' : 'text-slate-400 hover:text-slate-600'
+            className={`flex-1 sm:flex-none sm:px-8 py-2 md:py-2.5 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-wider transition-all duration-300 active:scale-95 ${
+              view === 'ACTIVOS' ? 'bg-white text-brand-600 shadow-[0_2px_10px_rgba(159,103,255,0.08)]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             Activos
           </button>
           <button
             onClick={() => setView('HISTORIAL')}
-            className={`flex-1 sm:flex-none sm:px-6 py-1.5 md:py-2 rounded-lg text-[9px] md:text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
-              view === 'HISTORIAL' ? 'bg-white text-brand-600 soft-shadow' : 'text-slate-400 hover:text-slate-600'
+            className={`flex-1 sm:flex-none sm:px-8 py-2 md:py-2.5 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-wider transition-all duration-300 active:scale-95 ${
+              view === 'HISTORIAL' ? 'bg-white text-brand-600 shadow-[0_2px_10px_rgba(159,103,255,0.08)]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             Historial
@@ -353,22 +351,24 @@ export const PedidosView: React.FC = () => {
                         }`}
                       >
                         <td className="px-4 py-2">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-11 h-11 rounded-[14px] flex items-center justify-center font-display font-black text-sm border-2 border-white soft-shadow-sm transition-transform group-hover:scale-105 shrink-0 ${
-                              view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
-                            }`}>
-                              {order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
-                            </div>
-                            <div>
-                              <p className="font-display font-black text-slate-900 text-xs leading-none group-hover:text-brand-700 transition-colors">
-                                {order.mesaId === '13' ? 'Para Llevar' : (mesas.find(m => m.id === order.mesaId)?.nombre || `Mesa N° ${order.mesaId}`)}
-                              </p>
-                              <span className="text-[8px] text-brand-600 font-extrabold uppercase mt-1 inline-block bg-brand-50/80 px-1 py-0.5 rounded border border-brand-100/50 leading-none">
-                                PEDIDO - {order.id.split('-').pop()}
+                          <div className="flex items-center gap-4">
+                            {/* Número de Pedido primero */}
+                            <span className="text-[12px] text-brand-600 bg-brand-50/60 px-3 py-2 rounded-xl border border-brand-100 shadow-[0_2px_12px_rgba(139,92,246,0.03)] font-display font-black uppercase tracking-wider leading-none shrink-0 select-none">
+                              PEDIDO - {order.id.split('-').pop()}
+                            </span>
+
+                            {/* Ubicación/Mesa con etiqueta arriba y número debajo */}
+                            <div className="flex flex-col items-center shrink-0">
+                              <span className="text-[10px] font-black text-slate-800 leading-none mb-1 uppercase tracking-tight select-none">
+                                {order.mesaId === '13' ? 'Llevar' : 'Mesa'}
                               </span>
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-display font-black text-xs leading-none shrink-0 border border-white/60 shadow-sm transition-transform group-hover:scale-105 select-none ${
+                                view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
+                              }`}>
+                                {order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
+                              </div>
                             </div>
                           </div>
-
                         </td>
                       <td className="px-4 py-2">
                         <div className="space-y-1">

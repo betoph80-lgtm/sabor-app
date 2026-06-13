@@ -145,11 +145,13 @@ const LoginView = () => {
           </div>
         </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-            {identity?.eslogan || 'Gastronomía & Tradición'}
-          </p>
-        </div>
+        {identity?.eslogan && identity.eslogan.trim() !== '' && identity.eslogan.trim() !== '-' && (
+          <div className="mt-8 text-center">
+            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+              {identity.eslogan}
+            </p>
+          </div>
+        )}
       </motion.div>
     </div>
   );

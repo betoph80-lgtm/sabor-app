@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Download, LayoutDashboard, Edit2, Lock, Coins, Calculator, Calendar } from 'lucide-react';
+import { Check, Clock, Utensils, AlertCircle, Trash2, Search, X, Plus, Timer, User, Users, Download, LayoutDashboard, Edit2, Lock, Coins, Calculator, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderTimer } from './OrderTimer.tsx';
 import { OrderModal } from './OrderModal.tsx';
@@ -112,33 +112,40 @@ export const CocinaView: React.FC = () => {
   return (
     <div className="p-2 md:p-6 space-y-3 md:space-y-4 max-w-[1600px] mx-auto">
       {/* Metrics Bar Compact */}
-      <div className="flex flex-col xl:flex-row gap-2 md:gap-3">
-        <div className="flex-1 bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-slate-100 soft-shadow flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-          <div className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-slate-100 pb-1.5 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
-             <div className="w-1 h-1 rounded-full bg-brand-500" />
+      <div className="flex flex-col xl:flex-row gap-3">
+        <div className="flex-1 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-4 border border-violet-100/60 shadow-[0_4px_20px_rgba(159,103,255,0.01)] flex flex-col md:flex-row md:items-center gap-4">
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b md:border-b-0 md:border-r border-violet-100 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+             <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
              Stock Crítico
           </div>
-          <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar">
-            {menuStock.map(item => (
-              <div key={item.id} className="flex items-baseline gap-1.5 md:gap-2 shrink-0">
-                <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[70px] md:max-w-[80px]">{item.nombre}</span>
-                <span className={`text-base md:text-lg font-display font-bold ${item.stockActual < 5 ? 'text-rose-500' : 'text-slate-800'}`}>
-                  {item.stockActual}
-                </span>
-              </div>
-            ))}
+          <div className="flex gap-4 overflow-x-auto no-scrollbar py-0.5">
+            {menuStock.map(item => {
+              const isCritical = item.stockActual < 5;
+              return (
+                <div key={item.id} className={`flex items-baseline gap-2 shrink-0 px-3 py-1 rounded-full border transition-all ${
+                  isCritical 
+                    ? 'bg-rose-50/70 border-rose-200/60 text-rose-700 font-extrabold ring-2 ring-rose-500/5' 
+                    : 'bg-white border-slate-100 text-slate-700'
+                }`}>
+                  <span className="text-[10px] font-bold uppercase tracking-tight truncate max-w-[90px]">{item.nombre}</span>
+                  <span className={`text-sm font-display font-black leading-none ${isCritical ? 'text-rose-600' : 'text-slate-900'}`}>
+                    {item.stockActual}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-xl md:rounded-2xl p-3 md:p-4 text-white shadow-lg flex flex-col md:flex-row md:items-center gap-3 md:gap-4 min-w-fit">
-          <div className="text-[8px] md:text-[9px] font-black text-brand-400 uppercase tracking-widest border-b md:border-b-0 md:border-r border-white/10 pb-1.5 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
-             <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" /> Hoy
+        <div className="bg-slate-950 rounded-2xl p-4 text-white shadow-lg flex flex-col md:flex-row md:items-center gap-4 min-w-fit">
+          <div className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] border-b md:border-b-0 md:border-r border-white/10 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+             <Clock className="w-3.5 h-3.5 text-brand-400" /> Hoy Cocinado
           </div>
-          <div className="flex flex-wrap gap-2 md:gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {Object.entries(summary).map(([name, qty]) => (
-              <div key={name} className="flex items-baseline gap-1 shrink-0">
-                <span className="text-base md:text-lg font-display font-bold text-brand-400 leading-none">{qty}</span>
-                <span className="text-[8px] md:text-[9px] font-bold uppercase tracking-tight text-slate-300 leading-none">{name}</span>
+              <div key={name} className="flex items-center gap-1.5 shrink-0 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                <span className="text-sm font-display font-black text-brand-400 leading-none">{qty}</span>
+                <span className="text-[8px] md:text-[9.5px] font-black uppercase tracking-wider text-slate-300 leading-none">{name}</span>
               </div>
             ))}
           </div>
@@ -147,7 +154,8 @@ export const CocinaView: React.FC = () => {
 
       {/* Preparation Count Floating Style */}
       <div className="flex justify-end pr-2">
-        <span className="bg-brand-50 text-brand-700 border border-brand-100 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest soft-shadow">
+        <span className="bg-brand-50 text-brand-700 border border-brand-100/50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider soft-shadow-sm flex items-center gap-1.5 selection:bg-transparent">
+          <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping"></span>
           {itemsToPrepare.length} Items en Proceso
         </span>
       </div>
@@ -352,6 +360,51 @@ export const CajaView: React.FC = () => {
 
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  
+  // New spectacular account settlement/liquidation modal states
+  const [liquidationOrderId, setLiquidationOrderId] = useState<string | null>(null);
+  const [liquidationModality, setLiquidationModality] = useState<'COMPLETO' | 'EQUITATIVO' | 'POR_PLATO'>('COMPLETO');
+  const [liquidationSplitCount, setLiquidationSplitCount] = useState<number>(2);
+  const [liquidationSelectedItems, setLiquidationSelectedItems] = useState<Record<string, number>>({});
+  const [liquidationMethod, setLiquidationMethod] = useState<'EFECTIVO' | 'YAPE' | 'PLIN' | 'CREDITO'>('EFECTIVO');
+  const [liquidationCashReceived, setLiquidationCashReceived] = useState<string>('');
+  const [liquidationCustomerSearch, setLiquidationCustomerSearch] = useState<string>('');
+  const [liquidationSelectedCustomer, setLiquidationSelectedCustomer] = useState<{ id: string; nombre: string; saldo: number } | null>(null);
+
+  const liquidationOrder = orders.find(o => o.id === liquidationOrderId);
+  const liquidationTotalPaid = (liquidationOrder?.pagos || []).reduce((acc, p) => acc + p.monto, 0);
+  const liquidationBalance = liquidationOrder ? Math.max(0, liquidationOrder.total - liquidationTotalPaid) : 0;
+
+  let liquidationAmountToPay = 0;
+  if (liquidationModality === 'COMPLETO') {
+    liquidationAmountToPay = liquidationBalance;
+  } else if (liquidationModality === 'EQUITATIVO') {
+    liquidationAmountToPay = liquidationBalance / liquidationSplitCount;
+  } else if (liquidationModality === 'POR_PLATO') {
+    liquidationAmountToPay = liquidationOrder?.items.reduce((acc, item) => {
+      const selectedQty = liquidationSelectedItems[item.id] || 0;
+      return acc + (selectedQty * item.precioUnitario);
+    }, 0) || 0;
+  }
+  liquidationAmountToPay = Math.min(liquidationAmountToPay, liquidationBalance);
+
+  useEffect(() => {
+    if (liquidationOrderId && liquidationOrder) {
+      setLiquidationModality('COMPLETO');
+      setLiquidationSplitCount(2);
+      setLiquidationMethod('EFECTIVO');
+      setLiquidationCashReceived('');
+      setLiquidationCustomerSearch('');
+      setLiquidationSelectedCustomer(null);
+      
+      const initQtys: Record<string, number> = {};
+      liquidationOrder.items.forEach(item => {
+        initQtys[item.id] = 0;
+      });
+      setLiquidationSelectedItems(initQtys);
+    }
+  }, [liquidationOrderId]);
+
   const [efectivoModalFor, setEfectivoModalFor] = useState<{
     id: string;
     cliente: string;
@@ -371,6 +424,45 @@ export const CajaView: React.FC = () => {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [cashCounted, setCashCounted] = useState('');
 
+  const executeLiquidationPayment = async () => {
+    if (!liquidationOrder || liquidationAmountToPay <= 0) return;
+    
+    let targetCustomerId: string | undefined = undefined;
+    if (liquidationMethod === 'CREDITO') {
+      if (!liquidationSelectedCustomer) {
+        alert('Por favor, selecciona un cliente para fiar a cuenta.');
+        return;
+      }
+      targetCustomerId = liquidationSelectedCustomer.id;
+    }
+
+    try {
+      await payOrder(liquidationOrder.id, liquidationMethod, liquidationAmountToPay, targetCustomerId);
+
+      // Recalculate balance with current batch to decide closure
+      const updatedOrder = orders.find(o => o.id === liquidationOrder.id);
+      const newTotalPaid = [...(updatedOrder?.pagos || []), { id: 'temp', metodo: liquidationMethod, monto: liquidationAmountToPay }].reduce((acc, p) => acc + p.monto, 0);
+      const newBalance = Math.max(0, (updatedOrder?.total || 0) - newTotalPaid);
+
+      if (newBalance <= 0.01) {
+        setLiquidationOrderId(null);
+      } else {
+        setLiquidationCashReceived('');
+        if (liquidationModality === 'POR_PLATO') {
+          // Reset quantities of plates to 0 since they just paid for them
+          const resetQtys: Record<string, number> = {};
+          liquidationOrder.items.forEach(item => {
+            resetQtys[item.id] = 0;
+          });
+          setLiquidationSelectedItems(resetQtys);
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al registrar el pago de liquidación: ' + err.message);
+    }
+  };
+
   const openOrders = [...orders]
     .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.total > 0 && o.items.every(i => i.estado === 'SERVIDO'))
     .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -384,7 +476,7 @@ export const CajaView: React.FC = () => {
     .reduce((acc, p) => acc + p.monto, 0);
 
   const totalYapeVentas = allPaymentsToday
-    .filter(p => p.metodo === 'YAPE')
+    .filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN')
     .reduce((acc, p) => acc + p.monto, 0);
 
   // Calcular cobros a clientes hoy (Depósitos y Pagos de crédito)
@@ -399,7 +491,7 @@ export const CajaView: React.FC = () => {
     .reduce((acc, t) => acc + t.monto, 0);
     
   const totalYapeCobros = customerPaymentsTodayRaw
-    .filter(t => t.metodoPago === 'YAPE')
+    .filter(t => t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
     .reduce((acc, t) => acc + t.monto, 0);
 
   const baseCaja = currentCash?.montoApertura || 0;
@@ -559,6 +651,7 @@ export const CajaView: React.FC = () => {
   const getMetodoBadgeStyle = (metodo: string) => {
     const m = metodo.toUpperCase();
     if (m === 'YAPE') return 'text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100/50';
+    if (m === 'PLIN') return 'text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full border border-cyan-100/50';
     if (m === 'EFECTIVO') return 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/50';
     if (m === 'CREDITO') return 'text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50';
     return 'text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-150';
@@ -843,203 +936,141 @@ export const CajaView: React.FC = () => {
               return (
                 <div
                   key={order.id}
-                  className={`bg-white rounded-[24px] p-3 md:p-4 shadow-sm border transition-all duration-300 relative overflow-hidden ${
+                  onClick={() => {
+                    if (isCashClosed) return;
+                    setLiquidationOrderId(order.id);
+                  }}
+                  className={`bg-white rounded-[24px] p-3 md:p-4 shadow-sm border transition-all duration-300 relative overflow-hidden cursor-pointer hover:shadow-xl hover:border-brand-300 ${
                     isReadyToPay 
-                      ? 'border-emerald-200 ring-4 ring-emerald-100/10 shadow-lg' 
+                      ? 'border-emerald-250 ring-4 ring-emerald-100/10 shadow-lg' 
                       : 'border-slate-100'
-                  } flex flex-col sm:flex-row gap-3 lg:flex-col xl:flex-row`}
+                  } flex flex-col md:flex-row items-center gap-4 justify-between w-full`}
                 >
-                  {/* Visual Status Indicator */}
+                  {/* Visual Status Indicator on Left edge */}
                   {!isReadyToPay && (
                     <div className="absolute top-0 left-0 w-1 h-full bg-slate-200" />
                   )}
                   {isReadyToPay && (
-                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
                   )}
 
-                  {/* Order Info & Total */}
-                  <div className="flex flex-col justify-between gap-2 min-w-[130px] shrink-0">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="bg-slate-900 text-white px-1.5 py-0.5 rounded-lg text-[7px] font-black uppercase tracking-[0.15em]">
-                          #{order.id.split('-').pop()}
-                        </span>
-                        {isReadyToPay ? (
-                          <span className="text-[7px] font-black text-emerald-600 uppercase">Listo</span>
-                        ) : (
-                          <span className="text-[7px] font-black text-amber-500 uppercase">Cocina</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                         <div className="w-8 h-8 bg-brand-50 rounded-xl flex items-center justify-center border border-brand-100 shrink-0">
-                            <span className={`font-display font-bold text-brand-600 ${order.mesaId === '13' ? 'text-[7px] leading-tight px-0.5 text-center' : 'text-xs'}`}>
-                              {order.mesaId === '13' ? 'Para Llevar' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
-                            </span>
-                         </div>
-                         <div className="flex flex-col min-w-0">
-                            <h3 className="font-display font-bold text-slate-900 text-sm uppercase leading-tight truncate max-w-[110px]">{order.cliente}</h3>
-                            <p className="text-[7px] font-black text-brand-500 uppercase tracking-widest leading-none my-0.5">Mesero: {order.usuarioNombre || 'Desconocido'}</p>
-                            <button 
-                              onClick={() => {
-                                if (isCashClosed) return;
-                                setEditingOrderId(order.id);
-                              }}
-                              disabled={isCashClosed}
-                              className={`flex items-center gap-0.5 text-[7px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors ${
-                                isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
-                              }`}
-                            >
-                              <Edit2 className="w-2 h-2" /> Editar
-                            </button>
-                         </div>
-                      </div>
+                  {/* LEFT COLUMN: Ticket info, Mesa/Client and Mesero/Editar */}
+                  <div className="flex flex-col gap-2 min-w-[180px] w-full md:w-auto shrink-0 pl-1">
+                    {/* Ticket number and state */}
+                    <div className="flex items-center gap-2">
+                      <span className="bg-slate-900 text-white px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider">
+                        #{order.id.split('-').pop()}
+                      </span>
+                      {isReadyToPay ? (
+                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-wider">Listo</span>
+                      ) : (
+                        <span className="text-[9px] font-black text-amber-500 uppercase tracking-wider">Cocina</span>
+                      )}
                     </div>
 
-                    <div>
-                       <div className="flex justify-between items-end mb-0.5">
-                         <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Total: S/ {order.total.toFixed(2)}</p>
-                         {totalPaid > 0 && <p className="text-[7px] font-black text-emerald-500 uppercase tracking-widest">Pagado: S/ {totalPaid.toFixed(2)}</p>}
-                       </div>
-                       <div className="flex items-baseline gap-1">
-                          <span className="text-sm font-display font-bold text-emerald-600">S/</span>
-                          <p className="text-2xl font-display font-bold text-slate-900 tracking-tighter leading-none">
-                            {balance.toFixed(2)}
-                          </p>
-                       </div>
-                       <p className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">Saldo Pendiente</p>
+                    {/* Mesa Circle Badge and CLIENT/MESERO */}
+                    <div className="flex items-center gap-3">
+                      {/* Circle badge */}
+                      <div className="w-10 h-10 bg-brand-50/50 rounded-full flex items-center justify-center border border-brand-100 shrink-0">
+                        <span className={`font-display font-extrabold text-brand-650 ${order.mesaId === '13' ? 'text-[8px] px-0.5 text-center leading-tight' : 'text-sm'}`}>
+                          {order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <h3 className="font-display font-black text-slate-900 text-sm uppercase tracking-tight leading-none truncate max-w-[130px]">
+                          {order.cliente}
+                        </h3>
+                        <p className="text-[8px] font-black text-brand-500 uppercase tracking-widest leading-none mt-1.5 mb-1.5">
+                          MESERO: {order.usuarioNombre || 'ADMINISTRADOR'}
+                        </p>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isCashClosed) return;
+                            setEditingOrderId(order.id);
+                          }}
+                          disabled={isCashClosed}
+                          className={`flex items-center gap-1 text-[8px] font-black text-brand-600 uppercase hover:text-brand-700 transition-colors ${
+                            isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          <Edit2 className="w-2.5 h-2.5" /> EDITAR / MOVER
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Compact Detail Panel */}
-                  <div className="flex-1 bg-slate-50/50 rounded-xl p-2 border border-slate-100 flex flex-col min-h-[70px]">
-                    <div className="flex justify-between items-center mb-1 pb-1 border-b border-slate-100">
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
-                        Consumo • {order.items.length} Platos
-                      </p>
-                      
-                      {/* Historial de pagos parciales */}
-                      <div className="flex gap-1 overflow-x-auto no-scrollbar ml-2">
-                        {(order.pagos || []).map((p, i) => (
-                          <span key={p.id} className="text-[6px] font-black bg-white border border-slate-200 px-1 py-0.5 rounded-md text-slate-500 uppercase whitespace-nowrap">
-                            {p.metodo === 'EFECTIVO' ? 'EF' : p.metodo === 'YAPE' ? 'YP' : 'FI'}: {p.monto.toFixed(1)}
-                          </span>
-                        ))}
+                  {/* CENTER COLUMN: Consumo Plate List Frame */}
+                  <div className="flex-1 bg-slate-50/40 rounded-[20px] p-2.5 md:p-3 border border-slate-100 flex flex-col justify-between w-full md:w-auto self-stretch min-h-[90px]">
+                    <div>
+                      <div className="flex justify-between items-center mb-1.5 pb-1.5 border-b border-slate-100">
+                        <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-[0.15em] whitespace-nowrap">
+                          Consumo • {order.items.length} Platos
+                        </p>
+                        {/* Mini historical of payments */}
+                        <div className="flex gap-1 overflow-x-auto no-scrollbar ml-2">
+                          {(order.pagos || []).map((p) => (
+                            <span key={p.id} className="text-[6.5px] font-black bg-white border border-slate-200 px-1 py-0.5 rounded-md text-slate-500 uppercase whitespace-nowrap">
+                              {p.metodo === 'EFECTIVO' ? 'EF' : p.metodo === 'YAPE' ? 'YP' : p.metodo === 'PLIN' ? 'PL' : 'FI'}: {p.monto.toFixed(1)}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="space-y-0.5 overflow-y-auto max-h-[100px] pr-1.5 no-scrollbar">
-                      {order.items.map((item) => {
-                        const p = products.find(prod => prod.id === item.productoId);
-                        return (
-                          <div key={item.id} className="flex justify-between items-center text-[8px] py-[1px]">
-                            <div className="flex items-center gap-1.5">
-                              <span className="w-3.5 h-3.5 rounded-md bg-white shadow-sm flex items-center justify-center text-[7px] font-black text-slate-500 shrink-0">{item.cantidad}</span>
-                              <span className="font-bold text-slate-700 uppercase tracking-tight truncate max-w-[90px]">
-                                {p?.nombre}
+                      
+                      <div className="space-y-1 overflow-y-auto max-h-[80px] pr-1.5 no-scrollbar">
+                        {order.items.map((item) => {
+                          const p = products.find(prod => prod.id === item.productoId);
+                          return (
+                            <div key={item.id} className="flex justify-between items-center text-[9px] py-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full bg-white shadow-sm flex items-center justify-center text-[8px] font-black text-slate-500 border border-slate-100 shrink-0">
+                                  {item.cantidad}
+                                </span>
+                                <span className="font-bold text-slate-700 uppercase tracking-tight truncate max-w-[150px]">
+                                  {p?.nombre}
+                                </span>
+                              </div>
+                              <span className="font-mono text-slate-400 text-[9px] tabular-nums font-bold">
+                                {(item.cantidad * item.precioUnitario).toFixed(2)}
                               </span>
                             </div>
-                            <span className="font-mono text-slate-400 text-[8px] tabular-nums">
-                              {(item.cantidad * item.precioUnitario).toFixed(2)}
-                            </span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Highly Compact Actions */}
-                  <div className="flex flex-col gap-1 min-w-[140px] justify-center">
-                    <div className="flex flex-col gap-0.5 px-0.5">
-                      <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Monto a pagar</label>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400">S/</span>
-                        <input 
-                          type="number"
-                          step="0.1"
-                          placeholder="0.00"
-                          className="w-full bg-slate-100 border border-slate-200 rounded-lg py-0.5 pl-5 pr-2 text-[11px] font-bold outline-none focus:border-brand-400 focus:bg-white transition-all"
-                          value={partialAmounts[order.id] ?? balance.toFixed(2)}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === '') {
-                              setPartialAmounts(prev => ({ ...prev, [order.id]: '' }));
-                              return;
-                            }
-                            const numVal = parseFloat(val);
-                            if (numVal > balance) {
-                              setPartialAmounts(prev => ({ ...prev, [order.id]: balance.toFixed(2) }));
-                            } else {
-                              setPartialAmounts(prev => ({ ...prev, [order.id]: val }));
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        onClick={() => {
-                          const amount = parseFloat(partialAmounts[order.id] || balance.toString());
-                          if (amount > 0) {
-                            const finalAmount = Math.min(amount, balance);
-                            setEfectivoModalFor({
-                              id: order.id,
-                              cliente: order.cliente,
-                              total: order.total,
-                              balance: balance,
-                              defaultMonto: finalAmount
-                            });
-                            setEfectivoMontoAPagar(finalAmount.toFixed(2));
-                            setEfectivoDineroRecibido('');
-                          }
-                        }}
-                        disabled={!isReadyToPay}
-                        className={`group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all active:scale-95 border-2 ${
-                          isReadyToPay 
-                            ? 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600' 
-                            : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
-                        }`}
-                      >
-                        <span className="text-[8px] font-black uppercase tracking-[0.1em]">Efectivo</span>
-                        <Check className="w-2.5 h-2.5" />
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          const amount = parseFloat(partialAmounts[order.id] || balance.toString());
-                          if (amount > 0) {
-                            const finalAmount = Math.min(amount, balance);
-                            payOrder(order.id, 'YAPE', finalAmount);
-                            setPartialAmounts(prev => {
-                              const next = { ...prev };
-                              delete next[order.id];
-                              return next;
-                            });
-                          }
-                        }}
-                        disabled={!isReadyToPay}
-                        className={`group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all active:scale-95 border-2 ${
-                          isReadyToPay 
-                            ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
-                            : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
-                        }`}
-                      >
-                        <span className="text-[8px] font-black uppercase tracking-[0.1em]">Yape</span>
-                        <Plus className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
-
+                  {/* RIGHT COLUMN: Liquidar Button & Big formatted total price label */}
+                  <div className="flex flex-col items-center md:items-end justify-between min-w-[150px] w-full md:w-auto self-stretch gap-2.5 shrink-0">
+                    {/* The LIQUIDAR CUENTA trigger button */}
                     <button
-                      onClick={() => setSelectingCustomerFor(order.id)}
-                      disabled={!isReadyToPay}
-                      className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl transition-all border-2 text-[8px] font-black uppercase tracking-widest ${
-                        isReadyToPay 
-                          ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800' 
-                          : 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLiquidationOrderId(order.id);
+                      }}
+                      disabled={!isReadyToPay || isCashClosed}
+                      className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 duration-150 border-2 flex items-center justify-center gap-1.5 ${
+                        isReadyToPay && !isCashClosed
+                          ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700 hover:border-brand-600 shadow-md shadow-brand-105/30 cursor-pointer'
+                          : 'bg-slate-50 border-slate-150 text-slate-300 cursor-not-allowed'
                       }`}
                     >
-                      Fiar
+                      <Calculator className="w-3.5 h-3.5" /> LIQUIDAR CUENTA
                     </button>
+
+                    {/* Separator / Divider decoration as shown in image */}
+                    <div className="w-full h-[1px] bg-slate-100 hidden md:block" />
+
+                    {/* Superb large elegant formatted price layout */}
+                    <div className="flex justify-between md:justify-end items-center md:items-baseline gap-2 w-full md:w-auto">
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest md:hidden">Saldo Pendiente:</p>
+                      <div className="flex items-baseline gap-0.5">
+                        <span className="text-[11px] font-display font-extrabold text-emerald-600 uppercase">S/</span>
+                        <p className="text-2xl font-display font-black text-slate-900 tracking-tighter leading-none">
+                          {balance.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
@@ -1172,6 +1203,454 @@ export const CajaView: React.FC = () => {
       )}
 
       <AnimatePresence>
+        {liquidationOrderId && liquidationOrder && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 md:p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[32px] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col md:flex-row my-auto border border-slate-100 max-h-[90vh] md:max-h-[85vh]"
+            >
+              {/* LEFT COLUMN: Order Details / Split options */}
+              <div className="flex-1 p-5 md:p-7 flex flex-col justify-between overflow-y-auto border-r border-slate-100 max-h-[50vh] md:max-h-[85vh] no-scrollbar">
+                <div className="space-y-5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="bg-brand-50 text-brand-700 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border border-brand-100 inline-flex items-center gap-1.5 mb-2">
+                        <Calculator className="w-3.5 h-3.5 text-brand-600" /> Liquidación de Cuenta
+                      </span>
+                      <h3 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none mt-1">
+                        {liquidationOrder.cliente}
+                      </h3>
+                      <p className="text-[10px] text-slate-450 font-bold uppercase tracking-widest mt-2">
+                        Servicio por: <span className="text-slate-700">{liquidationOrder.usuarioNombre || 'Administrador'}</span> • {liquidationOrder.items.length} platos
+                      </p>
+                    </div>
+                    <span className="bg-slate-900 text-white px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
+                      Mesa {getMesaNumber(liquidationOrder.mesaId)}
+                    </span>
+                  </div>
+
+                  {/* Payment Modality Buttons */}
+                  <div className="bg-slate-50/50 p-3 rounded-[24px] border border-slate-100 space-y-2.5">
+                    <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-[0.2em] block px-1">
+                      Modalidad de Cobro/Pago
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'COMPLETO', label: 'Completo', desc: 'Pago total' },
+                        { id: 'EQUITATIVO', label: 'Equitativo', desc: 'Dividir por partes' },
+                        { id: 'POR_PLATO', label: 'Por Plato', desc: 'Suma de platos' }
+                      ].map((mod) => (
+                        <button
+                          key={mod.id}
+                          onClick={() => setLiquidationModality(mod.id as any)}
+                          className={`p-3 md:p-3.5 rounded-xl md:rounded-2xl border-2 flex flex-col items-center justify-center text-center transition-all active:scale-95 duration-150 cursor-pointer ${
+                            liquidationModality === mod.id
+                              ? 'bg-brand-600 border-brand-500 text-white shadow-md shadow-brand-100/30'
+                              : 'bg-white border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-brand-50/10'
+                          }`}
+                        >
+                          <span className="text-[10px] font-black uppercase tracking-wider leading-none mb-1.5">{mod.label}</span>
+                          <span className={`text-[7px] font-black uppercase tracking-widest leading-none ${liquidationModality === mod.id ? 'text-brand-100' : 'text-slate-450'}`}>
+                            {mod.desc}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Modality Details Block */}
+                  {liquidationModality === 'COMPLETO' && (
+                    <div className="bg-brand-50/40 border border-brand-100 p-4 rounded-[20px] flex gap-3.5 items-start">
+                      <div className="w-8 h-8 rounded-xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 shrink-0 mt-0.5">
+                        <Calculator className="w-4 h-4" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-black text-brand-700 uppercase tracking-widest">PAGO COMPLETO</p>
+                        <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                          Se cobrará la totalidad del saldo restante de la comanda en una sola transacción.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {liquidationModality === 'EQUITATIVO' && (
+                    <div className="bg-brand-50/30 border border-brand-100 p-4 rounded-[20px] space-y-3.5">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 shrink-0">
+                            <Users className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-black text-brand-700 uppercase tracking-widest">DIVISIÓN EQUITATIVA</p>
+                            <p className="text-[9.5px] font-black text-slate-400 uppercase tracking-wide mt-0.5">Divide el saldo en partes iguales</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1">
+                          <button
+                            onClick={() => setLiquidationSplitCount(prev => Math.max(2, prev - 1))}
+                            className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-150 font-bold hover:bg-slate-100 flex items-center justify-center text-slate-700 active:scale-90 cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="w-10 text-center font-display font-black text-slate-800 text-sm">{liquidationSplitCount}</span>
+                          <button
+                            onClick={() => setLiquidationSplitCount(prev => Math.min(10, prev + 1))}
+                            className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-150 font-bold hover:bg-slate-100 flex items-center justify-center text-slate-700 active:scale-90 cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="h-[1px] bg-brand-100" />
+                      
+                      <div className="flex justify-between items-center bg-white px-3.5 py-2 rounded-xl border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Monto de una parte:</p>
+                        <p className="text-sm font-display font-bold text-slate-900">
+                          S/ {(liquidationBalance / liquidationSplitCount).toFixed(2)} <span className="text-[10px] text-slate-450 lowercase font-bold font-sans">c/u</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {liquidationModality === 'POR_PLATO' && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center px-1">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">SELECCIONAR PLATOS A COBRAR</p>
+                        <div className="flex gap-2.5">
+                          <button
+                            onClick={() => {
+                              const qtys: Record<string, number> = {};
+                              liquidationOrder.items.forEach(item => {
+                                qtys[item.id] = item.cantidad;
+                              });
+                              setLiquidationSelectedItems(qtys);
+                            }}
+                            className="text-[9px] font-black text-brand-600 hover:text-brand-700 uppercase tracking-widest cursor-pointer"
+                          >
+                            Todos
+                          </button>
+                          <span className="text-slate-300">•</span>
+                          <button
+                            onClick={() => {
+                              const qtys: Record<string, number> = {};
+                              liquidationOrder.items.forEach(item => {
+                                qtys[item.id] = 0;
+                              });
+                              setLiquidationSelectedItems(qtys);
+                            }}
+                            className="text-[9px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest cursor-pointer"
+                          >
+                            Ninguno
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="border border-slate-100 divide-y divide-slate-100/80 rounded-[20px] overflow-hidden max-h-[180px] overflow-y-auto no-scrollbar bg-slate-50/50">
+                        {liquidationOrder.items.map((item) => {
+                          const p = products.find(prod => prod.id === item.productoId);
+                          const currentQtySelected = liquidationSelectedItems[item.id] || 0;
+                          return (
+                            <div key={item.id} className="p-3 flex justify-between items-center text-xs hover:bg-brand-50/10 transition-colors">
+                              <div className="min-w-0 pr-3 flex-1">
+                                <p className="font-bold text-slate-800 uppercase tracking-tight truncate leading-tight select-none">{p?.nombre}</p>
+                                <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-1 select-none text-left">
+                                  {item.cantidad} ordenado • S/ {item.precioUnitario.toFixed(2)} c/u
+                                </p>
+                              </div>
+                              
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono font-bold text-slate-500 select-none text-[11px] tabular-nums">
+                                  S/ {(currentQtySelected * item.precioUnitario).toFixed(2)}
+                                </span>
+                                
+                                <div className="flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1">
+                                  <button
+                                    onClick={() => setLiquidationSelectedItems(prev => ({
+                                      ...prev,
+                                      [item.id]: Math.max(0, currentQtySelected - 1)
+                                    }))}
+                                    className="w-6 h-6 rounded-lg bg-slate-50 border border-slate-150 text-slate-700 text-xs font-black shadow-sm flex items-center justify-center hover:bg-slate-100 active:scale-90 cursor-pointer"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="w-4 text-center font-bold text-slate-800 select-none">{currentQtySelected}</span>
+                                  <button
+                                    onClick={() => setLiquidationSelectedItems(prev => ({
+                                      ...prev,
+                                      [item.id]: Math.min(item.cantidad, currentQtySelected + 1)
+                                    }))}
+                                    className="w-6 h-6 rounded-lg bg-slate-50 border border-slate-150 text-slate-700 text-xs font-black shadow-sm flex items-center justify-center hover:bg-slate-100 active:scale-90 cursor-pointer"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Consumo total summary table */}
+                  <div className="border border-slate-100 rounded-[20px] p-4 bg-slate-50/50">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estado de la cuenta completa</p>
+                    <div className="space-y-2 text-xs font-semibold">
+                      <div className="flex justify-between text-slate-500">
+                        <span>Total consumido:</span>
+                        <span className="font-mono font-bold">S/ {liquidationOrder.total.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-500 border-b border-slate-100 pb-2.5">
+                        <span>Abonos / Pagos registrados:</span>
+                        <span className="text-emerald-600 font-bold font-mono">- S/ {liquidationTotalPaid.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-800 pt-1.5 text-sm font-black uppercase">
+                        <span>Saldo Pendiente Actual:</span>
+                        <span className="font-mono text-emerald-700 font-bold">S/ {liquidationBalance.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 mt-auto border-t border-slate-100">
+                  <div className="p-4 bg-brand-950 text-white rounded-[24px] flex justify-between items-center shadow-lg shadow-brand-100/10 border border-brand-900 relative overflow-hidden">
+                    {/* Background design elements */}
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-600 rounded-full blur-2xl opacity-40 translate-x-8 -translate-y-8" />
+                    
+                    <div className="relative z-10">
+                      <p className="text-[8px] font-black text-brand-200 uppercase tracking-[0.2em] mb-1">Monto de cobro actual</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-sm font-bold text-brand-300">S/</span>
+                        <p className="text-2xl font-display font-black tracking-tight leading-none tabular-nums">{liquidationAmountToPay.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <span className="relative z-10 text-[9px] font-black bg-brand-600 border border-brand-500 px-3 py-1.5 rounded-xl uppercase tracking-wider text-white shadow-sm shadow-brand-900/40">
+                      Instancia Seleccionada
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Payment Method Integration */}
+              <div className="w-full md:w-[390px] p-5 md:p-7 flex flex-col justify-between bg-slate-50/80 max-h-[45vh] md:max-h-[85vh] overflow-y-auto no-scrollbar border-t md:border-t-0 border-slate-100">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[9.5px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 px-0.5">
+                      Método de Pago
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'EFECTIVO', label: 'Efectivo', activeColor: 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-100/30' },
+                        { id: 'YAPE', label: 'Yape', activeColor: 'bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-100/30' },
+                        { id: 'PLIN', label: 'Plin', activeColor: 'bg-cyan-600 border-cyan-500 text-white shadow-lg shadow-cyan-100/30' },
+                        { id: 'CREDITO', label: 'Fiar Cuenta', activeColor: 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-100/30' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setLiquidationMethod(item.id as any)}
+                          className={`p-3.5 rounded-[20px] border-2 font-black uppercase text-[10px] tracking-wider text-center transition-all duration-150 flex flex-col items-center justify-center gap-1 active:scale-95 cursor-pointer ${
+                            liquidationMethod === item.id ? item.activeColor : `bg-white border-slate-150 text-slate-600 hover:border-slate-300 hover:bg-slate-50`
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Cash received sub-panel */}
+                  {liquidationMethod === 'EFECTIVO' && (
+                    <div className="bg-white border border-slate-150 p-4 rounded-[22px] space-y-3.5 shadow-sm">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block pl-0.5">
+                          Dinero Recibido
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">S/</span>
+                          <input
+                            autoFocus
+                            type="number"
+                            step="0.5"
+                            placeholder="0.00"
+                            className="w-full bg-slate-50/50 border-2 border-slate-200 rounded-xl py-2 pl-8 pr-3 text-lg font-black outline-none focus:bg-white focus:border-emerald-500 transition-all text-slate-800 text-left"
+                            value={liquidationCashReceived}
+                            onChange={(e) => setLiquidationCashReceived(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Cash quick buttons */}
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        <button
+                          onClick={() => setLiquidationCashReceived(liquidationAmountToPay.toFixed(2))}
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-250 text-slate-700 text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors border border-slate-200 cursor-pointer"
+                        >
+                          Cobro Exacto
+                        </button>
+                        {[10, 20, 50, 100, 200].map((bill) => (
+                          <button
+                            key={bill}
+                            onClick={() => setLiquidationCashReceived(bill.toFixed(2))}
+                            className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded-lg transition-colors border border-emerald-100/50 cursor-pointer"
+                          >
+                            S/ {bill}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Cash change computation */}
+                      {(() => {
+                        const valA = liquidationAmountToPay;
+                        const valB = parseFloat(liquidationCashReceived) || 0;
+                        const diff = valB - valA;
+                        const isInsufficient = valB > 0 && valB < valA;
+                        const isExact = valB === 0 || !liquidationCashReceived || Math.abs(diff) < 0.001;
+
+                        return (
+                          <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-100 flex flex-col justify-center items-center text-center space-y-1">
+                            <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest">Vuelto a entregar</p>
+                            {isInsufficient ? (
+                              <p className="text-xs font-black text-rose-500 uppercase tracking-tight">Faltan S/ {Math.abs(diff).toFixed(2)}</p>
+                            ) : isExact ? (
+                              <p className="text-sm font-extrabold text-slate-600">S/ 0.00</p>
+                            ) : (
+                              <p className="text-xl font-display font-black text-emerald-600 underline decoration-emerald-250 decoration-2 underline-offset-4">S/ {diff.toFixed(2)}</p>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Yape instructions */}
+                  {liquidationMethod === 'YAPE' && (
+                    <div className="bg-white border border-slate-150 p-5 rounded-[22px] text-center space-y-2.5 shadow-sm py-6">
+                      <div className="w-10 h-10 bg-brand-50 text-brand-600 rounded-xl flex items-center justify-center mx-auto mb-1 border border-brand-100">
+                        <Coins className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black text-brand-900 uppercase tracking-widest">PAGO POR YAPE</p>
+                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                        Pídale al cliente escanear el código QR Yape o realizar el pago por transferencia.
+                      </p>
+                      <div className="bg-brand-50/50 py-1.5 px-3 rounded-xl font-mono text-[11px] text-brand-700 font-bold max-w-max mx-auto border border-brand-100">
+                        Monto: S/ {liquidationAmountToPay.toFixed(2)}
+                      </div>
+                    </div>
+                  )}
+
+                  {liquidationMethod === 'PLIN' && (
+                    <div className="bg-white border border-slate-150 p-5 rounded-[22px] text-center space-y-2.5 shadow-sm py-6">
+                      <div className="w-10 h-10 bg-cyan-50 text-cyan-700 rounded-xl flex items-center justify-center mx-auto mb-1 border border-cyan-100">
+                        <Coins className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black text-cyan-900 uppercase tracking-widest">PAGO POR PLIN</p>
+                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                        Acepta pagos interbancarios mediante Plin. Valide la recepción en su banca móvil correspondiente.
+                      </p>
+                      <div className="bg-cyan-50/50 py-1.5 px-3 rounded-xl font-mono text-[11px] text-cyan-750 font-bold max-w-max mx-auto border border-cyan-100">
+                        Monto: S/ {liquidationAmountToPay.toFixed(2)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fiar a Cuenta Customer list */}
+                  {liquidationMethod === 'CREDITO' && (
+                    <div className="bg-white border border-slate-150 p-4 rounded-[22px] space-y-3.5 shadow-sm flex flex-col max-h-[300px]">
+                      <div>
+                        <p className="text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1">Cliente Cuenta/Crédito</p>
+                        <p className="text-[8.5px] text-slate-400 uppercase font-black tracking-wide">Selecciona cliente asociado</p>
+                      </div>
+
+                      {liquidationSelectedCustomer ? (
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex justify-between items-center transition-all">
+                          <div>
+                            <p className="text-xs font-black text-slate-800">{liquidationSelectedCustomer.nombre}</p>
+                            <p className="text-[8.5px] text-slate-500 font-black uppercase tracking-widest mt-1">
+                              Saldo actual: <span className="text-emerald-600 font-black">S/ {liquidationSelectedCustomer.saldo.toFixed(2)}</span>
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setLiquidationSelectedCustomer(null)}
+                            className="p-1.5 hover:bg-amber-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 flex-1 flex flex-col min-h-0">
+                          <div className="relative">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-3 text-[11px] font-bold focus:border-brand-500 focus:bg-white outline-none transition-all"
+                              placeholder="Buscar cliente por nombre..."
+                              value={liquidationCustomerSearch}
+                              onChange={(e) => setLiquidationCustomerSearch(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="space-y-1 overflow-y-auto max-h-[140px] pr-1.5 no-scrollbar flex-1">
+                            {customers
+                              .filter(c => c.nombre.toLowerCase().includes(liquidationCustomerSearch.toLowerCase()))
+                              .map(cust => (
+                                <button
+                                  key={cust.id}
+                                  onClick={() => setLiquidationSelectedCustomer({
+                                    id: cust.id,
+                                    nombre: cust.nombre,
+                                    saldo: cust.saldo
+                                  })}
+                                  className="w-full p-2.5 bg-white border border-slate-100 rounded-xl flex justify-between items-center hover:border-brand-200 hover:bg-brand-50/20 active:scale-95 transition-all text-left cursor-pointer"
+                                >
+                                  <div>
+                                    <p className="text-[11px] font-black text-slate-700">{cust.nombre}</p>
+                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Saldo: S/ {cust.saldo.toFixed(1)}</p>
+                                  </div>
+                                  <span className="text-[8px] text-brand-600 font-black uppercase bg-brand-50 px-1.5 py-0.5 rounded-md">Asociar</span>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer validation trigger */}
+                <div className="pt-4 md:pt-6 border-t border-slate-200 mt-4 space-y-3 shrink-0">
+                  <div className="flex justify-between items-center text-[10px] px-1 font-black text-slate-400 uppercase tracking-widest">
+                    <span>Monto a liquidar:</span>
+                    <span className="font-extrabold text-slate-900 text-sm font-mono">S/ {liquidationAmountToPay.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setLiquidationOrderId(null)}
+                      className="py-3.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-colors cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                    <button
+                      onClick={executeLiquidationPayment}
+                      disabled={
+                        liquidationAmountToPay <= 0 ||
+                        (liquidationMethod === 'CREDITO' && !liquidationSelectedCustomer) ||
+                        (liquidationMethod === 'EFECTIVO' && parseFloat(liquidationCashReceived) > 0 && parseFloat(liquidationCashReceived) < liquidationAmountToPay)
+                      }
+                      className="py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-300 font-black uppercase text-[10px] tracking-widest text-white rounded-xl shadow-lg shadow-emerald-100/30 hover:shadow-emerald-150/40 transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" /> Procesar Pago
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {selectingCustomerFor && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <motion.div 

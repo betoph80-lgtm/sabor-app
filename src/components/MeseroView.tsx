@@ -61,24 +61,27 @@ export const MeseroView: React.FC = () => {
       )}
 
       {/* Floor Plan Header and Status chips */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-        <div>
-          <span className="text-[9px] font-black uppercase tracking-[0.22em] text-violet-600 mb-1 block">Distribución</span>
-          <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-none">Piso Principal - Salón</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 p-6 rounded-[28px] md:rounded-[40px] border border-violet-50 shadow-[0_8px_30px_rgba(159,103,255,0.02)] backdrop-blur-md">
+        <div className="text-left">
+          <span className="text-[8px] md:text-[9.5px] font-black uppercase tracking-[0.25em] text-brand-600 mb-1.5 block">Distribución en tiempo real</span>
+          <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 tracking-tight leading-none">Salón Principal</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold border border-emerald-100 transition-all">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Libres: {freeCount}
+          <span className="flex items-center gap-2 px-3.5 py-2 bg-emerald-50/70 text-emerald-800 rounded-full text-[10px] md:text-xs font-bold border border-emerald-250/20 shadow-sm transition-all selection:bg-transparent">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Libres: <strong className="font-extrabold text-emerald-900">{freeCount}</strong>
           </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 rounded-full text-xs font-bold border border-rose-100 transition-all">
-            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-            Ocupadas: {occupiedCount}
+          <span className="flex items-center gap-2 px-3.5 py-2 bg-rose-50/70 text-rose-800 rounded-full text-[10px] md:text-xs font-bold border border-rose-200/20 shadow-sm transition-all">
+            <span className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+            Ocupadas: <strong className="font-extrabold text-rose-900">{occupiedCount}</strong>
           </span>
           {deliveryOrdersCount > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 text-violet-700 rounded-full text-xs font-bold border border-violet-100 transition-all animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-violet-600"></span>
-              Llevar: {deliveryOrdersCount}
+            <span className="flex items-center gap-2 px-3.5 py-2 bg-violet-50/70 text-violet-800 rounded-full text-[10px] md:text-xs font-bold border border-violet-200/20 shadow-sm transition-all animate-pulse">
+              <span className="h-2 w-2 rounded-full bg-violet-600 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></span>
+              Llevar: <strong className="font-extrabold text-violet-900">{deliveryOrdersCount}</strong>
             </span>
           )}
         </div>
@@ -104,14 +107,14 @@ export const MeseroView: React.FC = () => {
                 }
               }}
               disabled={isCashClosed}
-              className={`relative aspect-square min-h-[92px] rounded-2xl md:rounded-[32px] border flex flex-col items-center justify-between transition-all duration-300 group soft-shadow active:scale-[0.96] w-full p-2 md:p-3 ${
+              className={`relative aspect-square min-h-[96px] rounded-2xl md:rounded-[36px] border flex flex-col items-center justify-between transition-all duration-300 group hover:-translate-y-1 active:scale-[0.95] w-full p-2.5 md:p-4 ${
                 isCashClosed ? 'opacity-40 cursor-not-allowed grayscale' : ''
               } ${
                 isOccupied
                   ? mesa.id === '13' 
-                    ? 'bg-violet-50/95 border-violet-200 text-violet-900 shadow-[0_4px_16px_rgba(139,92,246,0.12)]' 
-                    : 'bg-rose-50/95 border-rose-200 text-rose-900 shadow-[0_4px_16px_rgba(239,68,68,0.10)]'
-                  : 'bg-emerald-50/70 border-emerald-200 text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300 justify-center'
+                    ? 'bg-gradient-to-br from-violet-50 to-white border-violet-200 text-violet-900 shadow-[0_6px_20px_rgba(139,92,246,0.1)] hover:shadow-[0_12px_28px_rgba(139,92,246,0.18)] hover:border-violet-300' 
+                    : 'bg-gradient-to-br from-rose-50 to-white border-rose-200 text-rose-900 shadow-[0_6px_20px_rgba(239,68,68,0.08)] hover:shadow-[0_12px_28px_rgba(239,68,68,0.15)] hover:border-rose-300'
+                  : 'bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200 text-emerald-800 hover:from-emerald-50 hover:border-emerald-300 shadow-sm hover:shadow-[0_8px_20px_rgba(16,185,129,0.08)] justify-center'
               }`}
             >
               {isOccupied ? (() => {
@@ -150,7 +153,7 @@ export const MeseroView: React.FC = () => {
 
                     {/* Big table label */}
                     <div className="relative flex items-center justify-center my-0.5 shrink-0">
-                      <div className={`font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl ${
+                      <div className={`font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl transition-transform duration-300 group-hover:scale-110 ${
                         mesa.id === '13' ? 'text-violet-700' : 'text-rose-600'
                       }`}>
                         {label}
@@ -161,9 +164,9 @@ export const MeseroView: React.FC = () => {
                     <div className="w-full flex flex-col justify-center space-y-0.5 overflow-hidden border-t border-rose-200/50 pt-1">
                       {totalSopas > 0 && (
                         <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
-                          areAllSopasServidas ? 'text-emerald-700 bg-emerald-50/50 rounded py-0.5 px-1' : 'text-slate-800'
+                          areAllSopasServidas ? 'text-emerald-700 bg-emerald-100/50 rounded py-0.5 px-1' : 'text-slate-800'
                         }`}>
-                          <span className="uppercase text-left truncate">
+                          <span className="uppercase text-left truncate font-sans">
                             {totalSopas}X SOPAS
                           </span>
                           {areAllSopasServidas ? (
@@ -175,9 +178,9 @@ export const MeseroView: React.FC = () => {
                       )}
                       {totalSegundos > 0 && (
                         <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
-                          areAllSegundosServidos ? 'text-emerald-700 bg-emerald-50/50 rounded py-0.5 px-1' : 'text-slate-800'
+                          areAllSegundosServidos ? 'text-emerald-700 bg-emerald-100/50 rounded py-0.5 px-1' : 'text-slate-800'
                         }`}>
-                          <span className="uppercase text-left truncate">
+                          <span className="uppercase text-left truncate font-sans">
                             {totalSegundos}X SEGUNDOS
                           </span>
                           {areAllSegundosServidos ? (
@@ -205,17 +208,19 @@ export const MeseroView: React.FC = () => {
                 );
               })() : (
                 <>
-                  <div className={`font-display font-black leading-none uppercase px-1 text-center select-none ${
+                  <div className={`font-display font-black leading-none uppercase px-1 text-center select-none text-emerald-800 transition-all duration-300 group-hover:scale-110 ${
                     label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
                   }`}>
                     {label}
                   </div>
                   
                   {mesa.id !== '13' && (
-                    <div className="absolute top-2 right-2 px-1 py-0.5 bg-slate-900/[0.04] rounded-md text-[6.5px] md:text-[8px] font-bold text-slate-400 capitalize whitespace-nowrap select-none">
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-slate-100 border border-slate-200/40 rounded-full text-[6.5px] md:text-[8px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap select-none">
                       {mesa.sillas || 0} sil.
                     </div>
                   )}
+
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mt-2.5"></div>
                 </>
               )}
             </button>

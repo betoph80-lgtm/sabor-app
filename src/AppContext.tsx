@@ -74,7 +74,7 @@ interface AppContextType {
   updateItemStatus: (orderId: string, itemId: string, status: ItemStatus) => void;
   deleteItemFromOrder: (orderId: string, itemId: string) => void;
   updateItemQuantity: (orderId: string, itemId: string, newQty: number) => void;
-  payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', amount: number, customerId?: string) => void;
+  payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN', amount: number, customerId?: string) => void;
   addItemsToOrder: (orderId: string, items: Partial<OrderItem>[]) => void;
   updateOrderInfo: (orderId: string, updates: Partial<Order>) => void;
   updateWholeOrder: (
@@ -596,7 +596,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .reduce((acc, p) => acc + p.monto, 0);
 
     const yapeVentas = allPaymentsToday
-      .filter(p => p.metodo === 'YAPE')
+      .filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN')
       .reduce((acc, p) => acc + p.monto, 0);
 
     const fiarVentas = allPaymentsToday
@@ -727,7 +727,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const payOrder = async (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO', amount: number, customerId?: string) => {
+  const payOrder = async (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN', amount: number, customerId?: string) => {
     // Check if cash is closed
     const cashStatus = cashControls.find(c => c.fecha === selectedDate);
     if (cashStatus?.estado === 'CERRADA') {
@@ -772,7 +772,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     batch.update(doc(db, 'control_caja', currentCash.id), {
       ingresosEfectivo: currentCash.ingresosEfectivo + (method === 'EFECTIVO' ? amount : 0),
-      ingresosYape: currentCash.ingresosYape + (method === 'YAPE' ? amount : 0),
+      ingresosYape: currentCash.ingresosYape + ((method === 'YAPE' || method === 'PLIN') ? amount : 0),
       ingresosFiar: currentCash.ingresosFiar + (method === 'CREDITO' ? amount : 0),
     });
 

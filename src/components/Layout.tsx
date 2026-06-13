@@ -63,7 +63,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     .flatMap(o => o.pagos || []);
 
   const totalSalesEfAndYp = allPaymentsToday
-    .filter(p => p.metodo === 'EFECTIVO' || p.metodo === 'YAPE')
+    .filter(p => p.metodo === 'EFECTIVO' || p.metodo === 'YAPE' || p.metodo === 'PLIN')
     .reduce((acc, p) => acc + p.monto, 0);
   
   const customerPaymentsTodayRaw = customers.flatMap(c => 
@@ -71,7 +71,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   const totalCobrosEfAndYp = customerPaymentsTodayRaw
-    .filter(t => t.metodoPago === 'EFECTIVO' || t.metodoPago === 'YAPE')
+    .filter(t => t.metodoPago === 'EFECTIVO' || t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
     .reduce((acc, t) => acc + t.monto, 0);
 
   const baseCaja = currentCash?.montoApertura || 0;
@@ -100,13 +100,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="min-h-[72px] py-2 md:h-28 md:py-0 bg-white border-b border-violet-100 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
-        <div className="flex items-center gap-2 xs:gap-4 md:gap-10 shrink-0 group cursor-pointer">
-          <div className="relative flex flex-col items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-brand-500/10 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
-            <div className="relative w-10 h-10 xs:w-12 xs:h-12 md:w-16 md:h-16 bg-white rounded-xl md:rounded-[20px] flex items-center justify-center overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-violet-50 p-1 md:p-2 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1">
+      <nav className="min-h-[72px] py-1 md:h-22 bg-white border-b border-violet-100 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
+        <div className="flex items-center gap-3 md:gap-4 shrink-0 group cursor-pointer">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-indigo-505/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition duration-700 font-sans"></div>
+            <div className="relative w-11 h-11 xs:w-12 xs:h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.035)] border border-violet-50 p-1 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1 select-none">
               <img 
-                src={identity?.logoUrl || "/logo.png"} 
+                src={identity?.logoUrl?.trim() ? identity.logoUrl : "/logo.png"} 
                 alt={identity?.nombre || "Logo"} 
                 className="w-full h-full object-contain"
                 onError={(e) => {
@@ -115,14 +115,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 }}
               />
             </div>
-            {/* Nombre de la marca debajo del logo en texto pequeño flanqueado por líneas estilo guion elegante */}
-            <div className="flex items-center justify-center w-full mt-1 md:mt-2.5 gap-1 md:gap-1.5 select-none">
-              <span className="h-[1px] w-3 md:w-5 bg-slate-300"></span>
-              <span className="text-[8px] xs:text-[10px] md:text-sm font-display font-black tracking-widest uppercase text-slate-700 group-hover:text-violet-600 transition-colors duration-300 whitespace-nowrap">
-                {identity?.nombre || "Sabor Abanquino"}
+          </div>
+          <div className="flex flex-col text-left justify-center min-w-0">
+            <span className="text-xs xs:text-sm md:text-base font-display font-black tracking-wider uppercase text-slate-800 leading-none group-hover:text-violet-600 transition-colors duration-300 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-sm">
+              {identity?.nombre || "Sabor Abanquino"}
+            </span>
+            {identity?.eslogan && identity.eslogan.trim() !== '' && identity.eslogan.trim() !== '-' && (
+              <span className="text-[7.5px] xs:text-[8px] md:text-[9.5px] font-bold uppercase tracking-[0.18em] text-slate-400 mt-1 truncate max-w-[120px] xs:max-w-[185px] sm:max-w-xs block leading-none">
+                {identity.eslogan}
               </span>
-              <span className="h-[1px] w-3 md:w-5 bg-slate-300"></span>
-            </div>
+            )}
           </div>
         </div>
 
@@ -163,24 +165,34 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             >
               <LogOut className="w-4.5 h-4.5 xs:w-5 h-5" />
             </button>
-            <div className="flex items-center max-w-[100px] xxs:max-w-[140px] xs:max-w-[220px] sm:max-w-[340px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth">
-              <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white text-center text-[10px] shadow-sm shrink-0 h-[40px] xs:h-[46px]">
+            <div className="flex items-center max-w-[100px] xxs:max-w-[140px] xs:max-w-[240px] sm:max-w-[360px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth gap-1.5 xs:gap-2">
                 {[...soupStock, ...mainStock].map((m, index) => {
-                  const product = products.find(p => p.id === m.productoId);
-                  const isFirst = index === 0;
+                  const product = products.find(prod => prod.id === m.productoId);
+                  const isLow = m.stockActual < 5;
                   return (
-                    <div key={m.id} className={`flex flex-col min-w-[45px] xs:min-w-[70px] md:min-w-[95px] ${!isFirst ? 'border-l border-slate-200' : ''}`}>
-                      <div className="bg-slate-50/50 border-b border-slate-200 px-1 xs:px-2 py-0.5 md:py-1 font-bold text-slate-500 uppercase text-[6.5px] xs:text-[8px] tracking-wider truncate max-w-[55px] xs:max-w-[80px] md:max-w-[110px]" title={product?.nombre}>
+                    <div 
+                      key={m.id} 
+                      className={`flex flex-col justify-center px-1.5 xs:px-2.5 py-1 rounded-lg xs:rounded-xl border transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-w-[45px] xs:min-w-[75px] md:min-w-[90px] leading-none shrink-0 ${
+                        isLow 
+                          ? 'bg-gradient-to-br from-rose-50 to-white border-rose-200/60 ring-2 ring-rose-500/10' 
+                          : 'bg-gradient-to-br from-slate-50/70 to-white border-slate-200/50 hover:from-white hover:border-slate-300'
+                      }`}
+                      title={product?.nombre}
+                    >
+                      <div className={`font-black uppercase text-[5.5px] xs:text-[7.5px] tracking-wide truncate max-w-[40px] xs:max-w-[70px] md:max-w-[85px] ${
+                        isLow ? 'text-rose-600' : 'text-slate-400'
+                      }`}>
                         {product?.nombre || 'Plato'}
                       </div>
-                      <div className="flex-1 flex items-center justify-center px-1 py-0.5 font-sans font-extrabold text-slate-900 text-[10px] xs:text-xs whitespace-nowrap">
-                        <span>{m.stockActual}</span>
-                        <span className="text-slate-400 font-semibold text-[8px] xs:text-[10px]">/{m.stockInicial}</span>
+                      <div className="flex items-baseline gap-0.5 mt-0.5 xs:mt-1">
+                        <span className={`font-display font-black text-[10px] xs:text-sm ${isLow ? 'text-rose-700' : 'text-slate-800'}`}>
+                          {m.stockActual}
+                        </span>
+                        <span className="text-slate-400 font-semibold text-[7.5px] xs:text-[9.5px]">/{m.stockInicial}</span>
                       </div>
                     </div>
                   );
                 })}
-              </div>
             </div>
           </div>
           
@@ -250,7 +262,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             })}
           </nav>
           
-          <div className="hidden lg:flex flex-row justify-center gap-2 border-t border-violet-100 bg-white/80 backdrop-blur-md p-3">
+          <div className="hidden lg:flex flex-row justify-center gap-2.5 bg-white/70 backdrop-blur-xl py-2.5 px-6 rounded-full border border-violet-100 shadow-[0_16px_40px_-10px_rgba(106,56,212,0.12)] max-w-fit mx-auto mb-6 mt-1 scale-100 hover:scale-[1.01] transition-all duration-300">
              {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeView === item.id;
@@ -258,12 +270,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <button
                     key={item.id}
                     onClick={() => setActiveView(item.id as any)}
-                    className={`flex items-center gap-3 px-6 py-3 rounded-[18px] transition-all duration-300 ${
-                      isActive ? 'bg-violet-50 text-violet-700 shadow-sm ring-1 ring-violet-100' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                    className={`flex items-center gap-2.5 px-6 py-2.5 rounded-full transition-all duration-300 font-medium relative overflow-hidden group ${
+                      isActive 
+                        ? 'bg-violet-600 text-white shadow-md shadow-violet-200/80' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                     }`}
                   >
-                    <Icon className={`w-4.5 h-4.5 ${isActive ? 'scale-110' : ''}`} />
-                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]">{item.label}</span>
+                    <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{item.label}</span>
+                    {!isActive && (
+                      <span className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full" />
+                    )}
                   </button>
                 );
              })}

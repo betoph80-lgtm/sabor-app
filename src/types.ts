@@ -95,7 +95,7 @@ export interface Payment {
   id: string;
   pedidoId: string;
   monto: number;
-  metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO';
+  metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN';
   usuarioNombre?: string;
   fecha: string;
   hora: string;
