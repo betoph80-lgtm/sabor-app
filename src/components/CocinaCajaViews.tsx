@@ -24,56 +24,66 @@ export const CocinaView: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const itemsToPrepare = orders
-    .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
-    .flatMap(order => {
-      const seconds = order.items.filter(i => {
-        const p = products.find(prod => prod.id === i.productoId);
-        return p?.tipo === 'SEGUNDO';
-      });
-      const hasPendingSeconds = seconds.some(i => i.estado !== 'SERVIDO');
-      const hasNoSeconds = seconds.length === 0;
+  const productsMap = React.useMemo(() => {
+    const map = new Map<string, typeof products[0]>();
+    products.forEach(p => map.set(p.id, p));
+    return map;
+  }, [products]);
 
-      return order.items.map(item => ({ 
-        ...item, 
-        orderId: order.id, 
-        mesaId: order.mesaId,
-        usuarioNombre: order.usuarioNombre,
-        timestamp: order.timestamp,
-        hasPendingSeconds,
-        hasNoSeconds
-      }));
-    })
-    .filter(item => {
-      const product = products.find(p => p.id === item.productoId);
-      const isSoup = product?.tipo === 'SOPA';
+  const itemsToPrepare = React.useMemo(() => {
+    return orders
+      .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate)
+      .flatMap(order => {
+        const seconds = order.items.filter(i => {
+          const p = productsMap.get(i.productoId);
+          return p?.tipo === 'SEGUNDO';
+        });
+        const hasPendingSeconds = seconds.some(i => i.estado !== 'SERVIDO');
+        const hasNoSeconds = seconds.length === 0;
 
-      if (item.estado !== 'SERVIDO') return true;
-      
-      // Keep served soup if there are pending seconds OR no seconds have been ordered yet
-      return isSoup && (item.hasPendingSeconds || item.hasNoSeconds);
-    })
-    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        return order.items.map(item => ({ 
+          ...item, 
+          orderId: order.id, 
+          mesaId: order.mesaId,
+          usuarioNombre: order.usuarioNombre,
+          timestamp: order.timestamp,
+          hasPendingSeconds,
+          hasNoSeconds
+        }));
+      })
+      .filter(item => {
+        const product = productsMap.get(item.productoId);
+        const isSoup = product?.tipo === 'SOPA';
+
+        if (item.estado !== 'SERVIDO') return true;
+        
+        // Keep served soup if there are pending seconds OR no seconds have been ordered yet
+        return isSoup && (item.hasPendingSeconds || item.hasNoSeconds);
+      })
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  }, [orders, productsMap, selectedDate]);
 
   // Filter main dishes and soup from current menu to show stock
-  const menuStock = currentMenu
-    .filter(m => m.fecha === selectedDate)
-    .map(item => {
-      const product = products.find(p => p.id === item.productoId);
-      return { 
-        id: item.id,
-        nombre: product?.nombre || 'Desconocido',
-        tipo: product?.tipo,
-        stockActual: item.stockActual,
-        stockInicial: item.stockInicial
-      };
-    })
-    .filter(item => item.tipo === 'SEGUNDO' || item.tipo === 'SOPA')
-    .sort((a, b) => {
-      if (a.tipo === 'SOPA' && b.tipo !== 'SOPA') return -1;
-      if (a.tipo !== 'SOPA' && b.tipo === 'SOPA') return 1;
-      return a.nombre.localeCompare(b.nombre);
-    });
+  const menuStock = React.useMemo(() => {
+    return currentMenu
+      .filter(m => m.fecha === selectedDate)
+      .map(item => {
+        const product = productsMap.get(item.productoId);
+        return { 
+          id: item.id,
+          nombre: product?.nombre || 'Desconocido',
+          tipo: product?.tipo,
+          stockActual: item.stockActual,
+          stockInicial: item.stockInicial
+        };
+      })
+      .filter(item => item.tipo === 'SEGUNDO' || item.tipo === 'SOPA')
+      .sort((a, b) => {
+        if (a.tipo === 'SOPA' && b.tipo !== 'SOPA') return -1;
+        if (a.tipo !== 'SOPA' && b.tipo === 'SOPA') return 1;
+        return a.nombre.localeCompare(b.nombre);
+      });
+  }, [currentMenu, productsMap, selectedDate]);
 
   if (itemsToPrepare.length === 0 && menuStock.length === 0) {
     return (
@@ -86,28 +96,33 @@ export const CocinaView: React.FC = () => {
     );
   }
 
-  const summary = itemsToPrepare
-    .filter(item => item.estado !== 'SERVIDO')
-    .reduce((acc, item) => {
-      const name = products.find(p => p.id === item.productoId)?.nombre || 'Desconocido';
-      acc[name] = (acc[name] || 0) + item.cantidad;
-      return acc;
-    }, {} as Record<string, number>);
+  const summary = React.useMemo(() => {
+    return itemsToPrepare
+      .filter(item => item.estado !== 'SERVIDO')
+      .reduce((acc, item) => {
+        const name = productsMap.get(item.productoId)?.nombre || 'Desconocido';
+        acc[name] = (acc[name] || 0) + item.cantidad;
+        return acc;
+      }, {} as Record<string, number>);
+  }, [itemsToPrepare, productsMap]);
 
   // Group by Mesa but keep order ID in mind
-  const itemsByMesa = itemsToPrepare.reduce((acc, item) => {
-    const key = `${item.mesaId}-${item.orderId}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {} as {[key: string]: any[]});
+  const { itemsByMesa, sortedMesaKeys } = React.useMemo(() => {
+    const grouped = itemsToPrepare.reduce((acc, item) => {
+      const key = `${item.mesaId}-${item.orderId}`;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {} as {[key: string]: any[]});
 
-  // Sort groups by timestamp ascending
-  const sortedMesaKeys = Object.keys(itemsByMesa).sort((a, b) => {
-    const timestampA = itemsByMesa[a][0].timestamp || 0;
-    const timestampB = itemsByMesa[b][0].timestamp || 0;
-    return timestampA - timestampB;
-  });
+    const keys = Object.keys(grouped).sort((a, b) => {
+      const timestampA = grouped[a][0].timestamp || 0;
+      const timestampB = grouped[b][0].timestamp || 0;
+      return timestampA - timestampB;
+    });
+
+    return { itemsByMesa: grouped, sortedMesaKeys: keys };
+  }, [itemsToPrepare]);
 
   return (
     <div className="p-2 md:p-6 space-y-3 md:space-y-4 max-w-[1600px] mx-auto">
@@ -361,32 +376,57 @@ export const CajaView: React.FC = () => {
   const [selectingCustomerFor, setSelectingCustomerFor] = useState<string | null>(null);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   
+  const productsMap = React.useMemo(() => {
+    const map = new Map<string, typeof products[0]>();
+    products.forEach(p => map.set(p.id, p));
+    return map;
+  }, [products]);
+
+  const mesasMap = React.useMemo(() => {
+    const map = new Map<string, typeof mesas[0]>();
+    mesas.forEach(m => map.set(m.id, m));
+    return map;
+  }, [mesas]);
+
   // New spectacular account settlement/liquidation modal states
   const [liquidationOrderId, setLiquidationOrderId] = useState<string | null>(null);
-  const [liquidationModality, setLiquidationModality] = useState<'COMPLETO' | 'EQUITATIVO' | 'POR_PLATO'>('COMPLETO');
+  const [liquidationModality, setLiquidationModality] = useState<'COMPLETO' | 'EQUITATIVO' | 'POR_PLATO' | 'PERSONALIZADO'>('COMPLETO');
   const [liquidationSplitCount, setLiquidationSplitCount] = useState<number>(2);
   const [liquidationSelectedItems, setLiquidationSelectedItems] = useState<Record<string, number>>({});
   const [liquidationMethod, setLiquidationMethod] = useState<'EFECTIVO' | 'YAPE' | 'PLIN' | 'CREDITO'>('EFECTIVO');
   const [liquidationCashReceived, setLiquidationCashReceived] = useState<string>('');
+  const [liquidationCustomAmount, setLiquidationCustomAmount] = useState<string>('');
   const [liquidationCustomerSearch, setLiquidationCustomerSearch] = useState<string>('');
   const [liquidationSelectedCustomer, setLiquidationSelectedCustomer] = useState<{ id: string; nombre: string; saldo: number } | null>(null);
 
-  const liquidationOrder = orders.find(o => o.id === liquidationOrderId);
-  const liquidationTotalPaid = (liquidationOrder?.pagos || []).reduce((acc, p) => acc + p.monto, 0);
-  const liquidationBalance = liquidationOrder ? Math.max(0, liquidationOrder.total - liquidationTotalPaid) : 0;
+  const liquidationOrder = React.useMemo(() => {
+    return orders.find(o => o.id === liquidationOrderId);
+  }, [orders, liquidationOrderId]);
 
-  let liquidationAmountToPay = 0;
-  if (liquidationModality === 'COMPLETO') {
-    liquidationAmountToPay = liquidationBalance;
-  } else if (liquidationModality === 'EQUITATIVO') {
-    liquidationAmountToPay = liquidationBalance / liquidationSplitCount;
-  } else if (liquidationModality === 'POR_PLATO') {
-    liquidationAmountToPay = liquidationOrder?.items.reduce((acc, item) => {
-      const selectedQty = liquidationSelectedItems[item.id] || 0;
-      return acc + (selectedQty * item.precioUnitario);
-    }, 0) || 0;
-  }
-  liquidationAmountToPay = Math.min(liquidationAmountToPay, liquidationBalance);
+  const liquidationTotalPaid = React.useMemo(() => {
+    return (liquidationOrder?.pagos || []).reduce((acc, p) => acc + p.monto, 0);
+  }, [liquidationOrder]);
+
+  const liquidationBalance = React.useMemo(() => {
+    return liquidationOrder ? Math.max(0, liquidationOrder.total - liquidationTotalPaid) : 0;
+  }, [liquidationOrder, liquidationTotalPaid]);
+
+  const liquidationAmountToPay = React.useMemo(() => {
+    let amt = 0;
+    if (liquidationModality === 'COMPLETO') {
+      amt = liquidationBalance;
+    } else if (liquidationModality === 'EQUITATIVO') {
+      amt = liquidationBalance / liquidationSplitCount;
+    } else if (liquidationModality === 'POR_PLATO') {
+      amt = liquidationOrder?.items.reduce((acc, item) => {
+        const selectedQty = liquidationSelectedItems[item.id] || 0;
+        return acc + (selectedQty * item.precioUnitario);
+      }, 0) || 0;
+    } else if (liquidationModality === 'PERSONALIZADO') {
+      amt = parseFloat(liquidationCustomAmount) || 0;
+    }
+    return Math.min(amt, liquidationBalance);
+  }, [liquidationModality, liquidationBalance, liquidationSplitCount, liquidationOrder, liquidationSelectedItems, liquidationCustomAmount]);
 
   useEffect(() => {
     if (liquidationOrderId && liquidationOrder) {
@@ -394,6 +434,7 @@ export const CajaView: React.FC = () => {
       setLiquidationSplitCount(2);
       setLiquidationMethod('EFECTIVO');
       setLiquidationCashReceived('');
+      setLiquidationCustomAmount('');
       setLiquidationCustomerSearch('');
       setLiquidationSelectedCustomer(null);
       
@@ -403,7 +444,7 @@ export const CajaView: React.FC = () => {
       });
       setLiquidationSelectedItems(initQtys);
     }
-  }, [liquidationOrderId]);
+  }, [liquidationOrderId, liquidationOrder]);
 
   const [efectivoModalFor, setEfectivoModalFor] = useState<{
     id: string;
@@ -415,7 +456,10 @@ export const CajaView: React.FC = () => {
   const [efectivoMontoAPagar, setEfectivoMontoAPagar] = useState('');
   const [efectivoDineroRecibido, setEfectivoDineroRecibido] = useState('');
 
-  const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
+  const isCashClosed = React.useMemo(() => {
+    return cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
+  }, [cashControls, selectedDate]);
+
   const [customerSearch, setCustomerSearch] = useState('');
   const [partialAmounts, setPartialAmounts] = useState<Record<string, string>>({});
   const [showOpenModal, setShowOpenModal] = useState(false);
@@ -455,6 +499,9 @@ export const CajaView: React.FC = () => {
             resetQtys[item.id] = 0;
           });
           setLiquidationSelectedItems(resetQtys);
+        } else if (liquidationModality === 'EQUITATIVO') {
+          // Reduce the remaining split parts count by 1 so the remaining balance is divided correctly
+          setLiquidationSplitCount(prev => Math.max(1, prev - 1));
         }
       }
     } catch (err: any) {
@@ -463,44 +510,72 @@ export const CajaView: React.FC = () => {
     }
   };
 
-  const openOrders = [...orders]
-    .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.total > 0 && o.items.every(i => i.estado === 'SERVIDO'))
-    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  const openOrders = React.useMemo(() => {
+    return [...orders]
+      .filter(o => o.estado === 'ABIERTO' && o.fecha === selectedDate && o.total > 0 && o.items.every(i => i.estado === 'SERVIDO'))
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  }, [orders, selectedDate]);
 
-  const allPaymentsToday = orders
-    .filter(o => o.fecha === selectedDate)
-    .flatMap(o => o.pagos || []);
+  const financialMetrics = React.useMemo(() => {
+    const allPaymentsToday = orders
+      .filter(o => o.fecha === selectedDate)
+      .flatMap(o => o.pagos || []);
 
-  const totalEfectivoVentas = allPaymentsToday
-    .filter(p => p.metodo === 'EFECTIVO')
-    .reduce((acc, p) => acc + p.monto, 0);
+    const totalEfectivoVentas = allPaymentsToday
+      .filter(p => p.metodo === 'EFECTIVO')
+      .reduce((acc, p) => acc + p.monto, 0);
 
-  const totalYapeVentas = allPaymentsToday
-    .filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN')
-    .reduce((acc, p) => acc + p.monto, 0);
+    const totalYapeVentas = allPaymentsToday
+      .filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN')
+      .reduce((acc, p) => acc + p.monto, 0);
 
-  // Calcular cobros a clientes hoy (Depósitos y Pagos de crédito)
-  const customerPaymentsTodayRaw = customers.flatMap(c => 
-    c.historial
-      .filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
-      .map(t => ({ ...t, cliente: c.nombre }))
-  );
-  
-  const totalEfectivoCobros = customerPaymentsTodayRaw
-    .filter(t => t.metodoPago === 'EFECTIVO')
-    .reduce((acc, t) => acc + t.monto, 0);
+    // Calcular cobros a clientes hoy (Depósitos y Pagos de crédito)
+    const customerPaymentsTodayRaw = customers.flatMap(c => 
+      c.historial
+        .filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
+        .map(t => ({ ...t, cliente: c.nombre }))
+    );
     
-  const totalYapeCobros = customerPaymentsTodayRaw
-    .filter(t => t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
-    .reduce((acc, t) => acc + t.monto, 0);
+    const totalEfectivoCobros = customerPaymentsTodayRaw
+      .filter(t => t.metodoPago === 'EFECTIVO')
+      .reduce((acc, t) => acc + t.monto, 0);
+      
+    const totalYapeCobros = customerPaymentsTodayRaw
+      .filter(t => t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
+      .reduce((acc, t) => acc + t.monto, 0);
 
-  const baseCaja = currentCash?.montoApertura || 0;
-  
-  // CAJA TOTAL = (Efectivo Ventas + Efectivo Cobros) + (Yape Ventas + Yape Cobros) + Base
-  const totalCajaGlobal = totalEfectivoVentas + totalYapeVentas + totalEfectivoCobros + totalYapeCobros + baseCaja;
-  
-  // CAJA REAL (Efectivo) = (Efectivo Ventas + Efectivo Cobros) + Base
-  const totalCajaEfectivo = totalEfectivoVentas + totalEfectivoCobros + baseCaja;
+    const baseCaja = currentCash?.montoApertura || 0;
+    
+    // CAJA TOTAL = (Efectivo Ventas + Efectivo Cobros) + (Yape Ventas + Yape Cobros) + Base
+    const totalCajaGlobal = totalEfectivoVentas + totalYapeVentas + totalEfectivoCobros + totalYapeCobros + baseCaja;
+    
+    // CAJA REAL (Efectivo) = (Efectivo Ventas + Efectivo Cobros) + Base
+    const totalCajaEfectivo = totalEfectivoVentas + totalEfectivoCobros + baseCaja;
+
+    return {
+      allPaymentsToday,
+      totalEfectivoVentas,
+      totalYapeVentas,
+      customerPaymentsTodayRaw,
+      totalEfectivoCobros,
+      totalYapeCobros,
+      baseCaja,
+      totalCajaGlobal,
+      totalCajaEfectivo
+    };
+  }, [orders, customers, currentCash, selectedDate]);
+
+  const {
+    allPaymentsToday,
+    totalEfectivoVentas,
+    totalYapeVentas,
+    customerPaymentsTodayRaw,
+    totalEfectivoCobros,
+    totalYapeCobros,
+    baseCaja,
+    totalCajaGlobal,
+    totalCajaEfectivo
+  } = financialMetrics;
 
   const exportFullDatabaseExcel = async () => {
     setIsExporting(true);
@@ -633,16 +708,18 @@ export const CajaView: React.FC = () => {
   };
 
   // Order summary for the table (all orders today)
-  const orderSummary = [...orders]
-    .filter(o => o.fecha === selectedDate)
-    .sort((a, b) => {
-      const numA = parseInt(a.id.split('-')[1] || '0');
-      const numB = parseInt(b.id.split('-')[1] || '0');
-      return numB - numA;
-    });
+  const orderSummary = React.useMemo(() => {
+    return [...orders]
+      .filter(o => o.fecha === selectedDate)
+      .sort((a, b) => {
+        const numA = parseInt(a.id.split('-')[1] || '0');
+        const numB = parseInt(b.id.split('-')[1] || '0');
+        return numB - numA;
+      });
+  }, [orders, selectedDate]);
 
   const getMesaNumber = (mesaId: string) => {
-    const found = mesas.find(m => m.id === mesaId);
+    const found = mesasMap.get(mesaId);
     const name = found ? found.nombre : mesaId;
     const numOnly = name.replace(/\D/g, '');
     return numOnly ? numOnly.padStart(2, '0') : name;
@@ -657,7 +734,15 @@ export const CajaView: React.FC = () => {
     return 'text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-150';
   };
 
-  const orderToEdit = orders.find(o => o.id === editingOrderId);
+  const ordersMap = React.useMemo(() => {
+    const map = new Map<string, typeof orders[0]>();
+    orders.forEach(o => map.set(o.id, o));
+    return map;
+  }, [orders]);
+
+  const orderToEdit = React.useMemo(() => {
+    return editingOrderId ? ordersMap.get(editingOrderId) : undefined;
+  }, [ordersMap, editingOrderId]);
 
   return (
     <div className="p-2 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
@@ -672,7 +757,7 @@ export const CajaView: React.FC = () => {
           products={products}
           currentMenu={currentMenu.filter(m => m.fecha === selectedDate)}
           mesaId={orderToEdit.mesaId}
-          mesaName={mesas.find(m => m.id === orderToEdit.mesaId)?.nombre || orderToEdit.mesaId}
+          mesaName={mesasMap.get(orderToEdit.mesaId)?.nombre || orderToEdit.mesaId}
           initialClienteName={orderToEdit.cliente}
           mesas={mesas}
           initialItems={orderToEdit.items}
@@ -1232,27 +1317,28 @@ export const CajaView: React.FC = () => {
                   </div>
 
                   {/* Payment Modality Buttons */}
-                  <div className="bg-slate-50/50 p-3 rounded-[24px] border border-slate-100 space-y-2.5">
+                  <div className="bg-slate-50/50 p-2.5 rounded-[24px] border border-slate-100 space-y-2.5">
                     <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-[0.2em] block px-1">
                       Modalidad de Cobro/Pago
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5">
                       {[
                         { id: 'COMPLETO', label: 'Completo', desc: 'Pago total' },
-                        { id: 'EQUITATIVO', label: 'Equitativo', desc: 'Dividir por partes' },
-                        { id: 'POR_PLATO', label: 'Por Plato', desc: 'Suma de platos' }
+                        { id: 'EQUITATIVO', label: 'Equitativo', desc: 'Dividir partes' },
+                        { id: 'POR_PLATO', label: 'Por Plato', desc: 'Suma platos' },
+                        { id: 'PERSONALIZADO', label: 'Monto Libre', desc: 'Monto mixto' }
                       ].map((mod) => (
                         <button
                           key={mod.id}
                           onClick={() => setLiquidationModality(mod.id as any)}
-                          className={`p-3 md:p-3.5 rounded-xl md:rounded-2xl border-2 flex flex-col items-center justify-center text-center transition-all active:scale-95 duration-150 cursor-pointer ${
+                          className={`p-2.5 rounded-[18px] border-2 flex flex-col items-center justify-center text-center transition-all active:scale-95 duration-150 cursor-pointer ${
                             liquidationModality === mod.id
                               ? 'bg-brand-600 border-brand-500 text-white shadow-md shadow-brand-100/30'
                               : 'bg-white border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-brand-50/10'
                           }`}
                         >
-                          <span className="text-[10px] font-black uppercase tracking-wider leading-none mb-1.5">{mod.label}</span>
-                          <span className={`text-[7px] font-black uppercase tracking-widest leading-none ${liquidationModality === mod.id ? 'text-brand-100' : 'text-slate-450'}`}>
+                          <span className="text-[9px] font-black uppercase tracking-tight leading-none mb-1.5 truncate w-full">{mod.label}</span>
+                          <span className={`text-[6.5px] font-black uppercase tracking-widest leading-none truncate w-full ${liquidationModality === mod.id ? 'text-brand-100' : 'text-slate-450'}`}>
                             {mod.desc}
                           </span>
                         </button>
@@ -1289,7 +1375,7 @@ export const CajaView: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1">
                           <button
-                            onClick={() => setLiquidationSplitCount(prev => Math.max(2, prev - 1))}
+                            onClick={() => setLiquidationSplitCount(prev => Math.max(1, prev - 1))}
                             className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-150 font-bold hover:bg-slate-100 flex items-center justify-center text-slate-700 active:scale-90 cursor-pointer"
                           >
                             -
@@ -1395,6 +1481,47 @@ export const CajaView: React.FC = () => {
                     </div>
                   )}
 
+                  {liquidationModality === 'PERSONALIZADO' && (
+                    <div className="bg-brand-50/30 border border-brand-100 p-4 rounded-[20px] space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 shrink-0">
+                          <Coins className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-brand-700 uppercase tracking-widest">MONTO LIBRE / MIXTO</p>
+                          <p className="text-[9.5px] font-black text-slate-400 tracking-wide mt-0.5 uppercase">Abona un monto a elección</p>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">S/</span>
+                        <input
+                          type="number"
+                          step="0.10"
+                          placeholder="0.00"
+                          className="w-full bg-white border-2 border-slate-200 rounded-xl py-2.5 pl-8 pr-3 text-lg font-black outline-none focus:border-brand-500 transition-all text-slate-800 text-left"
+                          value={liquidationCustomAmount}
+                          onChange={(e) => setLiquidationCustomAmount(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-1.5">
+                        {[0.25, 0.5, 0.75].map((pct) => {
+                          const amt = (liquidationBalance * pct).toFixed(2);
+                          return (
+                            <button
+                              key={pct}
+                              onClick={() => setLiquidationCustomAmount(amt)}
+                              className="px-2 py-1.5 bg-white hover:bg-slate-50 text-[9px] text-slate-600 font-bold border border-slate-200 rounded-lg grow shadow-sm cursor-pointer transition-colors"
+                            >
+                              {(pct * 100)}% (S/ {amt})
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Consumo total summary table */}
                   <div className="border border-slate-100 rounded-[20px] p-4 bg-slate-50/50">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estado de la cuenta completa</p>
@@ -1407,6 +1534,26 @@ export const CajaView: React.FC = () => {
                         <span>Abonos / Pagos registrados:</span>
                         <span className="text-emerald-600 font-bold font-mono">- S/ {liquidationTotalPaid.toFixed(2)}</span>
                       </div>
+
+                      {/* Breakdown of split payments for high transparency */}
+                      {liquidationOrder.pagos && liquidationOrder.pagos.length > 0 && (
+                        <div className="bg-slate-100/65 rounded-xl p-2.5 space-y-1.5 text-[10.5px] border border-slate-200/40">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Historial de Transacciones:</p>
+                          {liquidationOrder.pagos.map((p, pIdx) => (
+                            <div key={pIdx} className="flex justify-between items-center text-slate-650 font-mono tracking-tight leading-none">
+                              <span className="capitalize font-bold flex items-center gap-1">
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  p.metodo === 'EFECTIVO' ? 'bg-emerald-500' :
+                                  p.metodo === 'YAPE' ? 'bg-brand-500' :
+                                  p.metodo === 'PLIN' ? 'bg-cyan-500' : 'bg-amber-500'
+                                }`} />
+                                Pago {pIdx + 1} ({p.metodo.toLowerCase()})
+                              </span>
+                              <span className="font-bold">S/ {p.monto.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex justify-between text-slate-800 pt-1.5 text-sm font-black uppercase">
                         <span>Saldo Pendiente Actual:</span>
                         <span className="font-mono text-emerald-700 font-bold">S/ {liquidationBalance.toFixed(2)}</span>

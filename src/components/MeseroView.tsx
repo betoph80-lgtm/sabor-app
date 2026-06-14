@@ -16,6 +16,18 @@ export const MeseroView: React.FC = () => {
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
+  const productsMap = React.useMemo(() => {
+    const map = new Map<string, typeof products[0]>();
+    products.forEach(p => map.set(p.id, p));
+    return map;
+  }, [products]);
+
+  const mesasMap = React.useMemo(() => {
+    const map = new Map<string, typeof mesas[0]>();
+    mesas.forEach(m => map.set(m.id, m));
+    return map;
+  }, [mesas]);
+
   const isCashClosed = cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
 
   const sortedMesas = [...mesas].sort((a, b) => {
@@ -119,12 +131,12 @@ export const MeseroView: React.FC = () => {
             >
               {isOccupied ? (() => {
                 const soupItems = activeOrder?.items.filter(item => {
-                  const p = products.find(prod => prod.id === item.productoId);
+                  const p = productsMap.get(item.productoId);
                   return p?.tipo === 'SOPA' || p?.categoria === 'SOPA';
                 }) || [];
 
                 const segundoItems = activeOrder?.items.filter(item => {
-                  const p = products.find(prod => prod.id === item.productoId);
+                  const p = productsMap.get(item.productoId);
                   return p?.tipo === 'SEGUNDO' || p?.categoria === 'MENÚ' && p?.tipo !== 'SOPA';
                 }) || [];
 
@@ -162,7 +174,7 @@ export const MeseroView: React.FC = () => {
 
                     {/* Integrated list of Sopas and Segundos with status */}
                     <div className="w-full flex flex-col justify-center space-y-0.5 overflow-hidden border-t border-rose-200/50 pt-1">
-                      {totalSopas > 0 && (
+                       {totalSopas > 0 && (
                         <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
                           areAllSopasServidas ? 'text-emerald-700 bg-emerald-100/50 rounded py-0.5 px-1' : 'text-slate-800'
                         }`}>
@@ -191,7 +203,7 @@ export const MeseroView: React.FC = () => {
                         </div>
                       )}
                       {activeOrder?.items.some(item => {
-                        const p = products.find(prod => prod.id === item.productoId);
+                        const p = productsMap.get(item.productoId);
                         return p?.tipo !== 'SOPA' && p?.tipo !== 'SEGUNDO' && p?.categoria !== 'MENÚ';
                       }) && (
                         <div className="text-[5px] xs:text-[6.0px] md:text-[6.5px] font-bold text-slate-400 text-center leading-none mt-0.5 uppercase">
@@ -251,11 +263,11 @@ export const MeseroView: React.FC = () => {
                   <div className="relative z-10 flex justify-between items-start">
                     <div className="flex items-center gap-3 md:gap-6">
                       <div className="w-12 h-12 md:w-20 md:h-20 bg-brand-600 text-white rounded-xl md:rounded-[26px] flex items-center justify-center text-xl md:text-3xl font-display font-bold shadow-xl shadow-brand-100">
-                        {getMesaLabel(mesas.find(m => m.id === selectedMesa) || { id: selectedMesa, nombre: selectedMesa, estado: 'LIBRE' } as Mesa)}
+                        {getMesaLabel(mesasMap.get(selectedMesa!) || { id: selectedMesa, nombre: selectedMesa, estado: 'LIBRE' } as Mesa)}
                       </div>
                       <div>
                         <h2 className="text-lg md:text-2xl font-display font-bold text-brand-500 leading-tight">
-                          {mesas.find(m => m.id === selectedMesa)?.nombre || selectedMesa}
+                          {mesasMap.get(selectedMesa!)?.nombre || selectedMesa}
                           {mesaOrders.length > 1 && <span className="ml-2">- Pedido #{orderIdx + 1}</span>}
                         </h2>
                       </div>
@@ -264,7 +276,7 @@ export const MeseroView: React.FC = () => {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-4">
                     {activeOrder.items.map((item) => {
-                      const product = products.find(p => p.id === item.productoId);
+                      const product = productsMap.get(item.productoId);
                       const isServed = item.estado === 'SERVIDO';
 
                       return (
@@ -376,7 +388,7 @@ export const MeseroView: React.FC = () => {
           products={products}
           currentMenu={currentMenu.filter(m => m.fecha === selectedDate)}
           mesaId={selectedMesa || ''}
-          mesaName={mesas.find(m => m.id === selectedMesa)?.nombre || ''}
+          mesaName={mesasMap.get(selectedMesa || '')?.nombre || ''}
         />
       )}
     </div>

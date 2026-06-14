@@ -214,30 +214,7 @@ const AppContent = () => {
       {activeView === 'CAJA' && <CajaView />}
       {activeView === 'CUENTAS' && <CustomersView />}
       {activeView === 'ADMIN' && (
-        <div className="flex flex-col items-center justify-start p-4 md:p-8 space-y-8 min-h-full">
-          <div className="text-center space-y-3.5">
-            <div className="w-20 h-20 bg-white rounded-[28px] flex items-center justify-center shadow-md shadow-slate-100/50 border border-slate-150 p-2 mx-auto overflow-hidden">
-               <img 
-                 src={identity?.logoUrl?.trim() ? identity.logoUrl : "/logo.png"} 
-                 alt="Logo Establecimiento" 
-                 className="w-full h-full object-contain"
-                 onError={(e) => {
-                   e.currentTarget.src = 'https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg';
-                 }}
-               />
-            </div>
-            <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-display font-black text-slate-900 tracking-tight leading-none">
-                {identity?.nombre || 'Gestión del Establecimiento'}
-              </h2>
-              {identity?.eslogan && identity.eslogan.trim() !== '' && identity.eslogan.trim() !== '-' && (
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1.5">
-                  {identity.eslogan}
-                </p>
-              )}
-            </div>
-          </div>
-          
+        <div className="flex flex-col items-center justify-start p-4 md:p-8 space-y-8 min-h-full w-full">
           <AdminPanel />
         </div>
       )}
