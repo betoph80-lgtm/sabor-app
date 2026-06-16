@@ -777,11 +777,11 @@ export const CajaView: React.FC = () => {
         </div>
         
         {currentUser?.role === 'ADMIN' && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white border border-slate-900 p-3.5 rounded-3xl w-full lg:w-auto shadow-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white border border-slate-200/80 p-3.5 rounded-3xl w-full lg:w-auto shadow-md shadow-brand-100/5 hover:border-brand-100 transition-all">
             <div className="grid grid-cols-2 gap-3 shrink-0">
               <div className="flex flex-col gap-1">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1 select-none">DESDE</span>
-                <div className="relative flex items-center justify-between bg-white border border-slate-900 px-3.5 py-1.5 rounded-xl h-[42px] hover:border-slate-800 transition-all cursor-pointer">
+                <div className="relative flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 h-[42px] hover:border-brand-300 hover:bg-brand-50/5 transition-all cursor-pointer">
                   <span className="text-[11px] md:text-sm font-sans font-black text-slate-900 select-none">
                     {(() => {
                       if (!desdeDate) return '';
@@ -789,7 +789,7 @@ export const CajaView: React.FC = () => {
                       return `${d}/${m}/${y}`;
                     })()}
                   </span>
-                  <Calendar className="w-4 h-4 text-slate-700 shrink-0 ml-1.5" />
+                  <Calendar className="w-4 h-4 text-slate-400 shrink-0 ml-1.5" />
                   <input 
                     type="date"
                     value={desdeDate}
@@ -800,7 +800,7 @@ export const CajaView: React.FC = () => {
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1 select-none">HASTA</span>
-                <div className="relative flex items-center justify-between bg-white border border-slate-900 px-3.5 py-1.5 rounded-xl h-[42px] hover:border-slate-800 transition-all cursor-pointer">
+                <div className="relative flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 h-[42px] hover:border-brand-300 hover:bg-brand-50/5 transition-all cursor-pointer">
                   <span className="text-[11px] md:text-sm font-sans font-black text-slate-900 select-none">
                     {(() => {
                       if (!hastaDate) return '';
@@ -808,7 +808,7 @@ export const CajaView: React.FC = () => {
                       return `${d}/${m}/${y}`;
                     })()}
                   </span>
-                  <Calendar className="w-4 h-4 text-slate-700 shrink-0 ml-1.5" />
+                  <Calendar className="w-4 h-4 text-slate-400 shrink-0 ml-1.5" />
                   <input 
                     type="date"
                     value={hastaDate}

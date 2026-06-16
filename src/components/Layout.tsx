@@ -219,7 +219,72 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </nav>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Main Content */}
+        {/* Left Sidebar for Desktop (PC) */}
+        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-violet-100 p-5 shrink-0 h-full relative justify-between select-none shadow-[4px_0_15px_rgba(159,103,255,0.015)] z-10">
+          {/* Navigation Items */}
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-3 px-3">
+              Módulos Activos
+            </div>
+            
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveView(item.id as any)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full ${
+                    isActive 
+                      ? 'bg-violet-600 text-white shadow-md shadow-violet-200/50' 
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em]">{item.label}</span>
+                  {!isActive && (
+                    <span className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sidebar Footer Info Card */}
+          <div className="bg-gradient-to-br from-violet-50/70 to-white border border-violet-100/85 p-4 rounded-3xl shadow-sm space-y-3.5 mt-5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-violet-100 text-violet-700 rounded-xl flex items-center justify-center shrink-0">
+                <ChefHat className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[8.5px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
+                <p className="text-[11.5px] font-bold text-violet-800 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 border-t border-violet-100/55 pt-3">
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-slate-500 font-medium">Pedidos Abiertos</span>
+                <span className="font-extrabold text-slate-800 bg-violet-100/60 px-2 py-0.5 rounded-lg text-[9.5px]">
+                  {activeOrdersCount}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-slate-500 font-medium">Caja General</span>
+                <span className="font-extrabold text-emerald-600">
+                  S/ {cajaTotalGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-violet-50">
+              <span>Sabor Abanquino</span>
+              <span>v 2.5.0</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
         <main className="flex-1 flex flex-col overflow-hidden bg-slate-50 relative">
           <div className="flex-1 overflow-auto no-scrollbar">
             <AnimatePresence mode="wait">
@@ -236,7 +301,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </AnimatePresence>
           </div>
 
-          {/* Mobile Bottom Navigation */}
+          {/* Mobile Bottom Navigation (Only visible on screens smaller than lg) */}
           <nav className="lg:hidden bg-white border-t border-slate-200 flex justify-around items-center px-2 py-2 shrink-0 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -261,30 +326,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               );
             })}
           </nav>
-          
-          <div className="hidden lg:flex flex-row justify-center gap-2.5 bg-white/70 backdrop-blur-xl py-2.5 px-6 rounded-full border border-violet-100 shadow-[0_16px_40px_-10px_rgba(106,56,212,0.12)] max-w-fit mx-auto mb-6 mt-1 scale-100 hover:scale-[1.01] transition-all duration-300">
-             {navigation.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveView(item.id as any)}
-                    className={`flex items-center gap-2.5 px-6 py-2.5 rounded-full transition-all duration-300 font-medium relative overflow-hidden group ${
-                      isActive 
-                        ? 'bg-violet-600 text-white shadow-md shadow-violet-200/80' 
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{item.label}</span>
-                    {!isActive && (
-                      <span className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full" />
-                    )}
-                  </button>
-                );
-             })}
-          </div>
         </main>
       </div>
 
