@@ -25,7 +25,7 @@ export const CustomersView: React.FC = () => {
   const selectedDateVal = toSortableDate(selectedDate);
 
   const getCustomerSaldoAtDate = (customer: Customer) => {
-    return customer.historial.reduce((acc, tx) => {
+    return (customer.historial || []).reduce((acc, tx) => {
       if (toSortableDate(tx.fecha) <= selectedDateVal) {
         return acc + tx.monto;
       }
@@ -33,7 +33,7 @@ export const CustomersView: React.FC = () => {
     }, 0);
   };
 
-  const filteredCustomers = customers.filter(c => 
+  const filteredCustomers = (customers || []).filter(c => 
     c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.documento?.includes(searchTerm)
   );

@@ -13,16 +13,18 @@ import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
 import LoginView from './components/LoginView.tsx';
 import { 
-  BarChart3, X, Utensils, Tag, Tags, Users, Compass, Settings 
+  BarChart3, X, Utensils, Tag, Tags, Users, Compass, Settings, LayoutDashboard, FileText 
 } from 'lucide-react';
 
 // Modular Admin Tab Components
+import AdminDashboardView from './components/AdminDashboardView.tsx';
 import AdminServicioView from './components/AdminServicioView.tsx';
 import AdminProductosView from './components/AdminProductosView.tsx';
 import AdminCategoriasView from './components/AdminCategoriasView.tsx';
 import AdminUsuariosView from './components/AdminUsuariosView.tsx';
 import AdminMesasView from './components/AdminMesasView.tsx';
 import AdminIdentidadView from './components/AdminIdentidadView.tsx';
+import AdminReportesView from './components/AdminReportesView.tsx';
 
 const AdminPanel = () => {
   const { selectedDate, orders, customers, products, adminSubView, setAdminSubView } = useApp();
@@ -30,12 +32,14 @@ const AdminPanel = () => {
 
   // Tab configuration with matching icons and premium labels
   const tabs = [
+    { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'PANEL', label: 'Servicio', icon: Utensils },
     { id: 'PRODUCTOS', label: 'Productos', icon: Tag },
     { id: 'CATEGORIAS', label: 'Categorías', icon: Tags },
     { id: 'USUARIOS', label: 'Personal', icon: Users },
     { id: 'MESAS', label: 'Mesas', icon: Compass },
     { id: 'IDENTIDAD', label: 'Identidad', icon: Settings },
+    { id: 'REPORTES', label: 'Reportes', icon: FileText },
   ] as const;
 
   return (
@@ -65,12 +69,14 @@ const AdminPanel = () => {
 
         {/* Dynamic Admin Sub-Views Router */}
         <div className="mt-8">
+          {adminSubView === 'DASHBOARD' && <AdminDashboardView />}
           {adminSubView === 'PANEL' && <AdminServicioView setShowReport={setShowReport} />}
           {adminSubView === 'PRODUCTOS' && <AdminProductosView />}
           {adminSubView === 'CATEGORIAS' && <AdminCategoriasView />}
           {adminSubView === 'USUARIOS' && <AdminUsuariosView />}
           {adminSubView === 'MESAS' && <AdminMesasView />}
           {adminSubView === 'IDENTIDAD' && <AdminIdentidadView />}
+          {adminSubView === 'REPORTES' && <AdminReportesView />}
         </div>
       </div>
 

@@ -9,12 +9,16 @@ import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Mea
 import { motion } from 'motion/react';
 import { OrderItem, ItemStatus, Mesa } from '../types';
 import { OrderModal } from './OrderModal.tsx';
+import { PaymentModal } from './PaymentModal.tsx';
 import { OrderTimer } from './OrderTimer.tsx';
 
 export const MeseroView: React.FC = () => {
   const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, cashControls, currentUser } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [paymentOrderId, setPaymentOrderId] = useState<string | null>(null);
+
+  const isCajaOrAdmin = currentUser?.role === 'CAJA' || currentUser?.role === 'ADMIN';
 
   const productsMap = React.useMemo(() => {
     const map = new Map<string, typeof products[0]>();
@@ -116,6 +120,8 @@ export const MeseroView: React.FC = () => {
                 setSelectedMesa(mesa.id);
                 if (!isOccupied || mesa.id === '13') {
                   setShowOrderModal(true);
+                } else if (isCajaOrAdmin && activeOrder) {
+                  setPaymentOrderId(activeOrder.id);
                 }
               }}
               disabled={isCashClosed}
@@ -130,21 +136,7 @@ export const MeseroView: React.FC = () => {
               }`}
             >
               {isOccupied ? (() => {
-                const soupItems = activeOrder?.items.filter(item => {
-                  const p = productsMap.get(item.productoId);
-                  return p?.tipo === 'SOPA' || p?.categoria === 'SOPA';
-                }) || [];
-
-                const segundoItems = activeOrder?.items.filter(item => {
-                  const p = productsMap.get(item.productoId);
-                  return p?.tipo === 'SEGUNDO' || p?.categoria === 'MENÚ' && p?.tipo !== 'SOPA';
-                }) || [];
-
-                const totalSopas = soupItems.reduce((acc, item) => acc + item.cantidad, 0);
-                const totalSegundos = segundoItems.reduce((acc, item) => acc + item.cantidad, 0);
-
-                const areAllSopasServidas = soupItems.length > 0 && soupItems.every(item => item.estado === 'SERVIDO');
-                const areAllSegundosServidos = segundoItems.length > 0 && segundoItems.every(item => item.estado === 'SERVIDO');
+                const totalMesaMonto = allMesaActiveOrders.reduce((acc, o) => acc + o.total, 0);
 
                 return (
                   <div className="w-full h-full flex flex-col justify-between text-center overflow-hidden">
@@ -174,52 +166,13 @@ export const MeseroView: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Integrated list of Sopas and Segundos with status */}
-                    <div className={`w-full flex flex-col justify-center space-y-0.5 overflow-hidden border-t pt-1 ${
-                      mesa.id === '13' ? 'border-brand-400/40' : 'border-rose-400/40'
-                    }`}>
-                       {totalSopas > 0 && (
-                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-1 py-0.5 rounded ${
-                          areAllSopasServidas 
-                            ? 'text-emerald-950 bg-emerald-300' 
-                            : mesa.id === '13' ? 'text-white bg-brand-600/70' : 'text-white bg-rose-600/70'
-                        }`}>
-                          <span className="uppercase text-left truncate font-sans">
-                            {totalSopas}X SOPAS
-                          </span>
-                          {areAllSopasServidas ? (
-                            <span className="text-emerald-900 font-extrabold text-[6px] xs:text-[7px]">✓</span>
-                          ) : (
-                            <span className={`font-bold text-[5px] xs:text-[6px] md:text-[7px] ${mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'}`}>Pend.</span>
-                          )}
-                        </div>
-                      )}
-                      {totalSegundos > 0 && (
-                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-1 py-0.5 rounded ${
-                          areAllSegundosServidos 
-                            ? 'text-emerald-950 bg-emerald-300' 
-                            : mesa.id === '13' ? 'text-white bg-brand-600/70' : 'text-white bg-rose-600/70'
-                        }`}>
-                          <span className="uppercase text-left truncate font-sans">
-                            {totalSegundos}X SEGUNDOS
-                          </span>
-                          {areAllSegundosServidos ? (
-                            <span className="text-emerald-900 font-extrabold text-[6px] xs:text-[7px]">✓</span>
-                          ) : (
-                            <span className={`font-bold text-[5px] xs:text-[6px] md:text-[7px] ${mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'}`}>Pend.</span>
-                          )}
-                        </div>
-                      )}
-                      {activeOrder?.items.some(item => {
-                        const p = productsMap.get(item.productoId);
-                        return p?.tipo !== 'SOPA' && p?.tipo !== 'SEGUNDO' && p?.categoria !== 'MENÚ';
-                      }) && (
-                        <div className={`text-[5px] xs:text-[6.0px] md:text-[6.5px] font-bold text-center leading-none mt-0.5 uppercase ${
-                          mesa.id === '13' ? 'text-brand-200' : 'text-rose-200'
-                        }`}>
-                          + OTROS
-                        </div>
-                      )}
+                    {/* Order Amount display */}
+                    <div className={`w-full flex items-center justify-center py-1 px-1 border-t ${
+                      mesa.id === '13' ? 'border-brand-400/40 bg-brand-600/50' : 'border-rose-400/40 bg-rose-600/50'
+                    } rounded-xl`}>
+                      <span className="font-display font-black text-xs xs:text-sm md:text-base text-white tracking-tight leading-none drop-shadow-xs">
+                        S/ {totalMesaMonto.toFixed(2)}
+                      </span>
                     </div>
 
                     {/* Footer - who took the order */}
@@ -361,7 +314,14 @@ export const MeseroView: React.FC = () => {
                         Añadir
                       </button>
                       <button
-                        className="flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-brand-600 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-brand-700 transition-all soft-shadow active:scale-95"
+                        onClick={() => {
+                          if (isCashClosed) return;
+                          setPaymentOrderId(activeOrder.id);
+                        }}
+                        disabled={isCashClosed}
+                        className={`flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-brand-600 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-brand-700 transition-all soft-shadow active:scale-95 cursor-pointer ${
+                          isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
                         Pagar
                       </button>
@@ -380,6 +340,14 @@ export const MeseroView: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Payment Modal */}
+      {paymentOrderId && (
+        <PaymentModal
+          orderId={paymentOrderId}
+          onClose={() => setPaymentOrderId(null)}
+        />
       )}
 
       {/* New Order Modal */}

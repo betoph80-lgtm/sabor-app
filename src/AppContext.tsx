@@ -397,31 +397,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const createOrder = async (mesaId: string, cliente: string, itemData: Partial<OrderItem>[]) => {
     // Check if cash is closed
     const cashStatus = cashControls.find(c => c.fecha === selectedDate);
-    if (cashStatus?.estado === 'CERRADO') {
+    if (cashStatus?.estado === 'CERRADO' || cashStatus?.estado === 'CERRADA') {
       alert('La caja del día está cerrada. No se pueden realizar nuevos pedidos.');
       return;
     }
 
+    if (!itemData || itemData.length === 0) {
+      alert('Debe seleccionar al menos un producto para registrar el pedido.');
+      return;
+    }
+
     try {
+      const cleanCliente = (cliente && cliente.trim()) ? cliente.trim() : 'Cliente';
+
       await runTransaction(db, async (transaction) => {
+        // READ 1: Mesa
         const mesaRef = doc(db, 'mesas', mesaId);
         const mesaSnap = await transaction.get(mesaRef);
-        
-        if (mesaSnap.exists()) {
-          const mesaData = mesaSnap.data() as Mesa;
-          if (mesaData.estado === 'OCUPADA' && mesaId !== '13') {
-            throw new Error('MESA_OCUPADA');
-          }
+
+        // Check if there is ALREADY an active open order for today on this mesa
+        const hasActiveOrderToday = orders.some(
+          o => o.mesaId === mesaId && o.estado === 'ABIERTO' && o.fecha === selectedDate
+        );
+
+        if (hasActiveOrderToday && mesaId !== '13') {
+          throw new Error('MESA_OCUPADA');
         }
 
+        // READ 2: Next unique order ID
         const dailyOrders = orders.filter(o => o.fecha === selectedDate);
         const lastNum = dailyOrders.reduce((max, o) => {
           const parts = o.id.split('-');
           const num = parseInt(parts[1]);
           return isNaN(num) ? max : Math.max(max, num);
         }, 0);
-        const orderId = `PEDIDO-${(lastNum + 1).toString().padStart(3, '0')}`;
 
+        let num = lastNum + 1;
+        let orderId = `PEDIDO-${num.toString().padStart(3, '0')}`;
+        let orderRef = doc(db, 'pedidos', orderId);
+        let orderSnap = await transaction.get(orderRef);
+        while (orderSnap.exists()) {
+          num++;
+          orderId = `PEDIDO-${num.toString().padStart(3, '0')}`;
+          orderRef = doc(db, 'pedidos', orderId);
+          orderSnap = await transaction.get(orderRef);
+        }
+
+        // Prepare new items
         const newItems: OrderItem[] = itemData.map(item => {
           const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
           const precioUnitario = menuI && menuI.precioPersonalizado !== undefined 
@@ -442,12 +464,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         });
 
+        // READ 3: Read stock for menu_diario items BEFORE any writes
+        const menuEntries: { menuI: MenuItem; snap: any; ref: any }[] = [];
+        for (const item of newItems) {
+          const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
+          if (menuI) {
+            const mRef = doc(db, 'menu_diario', menuI.id);
+            const mSnap = await transaction.get(mRef);
+            menuEntries.push({ menuI, snap: mSnap, ref: mRef });
+          }
+        }
+
+        // Verify stock from fresh transaction reads
+        for (const item of newItems) {
+          const entry = menuEntries.find(m => m.menuI.productoId === item.productoId);
+          if (entry && entry.snap.exists()) {
+            const menuData = entry.snap.data() as MenuItem;
+            const availableStock = menuData.stockActual !== undefined ? menuData.stockActual : entry.menuI.stockActual;
+            if (availableStock < item.cantidad) {
+              const pName = products.find(p => p.id === item.productoId)?.nombre || 'Producto';
+              throw new Error(`STOCK_INSUFICIENTE:${pName}:${availableStock}`);
+            }
+          }
+        }
+
         const total = newItems.reduce((acc, current) => acc + (current.precioUnitario * current.cantidad), 0);
 
         const newOrder: Order = {
           id: orderId,
           mesaId,
-          cliente,
+          cliente: cleanCliente,
           items: newItems,
           estado: 'ABIERTO',
           total,
@@ -459,30 +505,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           timestamp: Date.now()
         };
 
-        // Update stock and mark mesa
-        transaction.set(doc(db, 'pedidos', orderId), newOrder);
-        transaction.update(mesaRef, { estado: 'OCUPADA' });
+        // WRITES START HERE (Strictly after all reads complete)
+        transaction.set(orderRef, newOrder);
+        if (mesaSnap.exists()) {
+          transaction.update(mesaRef, { estado: 'OCUPADA' });
+        }
 
-        // Stock deduction with validation
-        for (const item of newItems) {
-          const menuI = currentMenu.find(m => m.productoId === item.productoId && m.fecha === selectedDate);
-          if (menuI) {
-            if (menuI.stockActual < item.cantidad) {
-              const pName = products.find(p => p.id === item.productoId)?.nombre || 'Producto';
-              throw new Error(`STOCK_INSUFICIENTE:${pName}:${menuI.stockActual}`);
-            }
-            transaction.update(doc(db, 'menu_diario', menuI.id), {
-              stockActual: Math.max(0, menuI.stockActual - item.cantidad)
+        for (const entry of menuEntries) {
+          const item = newItems.find(i => i.productoId === entry.menuI.productoId);
+          if (item) {
+            const currentStock = entry.snap.exists() ? (entry.snap.data().stockActual ?? entry.menuI.stockActual) : entry.menuI.stockActual;
+            transaction.update(entry.ref, {
+              stockActual: Math.max(0, currentStock - item.cantidad)
             });
           }
         }
       });
     } catch (error: any) {
       if (error.message === 'MESA_OCUPADA') {
-        alert('¡ATENCIÓN! Esta mesa ya fue ocupada por otro mesero.');
+        alert('¡ATENCIÓN! Esta mesa ya tiene un pedido activo.');
       } else if (error.message && error.message.startsWith('STOCK_INSUFICIENTE')) {
         const [_, pName, stock] = error.message.split(':');
-        alert(`¡ATENCIÓN! No hay stock suficiente del producto "${pName}". Stock actual disponible: ${stock}`);
+        alert(`¡ATENCIÓN! No hay stock suficiente del producto "${pName}". Stock disponible: ${stock}`);
       } else {
         handleFirestoreError(error, OperationType.CREATE, 'pedidos');
       }

@@ -120,6 +120,11 @@ export const OrderModal: React.FC<{
           notas: notes[id] || ''
         }));
 
+      if (items.length === 0) {
+        alert('Debe seleccionar al menos un producto para registrar el pedido.');
+        return;
+      }
+
       // Real-time stock verification inside modal
       const insufficientStock: string[] = [];
       for (const item of items) {
@@ -196,6 +201,27 @@ export const OrderModal: React.FC<{
             : 'bg-slate-50/60 border-slate-100/50 hover:bg-slate-100/50 hover:border-slate-200/60'
         }`}
       >
+        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden shrink-0 flex items-center justify-center relative">
+          {p.imagen ? (
+            <img 
+              src={p.imagen} 
+              alt={p.nombre} 
+              className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center text-[10px] font-black ${
+              p.categoria === 'MENÚ' ? 'bg-brand-100 text-brand-700' :
+              p.categoria === 'EXTRA' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {p.categoria[0]}
+            </div>
+          )}
+        </div>
+
         <div className="flex-1 min-w-0 pr-1 flex items-center justify-between gap-1.5 sm:gap-2">
           <div>
             <div className={`font-display font-bold text-xs uppercase tracking-tight truncate transition-colors duration-200 ${

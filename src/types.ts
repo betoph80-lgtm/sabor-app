@@ -12,7 +12,7 @@ export interface AppIdentity {
 
 export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA' | 'PEDIDOS' | 'CUENTAS';
 
-export type AdminSubView = 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD';
+export type AdminSubView = 'DASHBOARD' | 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD' | 'REPORTES';
 
 export interface AppUser {
   id: string;
@@ -146,15 +146,15 @@ export interface Mesa {
 }
 
 export const PRODUCTOS_BASE: Product[] = [
-  { id: 's1', nombre: 'Sopa del Día', categoria: 'MENÚ', tipo: 'SOPA', precio: 0 },
-  { id: 'm1', nombre: 'Lomo Saltado', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 },
-  { id: 'm2', nombre: 'Pollo al Horno', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 },
-  { id: 'm3', nombre: 'Ceviche', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 },
-  { id: 'm4', nombre: 'Seco de Res', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 },
-  { id: 'e1', nombre: 'Chicharrón de Cerdo', categoria: 'EXTRA', precio: 20 },
+  { id: 's1', nombre: 'Sopa del Día', categoria: 'MENÚ', tipo: 'SOPA', precio: 0, imagen: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&auto=format&fit=crop&q=80' },
+  { id: 'm1', nombre: 'Lomo Saltado', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9, imagen: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80' },
+  { id: 'm2', nombre: 'Pollo al Horno', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9, imagen: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=400&auto=format&fit=crop&q=80' },
+  { id: 'm3', nombre: 'Ceviche', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9, imagen: 'https://images.unsplash.com/photo-1535399831218-d5bd36d1a6b3?w=400&auto=format&fit=crop&q=80' },
+  { id: 'm4', nombre: 'Seco de Res', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9, imagen: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80' },
+  { id: 'e1', nombre: 'Chicharrón de Cerdo', categoria: 'EXTRA', precio: 20, imagen: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80' },
   { id: 'e2', nombre: 'Cuy al Horno', categoria: 'EXTRA', precio: 25 },
-  { id: 'b1', nombre: 'Inca Kola 500ml', categoria: 'BEBIDA', precio: 3.5 },
-  { id: 'b2', nombre: 'Chicha Morada Jarra', categoria: 'BEBIDA', precio: 10 },
+  { id: 'b1', nombre: 'Inca Kola 500ml', categoria: 'BEBIDA', precio: 3.5, imagen: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&auto=format&fit=crop&q=80' },
+  { id: 'b2', nombre: 'Chicha Morada Jarra', categoria: 'BEBIDA', precio: 10, imagen: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&auto=format&fit=crop&q=80' },
 ];
 
 export const MESAS: Mesa[] = Array.from({ length: 12 }, (_, i) => ({

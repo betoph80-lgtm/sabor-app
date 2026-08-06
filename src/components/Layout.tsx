@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -231,12 +231,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               const isNavAdmin = item.id === 'ADMIN';
 
               const adminSubModules = [
+                { id: 'DASHBOARD' as const, label: 'Dashboard', icon: LayoutDashboard },
                 { id: 'PANEL' as const, label: 'Servicio', icon: Utensils },
                 { id: 'PRODUCTOS' as const, label: 'Productos', icon: Tag },
                 { id: 'CATEGORIAS' as const, label: 'Categorías', icon: Tags },
                 { id: 'USUARIOS' as const, label: 'Personal', icon: UsersIcon },
                 { id: 'MESAS' as const, label: 'Mesas', icon: Compass },
                 { id: 'IDENTIDAD' as const, label: 'Identidad', icon: Settings },
+                { id: 'REPORTES' as const, label: 'Reportes', icon: FileText },
               ];
 
               return (

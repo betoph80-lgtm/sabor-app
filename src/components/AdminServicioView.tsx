@@ -67,11 +67,25 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 ${
-                          product.categoria === 'MENÚ' ? 'bg-brand-100 text-brand-700' :
-                          product.categoria === 'EXTRA' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {product.categoria[0]}
+                      <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden shrink-0 flex items-center justify-center relative">
+                        {product.imagen ? (
+                          <img 
+                            src={product.imagen} 
+                            alt={product.nombre} 
+                            className="w-full h-full object-cover" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className={`w-full h-full flex items-center justify-center text-[11px] font-black ${
+                              product.categoria === 'MENÚ' ? 'bg-brand-100 text-brand-700' :
+                              product.categoria === 'EXTRA' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {product.categoria[0]}
+                          </div>
+                        )}
                       </div>
                       <div className="min-w-0">
                           <p className={`font-black text-xs md:text-sm leading-tight truncate ${isInMenu ? 'text-brand-950' : 'text-slate-800'}`}>

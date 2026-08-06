@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Utensils, Plus, Edit3, Trash2, X, Settings } from 'lucide-react';
+import { Utensils, Plus, Edit3, Trash2, X, Settings, Image as ImageIcon, Upload, Link as LinkIcon, Sparkles } from 'lucide-react';
+
+const PRESET_FOOD_IMAGES = [
+  { label: 'Sopa', url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&auto=format&fit=crop&q=80' },
+  { label: 'Ceviche', url: 'https://images.unsplash.com/photo-1535399831218-d5bd36d1a6b3?w=400&auto=format&fit=crop&q=80' },
+  { label: 'Carne / Lomo', url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80' },
+  { label: 'Pollo', url: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=400&auto=format&fit=crop&q=80' },
+  { label: 'Bebida', url: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&auto=format&fit=crop&q=80' },
+  { label: 'Postre', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&auto=format&fit=crop&q=80' },
+];
 
 export default function AdminProductosView() {
   const {
@@ -8,7 +17,9 @@ export default function AdminProductosView() {
     categories, setAdminSubView
   } = useApp();
 
-  const [newProduct, setNewProduct] = useState({ nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9 });
+  const [newProduct, setNewProduct] = useState<{ nombre: string; categoria: string; tipo: string; precio: number; imagen?: string }>({ 
+    nombre: '', categoria: 'MENÚ', tipo: 'SEGUNDO', precio: 9, imagen: '' 
+  });
   const [activeCategory, setActiveCategory] = useState<string>('MENÚ');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
@@ -17,7 +28,7 @@ export default function AdminProductosView() {
   const openCreateModal = () => {
     setEditingId(null);
     setEditForm(null);
-    setNewProduct({ nombre: '', categoria: activeCategory, tipo: 'SEGUNDO', precio: activeCategory === 'MENÚ' ? 9 : 0 });
+    setNewProduct({ nombre: '', categoria: activeCategory, tipo: 'SEGUNDO', precio: activeCategory === 'MENÚ' ? 9 : 0, imagen: '' });
     setIsModalOpen(true);
   };
 
@@ -33,11 +44,30 @@ export default function AdminProductosView() {
     setEditForm(null);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('La imagen seleccionada supera el límite recomendado de 2MB. Selecciona una imagen más ligera.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64Url = reader.result as string;
+      if (isEdit && editForm) {
+        setEditForm({ ...editForm, imagen: base64Url });
+      } else {
+        setNewProduct({ ...newProduct, imagen: base64Url });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (newProduct.nombre.trim()) {
       addProduct(newProduct);
-      setNewProduct({ nombre: '', categoria: activeCategory, tipo: 'SEGUNDO', precio: activeCategory === 'MENÚ' ? 9 : newProduct.precio });
+      setNewProduct({ nombre: '', categoria: activeCategory, tipo: 'SEGUNDO', precio: activeCategory === 'MENÚ' ? 9 : newProduct.precio, imagen: '' });
       closeModal();
     }
   };
@@ -130,8 +160,25 @@ export default function AdminProductosView() {
                 return (
                   <div 
                     key={p.id} 
-                    className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-150/80 shadow-[0_2px_10px_rgba(0,0,0,0.015)] group hover:border-brand-300 hover:shadow-md transition-all duration-300"
+                    className="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-150/80 shadow-[0_2px_10px_rgba(0,0,0,0.015)] group hover:border-brand-300 hover:shadow-md transition-all duration-300 gap-3"
                   >
+                    {/* Thumbnail Image or Fallback */}
+                    <div className="w-13 h-13 rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden shrink-0 flex items-center justify-center relative">
+                      {p.imagen ? (
+                        <img 
+                          src={p.imagen} 
+                          alt={p.nombre} 
+                          className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <Utensils className="w-5 h-5 text-slate-300" />
+                      )}
+                    </div>
+
                     <div className="flex-1 min-w-0 text-left">
                       <p className="font-bold text-slate-800 text-xs md:text-sm truncate">{p.nombre}</p>
                       <div className="flex items-center gap-2 mt-1">
@@ -141,7 +188,8 @@ export default function AdminProductosView() {
                         <p className="text-[11px] font-black text-slate-700 font-mono">S/. {p.precio.toFixed(2)}</p>
                       </div>
                     </div>
-                    <div className="flex gap-1 shrink-0 pl-2">
+
+                    <div className="flex gap-1 shrink-0 pl-1">
                       <button 
                         onClick={() => startEdit(p)}
                         className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all cursor-pointer"
@@ -169,12 +217,12 @@ export default function AdminProductosView() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div 
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 relative animate-in zoom-in-95 duration-200"
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl border border-slate-100 space-y-6 relative animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={closeModal}
-              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer z-10"
             >
               <X className="w-5 h-5" />
             </button>
@@ -238,6 +286,88 @@ export default function AdminProductosView() {
                     </select>
                   </div>
                 )}
+
+                {/* REFERENTIAL IMAGE SECTION FOR EDIT */}
+                <div className="space-y-2.5 pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-brand-600" /> Imagen Referencial
+                    </label>
+                    {editForm.imagen && (
+                      <button 
+                        type="button" 
+                        onClick={() => setEditForm({ ...editForm, imagen: '' })}
+                        className="text-[9px] font-bold uppercase text-rose-500 hover:text-rose-700 cursor-pointer"
+                      >
+                        Quitar Imagen
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Image Preview Box if available */}
+                  {editForm.imagen ? (
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                      <img 
+                        src={editForm.imagen} 
+                        alt="Vista previa" 
+                        className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setEditForm({ ...editForm, imagen: '' })}
+                        className="absolute top-2 right-2 p-1.5 bg-slate-900/60 text-white hover:bg-rose-600 rounded-lg transition-all cursor-pointer"
+                        title="Quitar imagen"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {/* Upload file + URL inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-brand-50/60 text-slate-600 hover:text-brand-700 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Subir Foto</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => handleFileUpload(e, true)}
+                      />
+                    </label>
+
+                    <div className="relative flex items-center">
+                      <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+                      <input 
+                        type="url" 
+                        placeholder="Pegar URL de foto"
+                        value={editForm.imagen || ''}
+                        onChange={(e) => setEditForm({ ...editForm, imagen: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-[11px] font-bold text-slate-800 outline-none focus:border-brand-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preset Suggestions */}
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Presets Rápidos:
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {PRESET_FOOD_IMAGES.map((preset) => (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, imagen: preset.url })}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-brand-100 hover:text-brand-700 text-slate-600 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="flex gap-2 pt-2">
                   <button 
@@ -312,6 +442,88 @@ export default function AdminProductosView() {
                   </div>
                 )}
 
+                {/* REFERENTIAL IMAGE SECTION FOR CREATE */}
+                <div className="space-y-2.5 pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-brand-600" /> Imagen Referencial (Opcional)
+                    </label>
+                    {newProduct.imagen && (
+                      <button 
+                        type="button" 
+                        onClick={() => setNewProduct({ ...newProduct, imagen: '' })}
+                        className="text-[9px] font-bold uppercase text-rose-500 hover:text-rose-700 cursor-pointer"
+                      >
+                        Quitar Imagen
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Image Preview Box if available */}
+                  {newProduct.imagen ? (
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                      <img 
+                        src={newProduct.imagen} 
+                        alt="Vista previa" 
+                        className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setNewProduct({ ...newProduct, imagen: '' })}
+                        className="absolute top-2 right-2 p-1.5 bg-slate-900/60 text-white hover:bg-rose-600 rounded-lg transition-all cursor-pointer"
+                        title="Quitar imagen"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {/* Upload file + URL inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-brand-50/60 text-slate-600 hover:text-brand-700 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Subir Foto</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => handleFileUpload(e, false)}
+                      />
+                    </label>
+
+                    <div className="relative flex items-center">
+                      <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+                      <input 
+                        type="url" 
+                        placeholder="Pegar URL de foto"
+                        value={newProduct.imagen || ''}
+                        onChange={(e) => setNewProduct({ ...newProduct, imagen: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-[11px] font-bold text-slate-800 outline-none focus:border-brand-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preset Suggestions */}
+                  <div className="space-y-1 pt-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Presets Rápidos:
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {PRESET_FOOD_IMAGES.map((preset) => (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => setNewProduct({ ...newProduct, imagen: preset.url })}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-brand-100 hover:text-brand-700 text-slate-600 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex gap-2 pt-2">
                   <button 
                     type="button" 
@@ -336,3 +548,4 @@ export default function AdminProductosView() {
     </div>
   );
 }
+
