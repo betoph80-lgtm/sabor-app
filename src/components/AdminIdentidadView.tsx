@@ -43,7 +43,7 @@ export default function AdminIdentidadView() {
       {/* Configuration Form Column */}
       <div className="lg:col-span-7 bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-6">
         <div className="border-b border-slate-100 pb-4">
-          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-violet-600 block mb-1">Branding Empresarial</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 block mb-1">Branding Empresarial</span>
           <h3 className="text-xl font-display font-black text-slate-800 tracking-tight leading-none">Identidad Comercial</h3>
           <p className="text-xs text-slate-400 mt-1.5 font-medium uppercase tracking-tight">Establece el nombre, slogan y emblema de tu negocio.</p>
         </div>
@@ -58,7 +58,7 @@ export default function AdminIdentidadView() {
                 onChange={(e) => setIdentidadForm({ ...identidadForm, nombre: e.target.value })}
                 placeholder="Ej. Sabor Abanquino"
                 required
-                className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-violet-500 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
               />
             </div>
             
@@ -70,7 +70,7 @@ export default function AdminIdentidadView() {
                 onChange={(e) => setIdentidadForm({ ...identidadForm, nombreCorto: e.target.value })}
                 placeholder="Ej. SABOR ABANQUINO"
                 required
-                className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-violet-500 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
               />
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function AdminIdentidadView() {
               value={identidadForm.eslogan}
               onChange={(e) => setIdentidadForm({ ...identidadForm, eslogan: e.target.value })}
               placeholder="Ej. Tradición & Sabor de nuestra tierra"
-              className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-violet-500 outline-none transition-all"
+              className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
             />
           </div>
 
@@ -94,7 +94,7 @@ export default function AdminIdentidadView() {
                 value={identidadForm.logoUrl}
                 onChange={(e) => setIdentidadForm({ ...identidadForm, logoUrl: e.target.value })}
                 placeholder="Ej. https://images.unsplash.com/... o un enlace directo"
-                className="w-full bg-slate-50 border border-slate-200/60 rounded-xl pl-10 pr-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-violet-500 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-200/60 rounded-xl pl-10 pr-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
               />
               <Image className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
@@ -108,7 +108,7 @@ export default function AdminIdentidadView() {
               className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-all shadow-md items-center justify-center gap-2 flex ${
                 isSaving 
                   ? 'bg-slate-150 text-slate-400 cursor-not-allowed'
-                  : 'bg-violet-600 text-white hover:bg-violet-700 active:scale-98 shadow-violet-100'
+                  : 'bg-brand-600 text-white hover:bg-brand-700 active:scale-98 shadow-brand-100'
               }`}
             >
               {isSaving ? (
@@ -133,7 +133,7 @@ export default function AdminIdentidadView() {
       <div className="lg:col-span-5 flex flex-col gap-6">
         <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-xl flex-1 flex flex-col justify-between">
           <div>
-            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-violet-400 block mb-3">Previsualización de Marca</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-brand-400 block mb-3">Previsualización de Marca</span>
             
             {/* Real Mock Device Header */}
             <div className="bg-white rounded-2xl p-4 text-slate-800 border border-slate-800/20 shadow-lg space-y-3">

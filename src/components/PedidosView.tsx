@@ -103,7 +103,7 @@ export const PedidosView: React.FC = () => {
             {view === 'ACTIVOS' ? 'Servicio Activo' : 'Cierre de Caja'}
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <span className="flex items-center gap-1 bg-violet-50 text-violet-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-violet-100">
+            <span className="flex items-center gap-1 bg-brand-50 text-brand-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-brand-100">
               {view === 'ACTIVOS' ? `${activeOrders.length} Mesas` : `${paidOrders.length} Cerradas`}
             </span>
           </div>

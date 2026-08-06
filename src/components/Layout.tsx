@@ -5,12 +5,12 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { 
-    activeView, setActiveView, orders, currentMenu, products, 
+    activeView, setActiveView, adminSubView, setAdminSubView, orders, currentMenu, products, 
     customers, currentCash, selectedDate, setSelectedDate, logout, 
     currentUser, identity, dbConnectedStatus, dbConnectionErrorMessage, 
     recheckDbConnection 
@@ -98,26 +98,25 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const totalDrinkStock = drinkStock.reduce((acc, m) => acc + m.stockActual, 0);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 text-slate-800 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-background text-slate-800 overflow-hidden font-sans">
       {/* Header / Navbar */}
-      <nav className="min-h-[72px] py-1 md:h-22 bg-white border-b border-violet-100 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-[0_4px_30px_rgba(159,103,255,0.03)]">
+      <nav className="min-h-[72px] py-1 md:h-22 bg-white border-b border-slate-200/80 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3 md:gap-4 shrink-0 group cursor-pointer">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-indigo-505/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition duration-700 font-sans"></div>
-            <div className="relative w-11 h-11 xs:w-12 xs:h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.035)] border border-violet-50 p-1 transition-all duration-500 group-hover:scale-105 group-hover:rotate-1 select-none">
+            <div className="relative w-11 h-11 xs:w-12 xs:h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-200 p-1 transition-all duration-500 group-hover:scale-105 select-none">
               <img 
                 src={identity?.logoUrl?.trim() ? identity.logoUrl : "/logo.png"} 
                 alt={identity?.nombre || "Logo"} 
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement?.classList.add('bg-violet-50');
+                  e.currentTarget.parentElement?.classList.add('bg-brand-50');
                 }}
               />
             </div>
           </div>
           <div className="flex flex-col text-left justify-center min-w-0">
-            <span className="text-xs xs:text-sm md:text-base font-display font-black tracking-wider uppercase text-slate-800 leading-none group-hover:text-violet-600 transition-colors duration-300 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-sm">
+            <span className="text-xs xs:text-sm md:text-base font-display font-black tracking-wider uppercase text-slate-800 leading-none group-hover:text-brand-600 transition-colors duration-300 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-sm">
               {identity?.nombre || "Sabor Abanquino"}
             </span>
             {identity?.eslogan && identity.eslogan.trim() !== '' && identity.eslogan.trim() !== '-' && (
@@ -128,15 +127,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 xs:gap-3 bg-white border border-slate-200 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-violet-300 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
+        <div className="flex items-center gap-1.5 xs:gap-3 bg-white border border-slate-200 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-brand-500 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
            <div className="flex items-center gap-1.5 xs:gap-3">
-              <Calendar className="w-3.5 h-3.5 xs:w-4.5 xs:h-4.5 text-violet-500 hidden xs:block" />
+              <Calendar className="w-3.5 h-3.5 xs:w-4.5 xs:h-4.5 text-brand-500 hidden xs:block" />
               <span className="text-[10px] xs:text-xs sm:text-sm font-sans sm:font-display font-bold text-slate-700 select-none">
                 {selectedDate}
               </span>
               {currentUser?.role === 'ADMIN' && (
                 <div className="relative flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6 rounded-md hover:bg-slate-100 transition-colors">
-                  <Calendar className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-slate-400 group-hover:text-violet-500 transition-colors" />
+                  <Calendar className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
                   <input 
                     type="date" 
                     value={toInputDate(selectedDate)}
@@ -149,7 +148,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
            {selectedDate !== today && currentUser?.role === 'ADMIN' && (
               <button 
                 onClick={() => setSelectedDate(today)}
-                className="px-1.5 xs:px-3 py-0.5 xs:py-1 bg-violet-600 text-white text-[7.5px] xs:text-[9px] rounded-full font-bold uppercase tracking-wider hover:bg-violet-700 transition-all active:scale-95 shadow-sm ml-0.5 xs:ml-1"
+                className="px-1.5 xs:px-3 py-0.5 xs:py-1 bg-brand-600 text-white text-[7.5px] xs:text-[9px] rounded-full font-bold uppercase tracking-wider hover:bg-brand-700 transition-all active:scale-95 shadow-sm ml-0.5 xs:ml-1"
               >
                 Hoy
               </button>
@@ -157,14 +156,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         <div className="flex gap-2 xs:gap-4 sm:gap-10 items-center ml-auto">
-          <div className="flex items-center gap-2 xs:gap-4 md:gap-8 md:pr-12 md:border-r border-violet-100">
+          <div className="flex items-center gap-2 xs:gap-4 md:gap-8 md:pr-12 md:border-r border-slate-200">
             {/* Mobile logout button */}
              <button 
               onClick={logout}
               className="xl:hidden p-2 xs:p-3 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
             >
               <LogOut className="w-4.5 h-4.5 xs:w-5 h-5" />
-            </button>
+             </button>
             <div className="flex items-center max-w-[100px] xxs:max-w-[140px] xs:max-w-[240px] sm:max-w-[360px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth gap-1.5 xs:gap-2">
                 {[...soupStock, ...mainStock].map((m, index) => {
                   const product = products.find(prod => prod.id === m.productoId);
@@ -172,10 +171,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   return (
                     <div 
                       key={m.id} 
-                      className={`flex flex-col justify-center px-1.5 xs:px-2.5 py-1 rounded-lg xs:rounded-xl border transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-w-[45px] xs:min-w-[75px] md:min-w-[90px] leading-none shrink-0 ${
+                      className={`flex flex-col justify-center px-1.5 xs:px-2.5 py-1 rounded-lg xs:rounded-xl border transition-all duration-300 shadow-sm min-w-[45px] xs:min-w-[75px] md:min-w-[90px] leading-none shrink-0 ${
                         isLow 
-                          ? 'bg-gradient-to-br from-rose-50 to-white border-rose-200/60 ring-2 ring-rose-500/10' 
-                          : 'bg-gradient-to-br from-slate-50/70 to-white border-slate-200/50 hover:from-white hover:border-slate-300'
+                          ? 'bg-rose-50 border-rose-200' 
+                          : 'bg-white border-slate-200/80 hover:bg-slate-50'
                       }`}
                       title={product?.nombre}
                     >
@@ -198,8 +197,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           
           <div className="hidden xl:flex items-center gap-5 pl-4 group">
             <div className="relative">
-              <div className="absolute inset-0 bg-emerald-400 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
-              <div className="relative w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-emerald-600 border border-emerald-100 soft-shadow-sm group-hover:scale-105 transition-transform duration-300">
+              <div className="relative w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-brand-600 border border-slate-200 group-hover:scale-105 transition-transform duration-300">
                 <ChefHat className="w-8 h-8" />
               </div>
             </div>
@@ -220,52 +218,93 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar for Desktop (PC) */}
-        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-violet-100 p-5 shrink-0 h-full relative justify-between select-none shadow-[4px_0_15px_rgba(159,103,255,0.015)] z-10">
+        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 p-4 shrink-0 h-full relative justify-between select-none shadow-sm z-10">
           {/* Navigation Items */}
-          <div className="flex flex-col gap-1.5">
-            <div className="text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-3 px-3">
+          <div className="flex flex-col gap-1 overflow-y-auto no-scrollbar flex-1 pr-1">
+            <div className="text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-2 px-3">
               Módulos Activos
             </div>
             
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = activeView === item.id;
+              const isNavAdmin = item.id === 'ADMIN';
+
+              const adminSubModules = [
+                { id: 'PANEL' as const, label: 'Servicio', icon: Utensils },
+                { id: 'PRODUCTOS' as const, label: 'Productos', icon: Tag },
+                { id: 'CATEGORIAS' as const, label: 'Categorías', icon: Tags },
+                { id: 'USUARIOS' as const, label: 'Personal', icon: UsersIcon },
+                { id: 'MESAS' as const, label: 'Mesas', icon: Compass },
+                { id: 'IDENTIDAD' as const, label: 'Identidad', icon: Settings },
+              ];
+
               return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id as any)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full ${
-                    isActive 
-                      ? 'bg-violet-600 text-white shadow-md shadow-violet-200/50' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em]">{item.label}</span>
-                  {!isActive && (
-                    <span className="absolute inset-0 bg-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                <React.Fragment key={item.id}>
+                  <button
+                    onClick={() => {
+                      setActiveView(item.id as any);
+                    }}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full ${
+                      isActive 
+                        ? 'bg-brand-600 text-white shadow-sm' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <Icon className={`w-4.5 h-4.5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em]">{item.label}</span>
+                    {!isActive && (
+                      <span className="absolute inset-0 bg-brand-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                    )}
+                  </button>
+
+                  {/* Nested Sub-Modules when ADMIN is present */}
+                  {isNavAdmin && (
+                    <div className="ml-3.5 pl-2.5 border-l-2 border-slate-200 space-y-0.5 py-1 my-0.5">
+                      {adminSubModules.map((sub) => {
+                        const SubIcon = sub.icon;
+                        const isSubActive = activeView === 'ADMIN' && adminSubView === sub.id;
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={() => {
+                              setActiveView('ADMIN');
+                              setAdminSubView(sub.id);
+                            }}
+                            className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all w-full text-left cursor-pointer ${
+                              isSubActive
+                                ? 'bg-brand-50 text-brand-700 font-extrabold shadow-xs border border-brand-200/80'
+                                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                            }`}
+                          >
+                            <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-brand-600 scale-110' : 'text-slate-400'}`} />
+                            <span className="truncate">{sub.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
-                </button>
+                </React.Fragment>
               );
             })}
           </div>
 
           {/* Sidebar Footer Info Card */}
-          <div className="bg-gradient-to-br from-violet-50/70 to-white border border-violet-100/85 p-4 rounded-3xl shadow-sm space-y-3.5 mt-5">
+          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3 mt-5">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-violet-100 text-violet-700 rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0">
                 <ChefHat className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <p className="text-[8.5px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
-                <p className="text-[11.5px] font-bold text-violet-800 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
+                <p className="text-[11.5px] font-bold text-brand-700 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
               </div>
             </div>
             
-            <div className="space-y-2 border-t border-violet-100/55 pt-3">
+            <div className="space-y-2 border-t border-slate-200 pt-3">
               <div className="flex justify-between items-center text-[11px]">
                 <span className="text-slate-500 font-medium">Pedidos Abiertos</span>
-                <span className="font-extrabold text-slate-800 bg-violet-100/60 px-2 py-0.5 rounded-lg text-[9.5px]">
+                <span className="font-extrabold text-brand-700 bg-brand-100/60 px-2 py-0.5 rounded-lg text-[9.5px]">
                   {activeOrdersCount}
                 </span>
               </div>
@@ -277,7 +316,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
             
-            <div className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-violet-50">
+            <div className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200">
               <span>Sabor Abanquino</span>
               <span>v 2.5.0</span>
             </div>
@@ -285,7 +324,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-slate-50 relative">
+        <main className="flex-1 flex flex-col overflow-hidden bg-background relative">
           <div className="flex-1 overflow-auto no-scrollbar">
             <AnimatePresence mode="wait">
               <motion.div
@@ -330,8 +369,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
 
       {/* Footer */}
-      <footer className="h-10 bg-slate-800 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium z-50">
-        <div>Personal en turno: <strong className="text-slate-300">{currentUser?.nombre || 'Ninguno'}</strong></div>
+      <footer className="h-10 bg-slate-900 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium z-50 border-t border-slate-800">
+        <div>Personal en turno: <strong className="text-slate-200">{currentUser?.nombre || 'Ninguno'}</strong></div>
         <div className="flex gap-4 items-center">
           <span 
             className="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 transition-colors"

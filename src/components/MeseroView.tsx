@@ -73,27 +73,27 @@ export const MeseroView: React.FC = () => {
       )}
 
       {/* Floor Plan Header and Status chips */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 p-6 rounded-[28px] md:rounded-[40px] border border-violet-50 shadow-[0_8px_30px_rgba(159,103,255,0.02)] backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[28px] md:rounded-[40px] border border-slate-200/80 shadow-sm">
         <div className="text-left">
           <span className="text-[8px] md:text-[9.5px] font-black uppercase tracking-[0.25em] text-brand-600 mb-1.5 block">Distribución en tiempo real</span>
           <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 tracking-tight leading-none">Salón Principal</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-2 px-3.5 py-2 bg-emerald-50/70 text-emerald-800 rounded-full text-[10px] md:text-xs font-bold border border-emerald-250/20 shadow-sm transition-all selection:bg-transparent">
+          <span className="flex items-center gap-2 px-3.5 py-2 bg-emerald-500 text-white rounded-full text-[10px] md:text-xs font-bold border-none shadow-[0_4px_12px_rgba(16,185,129,0.25)] transition-all selection:bg-transparent select-none">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
             </span>
-            Libres: <strong className="font-extrabold text-emerald-900">{freeCount}</strong>
+            Libres: <strong className="font-extrabold text-emerald-50">{freeCount}</strong>
           </span>
-          <span className="flex items-center gap-2 px-3.5 py-2 bg-rose-50/70 text-rose-800 rounded-full text-[10px] md:text-xs font-bold border border-rose-200/20 shadow-sm transition-all">
-            <span className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
-            Ocupadas: <strong className="font-extrabold text-rose-900">{occupiedCount}</strong>
+          <span className="flex items-center gap-2 px-3.5 py-2 bg-rose-500 text-white rounded-full text-[10px] md:text-xs font-bold border-none shadow-[0_4px_12px_rgba(244,63,94,0.25)] transition-all select-none">
+            <span className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
+            Ocupadas: <strong className="font-extrabold text-rose-50">{occupiedCount}</strong>
           </span>
           {deliveryOrdersCount > 0 && (
-            <span className="flex items-center gap-2 px-3.5 py-2 bg-violet-50/70 text-violet-800 rounded-full text-[10px] md:text-xs font-bold border border-violet-200/20 shadow-sm transition-all animate-pulse">
-              <span className="h-2 w-2 rounded-full bg-violet-600 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></span>
-              Llevar: <strong className="font-extrabold text-violet-900">{deliveryOrdersCount}</strong>
+            <span className="flex items-center gap-2 px-3.5 py-2 bg-brand-500 text-white rounded-full text-[10px] md:text-xs font-bold border-none shadow-[0_4px_12px_rgba(109,40,217,0.25)] transition-all animate-pulse select-none">
+              <span className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
+              Llevar: <strong className="font-extrabold text-brand-50">{deliveryOrdersCount}</strong>
             </span>
           )}
         </div>
@@ -124,9 +124,9 @@ export const MeseroView: React.FC = () => {
               } ${
                 isOccupied
                   ? mesa.id === '13' 
-                    ? 'bg-gradient-to-br from-violet-50 to-white border-violet-200 text-violet-900 shadow-[0_6px_20px_rgba(139,92,246,0.1)] hover:shadow-[0_12px_28px_rgba(139,92,246,0.18)] hover:border-violet-300' 
-                    : 'bg-gradient-to-br from-rose-50 to-white border-rose-200 text-rose-900 shadow-[0_6px_20px_rgba(239,68,68,0.08)] hover:shadow-[0_12px_28px_rgba(239,68,68,0.15)] hover:border-rose-300'
-                  : 'bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200 text-emerald-800 hover:from-emerald-50 hover:border-emerald-300 shadow-sm hover:shadow-[0_8px_20px_rgba(16,185,129,0.08)] justify-center'
+                    ? 'bg-brand-500 border-brand-600 text-white shadow-md shadow-brand-100/40 hover:bg-brand-600 hover:border-brand-700' 
+                    : 'bg-rose-500 border-rose-600 text-white shadow-md shadow-rose-100/40 hover:bg-rose-600 hover:border-rose-700'
+                  : 'bg-emerald-500 border-emerald-600 text-white hover:bg-emerald-600 hover:border-emerald-700 shadow-md shadow-emerald-100/40 justify-center'
               }`}
             >
               {isOccupied ? (() => {
@@ -150,14 +150,18 @@ export const MeseroView: React.FC = () => {
                   <div className="w-full h-full flex flex-col justify-between text-center overflow-hidden">
                     {/* Top Ticket metadata */}
                     <div className="flex flex-col select-none w-full">
-                      <p className="text-[5.5px] xs:text-[6.5px] md:text-[8px] font-extrabold uppercase tracking-tight text-rose-600/90 leading-none">
+                      <p className={`text-[5.5px] xs:text-[6.5px] md:text-[8px] font-extrabold uppercase tracking-tight leading-none ${
+                        mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'
+                      }`}>
                         PEDIDO: #{(activeOrder?.id || '').split('-').pop()}
                       </p>
-                      <p className="text-[5px] xs:text-[6.0px] md:text-[7px] font-medium text-slate-500 leading-none mt-0.5">
+                      <p className={`text-[5px] xs:text-[6.0px] md:text-[7px] font-semibold leading-none mt-0.5 ${
+                        mesa.id === '13' ? 'text-brand-200/90' : 'text-rose-200/90'
+                      }`}>
                         A LAS {activeOrder?.hora}
                       </p>
                       <div className="flex items-center justify-center gap-1 mt-0.5 select-none w-full leading-none">
-                        <span className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase text-slate-700 truncate max-w-[80%]">
+                        <span className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase text-white truncate max-w-[80%]">
                           {activeOrder?.cliente || 'CONSU. FINAL'}
                         </span>
                       </div>
@@ -165,40 +169,44 @@ export const MeseroView: React.FC = () => {
 
                     {/* Big table label */}
                     <div className="relative flex items-center justify-center my-0.5 shrink-0">
-                      <div className={`font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl transition-transform duration-300 group-hover:scale-110 ${
-                        mesa.id === '13' ? 'text-violet-700' : 'text-rose-600'
-                      }`}>
+                      <div className="font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.2)] transition-transform duration-300 group-hover:scale-110">
                         {label}
                       </div>
                     </div>
 
                     {/* Integrated list of Sopas and Segundos with status */}
-                    <div className="w-full flex flex-col justify-center space-y-0.5 overflow-hidden border-t border-rose-200/50 pt-1">
+                    <div className={`w-full flex flex-col justify-center space-y-0.5 overflow-hidden border-t pt-1 ${
+                      mesa.id === '13' ? 'border-brand-400/40' : 'border-rose-400/40'
+                    }`}>
                        {totalSopas > 0 && (
-                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
-                          areAllSopasServidas ? 'text-emerald-700 bg-emerald-100/50 rounded py-0.5 px-1' : 'text-slate-800'
+                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-1 py-0.5 rounded ${
+                          areAllSopasServidas 
+                            ? 'text-emerald-950 bg-emerald-300' 
+                            : mesa.id === '13' ? 'text-white bg-brand-600/70' : 'text-white bg-rose-600/70'
                         }`}>
                           <span className="uppercase text-left truncate font-sans">
                             {totalSopas}X SOPAS
                           </span>
                           {areAllSopasServidas ? (
-                            <span className="text-emerald-600 font-extrabold text-[6px] xs:text-[7px]">✓</span>
+                            <span className="text-emerald-900 font-extrabold text-[6px] xs:text-[7px]">✓</span>
                           ) : (
-                            <span className="text-amber-600 font-bold text-[5px] xs:text-[6px] md:text-[7px]">Pend.</span>
+                            <span className={`font-bold text-[5px] xs:text-[6px] md:text-[7px] ${mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'}`}>Pend.</span>
                           )}
                         </div>
                       )}
                       {totalSegundos > 0 && (
-                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-0.5 ${
-                          areAllSegundosServidos ? 'text-emerald-700 bg-emerald-100/50 rounded py-0.5 px-1' : 'text-slate-800'
+                        <div className={`flex items-center justify-between text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black leading-none px-1 py-0.5 rounded ${
+                          areAllSegundosServidos 
+                            ? 'text-emerald-950 bg-emerald-300' 
+                            : mesa.id === '13' ? 'text-white bg-brand-600/70' : 'text-white bg-rose-600/70'
                         }`}>
                           <span className="uppercase text-left truncate font-sans">
                             {totalSegundos}X SEGUNDOS
                           </span>
                           {areAllSegundosServidos ? (
-                            <span className="text-emerald-600 font-extrabold text-[6px] xs:text-[7px]">✓</span>
+                            <span className="text-emerald-900 font-extrabold text-[6px] xs:text-[7px]">✓</span>
                           ) : (
-                            <span className="text-amber-600 font-bold text-[5px] xs:text-[6px] md:text-[7px]">Pend.</span>
+                            <span className={`font-bold text-[5px] xs:text-[6px] md:text-[7px] ${mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'}`}>Pend.</span>
                           )}
                         </div>
                       )}
@@ -206,33 +214,37 @@ export const MeseroView: React.FC = () => {
                         const p = productsMap.get(item.productoId);
                         return p?.tipo !== 'SOPA' && p?.tipo !== 'SEGUNDO' && p?.categoria !== 'MENÚ';
                       }) && (
-                        <div className="text-[5px] xs:text-[6.0px] md:text-[6.5px] font-bold text-slate-400 text-center leading-none mt-0.5 uppercase">
+                        <div className={`text-[5px] xs:text-[6.0px] md:text-[6.5px] font-bold text-center leading-none mt-0.5 uppercase ${
+                          mesa.id === '13' ? 'text-brand-200' : 'text-rose-200'
+                        }`}>
                           + OTROS
                         </div>
                       )}
                     </div>
 
                     {/* Footer - who took the order */}
-                    <div className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase tracking-wider text-slate-500 truncate max-w-full leading-none border-t border-rose-500/10 pt-1 mt-0.5 shrink-0">
+                    <div className={`text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase tracking-wider truncate max-w-full leading-none border-t pt-1 mt-0.5 shrink-0 ${
+                      mesa.id === '13' ? 'text-brand-100 border-brand-400/30' : 'text-rose-100 border-rose-400/30'
+                    }`}>
                       {activeOrder?.usuarioNombre?.split(' ')[0] || 'ADMINISTRADOR'}
                     </div>
                   </div>
                 );
               })() : (
                 <>
-                  <div className={`font-display font-black leading-none uppercase px-1 text-center select-none text-emerald-800 transition-all duration-300 group-hover:scale-110 ${
+                  <div className={`font-display font-black leading-none uppercase px-1 text-center select-none text-white transition-all duration-300 group-hover:scale-110 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.2)] ${
                     label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
                   }`}>
                     {label}
                   </div>
                   
                   {mesa.id !== '13' && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-slate-100 border border-slate-200/40 rounded-full text-[6.5px] md:text-[8px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap select-none">
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-emerald-600/55 border border-emerald-400/30 rounded-full text-[6.5px] md:text-[8px] font-black text-emerald-50 uppercase tracking-wider whitespace-nowrap select-none">
                       {mesa.sillas || 0} sil.
                     </div>
                   )}
 
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mt-2.5"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mt-2.5 shadow-sm"></div>
                 </>
               )}
             </button>

@@ -128,8 +128,8 @@ export const CocinaView: React.FC = () => {
     <div className="p-2 md:p-6 space-y-3 md:space-y-4 max-w-[1600px] mx-auto">
       {/* Metrics Bar Compact */}
       <div className="flex flex-col xl:flex-row gap-3">
-        <div className="flex-1 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl p-4 border border-violet-100/60 shadow-[0_4px_20px_rgba(159,103,255,0.01)] flex flex-col md:flex-row md:items-center gap-4">
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b md:border-b-0 md:border-r border-violet-100 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
+        <div className="flex-1 bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center gap-4">
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b md:border-b-0 md:border-r border-slate-200 pb-2 md:pb-0 md:pr-4 flex items-center gap-2 shrink-0">
              <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
              Stock Crítico
           </div>
@@ -306,7 +306,7 @@ export const CocinaView: React.FC = () => {
                     <div key={item.id} className="flex items-center justify-between group py-1 border-b border-slate-50 last:border-0 pb-1.5 last:pb-0.5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${
-                          isSoup ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-brand-50 text-brand-600 border border-brand-100'
+                          isSoup ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-brand-50 text-brand-700 border border-brand-100'
                         }`}>
                           {item.cantidad}
                         </div>
@@ -321,7 +321,7 @@ export const CocinaView: React.FC = () => {
                                />
                              )}
                            </div>
-                           <p className={`text-[8.5px] font-bold uppercase tracking-widest mt-0.5 ${isSoup ? 'text-violet-400' : 'text-slate-400'} leading-none`}>
+                           <p className="text-[8.5px] font-bold uppercase tracking-widest mt-0.5 text-slate-400 leading-none">
                               {isSoup ? 'Entrada/Sopa' : (item.notas ? `⚠️ ${item.notas.toUpperCase()}` : (product?.categoria === 'MENÚ' ? 'Plato Fondo' : product?.categoria))}
                            </p>
                         </div>
@@ -353,7 +353,7 @@ export const CocinaView: React.FC = () => {
 };
 
 export const CajaView: React.FC = () => {
-  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, currentCash, addItemsToOrder, updateOrderInfo, updateWholeOrder, currentMenu, mesas } = useApp();
+  const { currentUser, orders, payOrder, resetStock, products, customers, deleteOrder, setOrders, requestConfirmation, selectedDate, isTodaySelected, cashControls, openCash, closeCash, reopenCash, updateCashOpening, currentCash, addItemsToOrder, updateOrderInfo, updateWholeOrder, currentMenu, mesas } = useApp();
   const [desdeDate, setDesdeDate] = useState<string>(() => {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -464,6 +464,8 @@ export const CajaView: React.FC = () => {
   const [partialAmounts, setPartialAmounts] = useState<Record<string, string>>({});
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [openingAmount, setOpeningAmount] = useState('0');
+  const [showEditOpenModal, setShowEditOpenModal] = useState(false);
+  const [editOpeningAmount, setEditOpeningAmount] = useState('0');
 
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [cashCounted, setCashCounted] = useState('');
@@ -727,7 +729,7 @@ export const CajaView: React.FC = () => {
 
   const getMetodoBadgeStyle = (metodo: string) => {
     const m = metodo.toUpperCase();
-    if (m === 'YAPE') return 'text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100/50';
+    if (m === 'YAPE') return 'text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-100/50';
     if (m === 'PLIN') return 'text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full border border-cyan-100/50';
     if (m === 'EFECTIVO') return 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/50';
     if (m === 'CREDITO') return 'text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50';
@@ -859,7 +861,21 @@ export const CajaView: React.FC = () => {
             </div>
             <div>
               <h3 className="text-sm font-black text-emerald-900 uppercase tracking-tight">Caja Abierta • {currentCash.horaApertura}</h3>
-              <p className="text-emerald-600/70 text-[9px] font-bold uppercase tracking-widest">Base: S/ {currentCash.montoApertura.toFixed(2)} | Fecha: {selectedDate}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-emerald-600/70 text-[9px] font-bold uppercase tracking-widest">
+                  Base: S/ {currentCash.montoApertura.toFixed(2)} | Fecha: {selectedDate}
+                </p>
+                <button
+                  onClick={() => {
+                    setEditOpeningAmount(currentCash.montoApertura.toString());
+                    setShowEditOpenModal(true);
+                  }}
+                  className="p-1 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100/50 rounded-lg transition-all"
+                  title="Editar monto de apertura"
+                >
+                  <Edit2 className="w-3 h-3" />
+                </button>
+              </div>
             </div>
           </div>
           <button 
@@ -1277,6 +1293,62 @@ export const CajaView: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => setShowOpenModal(false)}
+                  className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showEditOpenModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[40px] w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6"
+          >
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-brand-100">
+                <Coins className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight italic">Modificar Apertura</h3>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.1em]">Actualiza el fondo inicial de caja</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl font-display font-bold text-slate-400">S/</span>
+                <input 
+                  autoFocus
+                  type="number"
+                  step="0.01"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-[28px] py-6 pl-16 pr-6 text-2xl font-display font-bold focus:border-brand-500 focus:bg-white outline-none transition-all text-slate-800"
+                  placeholder="0.00"
+                  value={editOpeningAmount}
+                  onChange={(e) => setEditOpeningAmount(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={async () => {
+                    const amount = parseFloat(editOpeningAmount || '0');
+                    if (amount < 0) {
+                      alert('El monto no puede ser menor a 0.');
+                      return;
+                    }
+                    await updateCashOpening(amount);
+                    setShowEditOpenModal(false);
+                  }}
+                  className="w-full py-5 bg-brand-600 text-white rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-brand-100 hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
+                >
+                  Guardar Cambios
+                </button>
+                <button 
+                  onClick={() => setShowEditOpenModal(false)}
                   className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors"
                 >
                   Cancelar

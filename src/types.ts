@@ -12,6 +12,8 @@ export interface AppIdentity {
 
 export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA' | 'PEDIDOS' | 'CUENTAS';
 
+export type AdminSubView = 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD';
+
 export interface AppUser {
   id: string;
   usuario: string; // Nombre de usuario para login

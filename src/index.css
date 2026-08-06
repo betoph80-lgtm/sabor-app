@@ -7,66 +7,66 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-label: "Work Sans", sans-serif;
   
-  --color-background: #f4fafd;
-  --color-on-background: #161d1f;
+  --color-background: #f8fafc;
+  --color-on-background: #0f172a;
   
   /* Brand color definitions matching the Material 3 Fresh Harvest theme */
-  --color-primary: #6a38d4;
+  --color-primary: #6d28d9;
   --color-on-primary: #ffffff;
-  --color-primary-container: #8455ee;
+  --color-primary-container: #7c3aed;
   
-  --color-secondary: #006d33;
+  --color-secondary: #059669;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #75f999;
+  --color-secondary-container: #10b981;
   
-  --color-tertiary: #a8295b;
+  --color-tertiary: #dc2626;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #c84373;
+  --color-tertiary-container: #ef4444;
   
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #eef5f7;
-  --color-surface-container: #e8eff1;
-  --color-surface-container-high: #e2e9ec;
-  --color-surface-container-highest: #dde4e6;
+  --color-surface-container-low: #f1f5f9;
+  --color-surface-container: #e2e8f0;
+  --color-surface-container-high: #cbd5e1;
+  --color-surface-container-highest: #94a3b8;
   
   /* Redefine brand and violet colors (Vibrant Administrative Purple) */
-  --color-brand-50: #f4fafd;
-  --color-brand-100: #eef5f7;
-  --color-brand-500: #8455ee;
-  --color-brand-600: #6a38d4;
-  --color-brand-700: #5417be;
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ddd6fe;
+  --color-brand-500: #7c3aed;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
   
-  --color-violet-50: #f4fafd;
-  --color-violet-100: #e8eff1;
-  --color-violet-200: #cbc3d7;
-  --color-violet-400: #8455ee;
-  --color-violet-500: #6d3bd6;
-  --color-violet-600: #6a38d4;
-  --color-violet-700: #5417be;
+  --color-violet-50: #f5f3ff;
+  --color-violet-100: #ddd6fe;
+  --color-violet-200: #c4b5fd;
+  --color-violet-400: #8b5cf6;
+  --color-violet-500: #7c3aed;
+  --color-violet-600: #6d28d9;
+  --color-violet-700: #5b21b6;
 
   /* Redefine emerald (Completed/Ready Restaurant Green) */
-  --color-emerald-50: #e6f9ed;
-  --color-emerald-100: #c8f7d5;
-  --color-emerald-400: #5adf82;
-  --color-emerald-500: #008f43;
-  --color-emerald-600: #006d33;
-  --color-emerald-700: #005225;
-  --color-emerald-900: #00210b;
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-900: #064e3b;
 
   /* Redefine rose (Occupied Tables & Alerts Crimson Pink) */
-  --color-rose-50: #fdf0f4;
-  --color-rose-100: #ffd9e1;
-  --color-rose-200: #ffb1c5;
-  --color-rose-400: #c84373;
-  --color-rose-500: #b8346c;
-  --color-rose-600: #a8295b;
-  --color-rose-700: #8b0e45;
-  --color-rose-900: #3f001b;
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-200: #fecdd3;
+  --color-rose-400: #fb7185;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+  --color-rose-700: #be123c;
+  --color-rose-900: #4c0519;
 
   /* Basic gray overrides for cleaner borders */
-  --color-slate-50: #f4fafd;
-  --color-slate-100: #e8eff1;
-  --color-slate-200: #dde4e6;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
 }
 
 @layer base {

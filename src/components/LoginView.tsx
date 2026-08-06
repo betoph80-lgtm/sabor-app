@@ -55,7 +55,7 @@ const LoginView = () => {
       >
         <div className="bg-white rounded-[48px] p-10 shadow-2xl border border-slate-100 space-y-8">
           <div className="text-center space-y-3">
-             <div className="w-16 h-16 bg-violet-600 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-violet-100">
+             <div className="w-16 h-16 bg-brand-600 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-brand-100">
                <Lock className="w-8 h-8 text-white" />
              </div>
              <h1 className="text-2xl font-display font-bold text-slate-800">{identity?.nombre || 'Sabor Abanquino'}</h1>
@@ -72,7 +72,7 @@ const LoginView = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Nombre de usuario"
-                  className="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                  className="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                 />
               </div>
             </div>
@@ -86,7 +86,7 @@ const LoginView = () => {
                     key={i}
                     className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
                       pin.length > i 
-                        ? 'bg-violet-600 scale-125' 
+                        ? 'bg-brand-600 scale-125' 
                         : error 
                           ? 'bg-rose-400 animate-shake' 
                           : 'bg-slate-200'
@@ -109,7 +109,7 @@ const LoginView = () => {
                     className={`h-14 rounded-2xl text-base font-black transition-all active:scale-95 ${
                       val === 'C' || val === 'DEL' 
                         ? 'bg-slate-50 text-slate-400 hover:text-slate-600' 
-                        : 'bg-white border border-slate-100 text-slate-700 hover:bg-violet-50 hover:border-violet-100 hover:text-violet-600'
+                        : 'bg-white border border-slate-100 text-slate-700 hover:bg-brand-50 hover:border-brand-100 hover:text-brand-600'
                     }`}
                   >
                     {val === 'DEL' ? '←' : val}
@@ -138,7 +138,7 @@ const LoginView = () => {
                 '¿Desea restablecer los usuarios a los valores por defecto?',
                 seedDatabase
               )}
-              className="w-full py-4 text-[10px] font-black uppercase text-slate-300 hover:text-violet-600 tracking-widest hover:bg-violet-50 rounded-2xl transition-all"
+              className="w-full py-4 text-[10px] font-black uppercase text-slate-300 hover:text-brand-600 tracking-widest hover:bg-brand-50 rounded-2xl transition-all"
             >
               Configurar primer acceso
             </button>

@@ -7,7 +7,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   Order, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
   OrderItem, ItemStatus, Customer, CustomerTransaction, 
-  DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role,
+  DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role, AdminSubView,
   AppIdentity
 } from './types';
 import { db, auth } from './firebase';
@@ -51,6 +51,8 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 interface AppContextType {
   activeView: Role;
   setActiveView: (role: Role) => void;
+  adminSubView: AdminSubView;
+  setAdminSubView: (subView: AdminSubView) => void;
   currentUser: AppUser | null;
   appUsers: AppUser[];
   addAppUser: (user: Omit<AppUser, 'id'>) => void;
@@ -103,6 +105,7 @@ interface AppContextType {
   openCash: (montoApertura: number) => void;
   closeCash: (efectivoFisico: number) => void;
   reopenCash: () => void;
+  updateCashOpening: (montoApertura: number) => Promise<void>;
   currentCash: DailyCashControl | undefined;
   confirmAction: {
     isOpen: boolean;
@@ -135,6 +138,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [activeView, setActiveView] = useState<Role>('MESERO'); // Default or read from currentUser
+  const [adminSubView, setAdminSubView] = useState<AdminSubView>('PANEL');
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
@@ -652,6 +656,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         montoCierre: 0
       })
     );
+  };
+
+  const updateCashOpening = async (montoApertura: number) => {
+    if (!currentCash || currentCash.estado === 'CERRADA') {
+      alert('La caja está cerrada o no existe, no se puede modificar el monto de apertura.');
+      return;
+    }
+    try {
+      await updateDoc(doc(db, 'control_caja', currentCash.id), {
+        montoApertura
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `control_caja/${currentCash.id}`);
+    }
   };
 
   const addCustomer = (customerData: Omit<Customer, 'id' | 'saldo' | 'historial'>) => {
@@ -1241,12 +1259,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      activeView, setActiveView, currentUser, appUsers, login, logout,
+      activeView, setActiveView, adminSubView, setAdminSubView, currentUser, appUsers, login, logout,
       addAppUser, updateAppUser, deleteAppUser,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
       createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateWholeOrder, updateMenuItemStock, deleteOrder, resetStock, addMesa, updateMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction,
-      cashControls, openCash, closeCash, reopenCash, currentCash,
+      cashControls, openCash, closeCash, reopenCash, updateCashOpening, currentCash,
       confirmAction, requestConfirmation, closeConfirmation,
       selectedDate, setSelectedDate, isTodaySelected,
       seedDatabase,

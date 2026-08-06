@@ -192,17 +192,17 @@ export const OrderModal: React.FC<{
         key={p.id}
         className={`flex items-center gap-3 py-2 px-3 rounded-2xl border-2 transition-all duration-300 ${
           qty > 0
-            ? 'bg-violet-50/70 border-brand-500 ring-4 ring-brand-50/80 shadow-md shadow-brand-50/20'
+            ? 'bg-brand-50/70 border-brand-500 ring-4 ring-brand-50/80 shadow-md shadow-brand-50/20'
             : 'bg-slate-50/60 border-slate-100/50 hover:bg-slate-100/50 hover:border-slate-200/60'
         }`}
       >
         <div className="flex-1 min-w-0 pr-1 flex items-center justify-between gap-1.5 sm:gap-2">
           <div>
             <div className={`font-display font-bold text-xs uppercase tracking-tight truncate transition-colors duration-200 ${
-              qty > 0 ? 'text-violet-900' : 'text-slate-800'
+              qty > 0 ? 'text-brand-900 font-extrabold' : 'text-slate-800'
             }`}>
               {p.nombre}
-              {hasCustomPrice && <span className="text-violet-600 ml-1 text-[9px] font-black" title="Precio adaptado hoy">★</span>}
+              {hasCustomPrice && <span className="text-brand-600 ml-1 text-[9px] font-black" title="Precio adaptado hoy">★</span>}
             </div>
             <div className="text-[10px] font-mono font-bold text-slate-400 mt-0.5">
               S/ {displayedPrice.toFixed(2)}
@@ -373,7 +373,7 @@ export const OrderModal: React.FC<{
                 <section className="space-y-1.5">
                   <div className="flex items-center justify-between px-1 pb-0.5">
                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-violet-400"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand-400"></div>
                       Segundos del Menú
                     </h4>
                     <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest w-[120px] xs:w-[155px] sm:w-[200px] text-center shrink-0">

@@ -13,47 +13,46 @@ import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
 import LoginView from './components/LoginView.tsx';
 import { 
-  BarChart3, X, Utensils, Tag, Users, Compass, Settings, Database 
+  BarChart3, X, Utensils, Tag, Tags, Users, Compass, Settings 
 } from 'lucide-react';
 
 // Modular Admin Tab Components
 import AdminServicioView from './components/AdminServicioView.tsx';
 import AdminProductosView from './components/AdminProductosView.tsx';
+import AdminCategoriasView from './components/AdminCategoriasView.tsx';
 import AdminUsuariosView from './components/AdminUsuariosView.tsx';
 import AdminMesasView from './components/AdminMesasView.tsx';
 import AdminIdentidadView from './components/AdminIdentidadView.tsx';
-import AdminDatabaseView from './components/AdminDatabaseView.tsx';
 
 const AdminPanel = () => {
-  const { selectedDate, orders, customers, products } = useApp();
-  const [adminView, setAdminView] = useState<'PANEL' | 'PRODUCTOS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD' | 'DATABASE'>('PANEL');
+  const { selectedDate, orders, customers, products, adminSubView, setAdminSubView } = useApp();
   const [showReport, setShowReport] = useState(false);
 
   // Tab configuration with matching icons and premium labels
   const tabs = [
     { id: 'PANEL', label: 'Servicio', icon: Utensils },
     { id: 'PRODUCTOS', label: 'Productos', icon: Tag },
+    { id: 'CATEGORIAS', label: 'Categorías', icon: Tags },
     { id: 'USUARIOS', label: 'Personal', icon: Users },
     { id: 'MESAS', label: 'Mesas', icon: Compass },
     { id: 'IDENTIDAD', label: 'Identidad', icon: Settings },
-    { id: 'DATABASE', label: 'DB', icon: Database },
   ] as const;
 
   return (
     <>
       <div className="w-full max-w-7xl space-y-6 md:space-y-8 pb-10 md:pb-25">
         
-        {/* Navigation Admin Bar */}
-        <div className="flex bg-slate-50/90 border border-slate-200/40 backdrop-blur-md p-1 rounded-full shadow-[0_2px_15px_rgba(0,0,0,0.015)] overflow-x-auto no-scrollbar mx-auto max-w-fit sticky top-4 z-40">
+        {/* Navigation Admin Bar (Mobile only, on desktop sidebar sub-menu is used) */}
+        <div className="lg:hidden flex bg-slate-50/90 border border-slate-200/40 backdrop-blur-md p-1 rounded-full shadow-[0_2px_15px_rgba(0,0,0,0.015)] overflow-x-auto no-scrollbar mx-auto max-w-fit sticky top-4 z-40">
           {tabs.map(({ id, label, icon: Icon }) => {
-            const isActive = adminView === id;
+            const isActive = adminSubView === id;
             return (
               <button 
                 key={id}
-                onClick={() => setAdminView(id)}
+                onClick={() => setAdminSubView(id)}
                 className={`px-4 md:px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap shrink-0 flex items-center gap-2 ${
                   isActive 
-                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-100' 
+                    ? 'bg-brand-600 text-white shadow-sm' 
                     : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                 }`}
               >
@@ -66,12 +65,12 @@ const AdminPanel = () => {
 
         {/* Dynamic Admin Sub-Views Router */}
         <div className="mt-8">
-          {adminView === 'PANEL' && <AdminServicioView setShowReport={setShowReport} />}
-          {adminView === 'PRODUCTOS' && <AdminProductosView />}
-          {adminView === 'USUARIOS' && <AdminUsuariosView />}
-          {adminView === 'MESAS' && <AdminMesasView />}
-          {adminView === 'IDENTIDAD' && <AdminIdentidadView />}
-          {adminView === 'DATABASE' && <AdminDatabaseView />}
+          {adminSubView === 'PANEL' && <AdminServicioView setShowReport={setShowReport} />}
+          {adminSubView === 'PRODUCTOS' && <AdminProductosView />}
+          {adminSubView === 'CATEGORIAS' && <AdminCategoriasView />}
+          {adminSubView === 'USUARIOS' && <AdminUsuariosView />}
+          {adminSubView === 'MESAS' && <AdminMesasView />}
+          {adminSubView === 'IDENTIDAD' && <AdminIdentidadView />}
         </div>
       </div>
 
@@ -134,9 +133,9 @@ const AdminPanel = () => {
                            <p className="text-[8.5px] font-black text-sky-600 uppercase tracking-wider mb-1">Yape Real</p>
                            <p className="text-xl font-display font-black text-sky-900 leading-none">S/ {yape.toFixed(2)}</p>
                          </div>
-                         <div className="bg-violet-50/50 border border-violet-100 p-5 rounded-2xl text-left">
-                           <p className="text-[8.5px] font-black text-violet-600 uppercase tracking-wider mb-1">Cobros Créditos</p>
-                           <p className="text-xl font-display font-black text-violet-900 leading-none">S/ {customerPaymentsToday.toFixed(2)}</p>
+                         <div className="bg-brand-50/50 border border-brand-100 p-5 rounded-2xl text-left">
+                           <p className="text-[8.5px] font-black text-brand-600 uppercase tracking-wider mb-1">Cobros Créditos</p>
+                           <p className="text-xl font-display font-black text-brand-900 leading-none">S/ {customerPaymentsToday.toFixed(2)}</p>
                          </div>
                          <div className="bg-rose-50/50 border border-rose-100 p-5 rounded-2xl text-left">
                            <p className="text-[8.5px] font-black text-rose-600 uppercase tracking-wider mb-1">Ventas p. Cobrar</p>
@@ -173,7 +172,7 @@ const AdminPanel = () => {
                             </div>
                             <div className="flex justify-between text-xs">
                                <span className="text-slate-500 font-black uppercase tracking-tight text-[10px]">Órdenes en Cuenta Corriente:</span>
-                               <span className="font-sans font-black text-violet-600">{salesToday.filter(o => o.estado === 'CREDITO').length}</span>
+                               <span className="font-sans font-black text-brand-600">{salesToday.filter(o => o.estado === 'CREDITO').length}</span>
                             </div>
                          </div>
                       </div>
