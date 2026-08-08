@@ -128,25 +128,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </span>
             )}
           </div>
-
-          {/* Sidebar Toggle Button for Desktop */}
-          <button
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-600 hover:text-brand-600 hover:bg-slate-100 border border-slate-200 transition-all font-bold text-xs ml-2 cursor-pointer shadow-2xs"
-            title={isSidebarCollapsed ? "Mostrar panel lateral" : "Ocultar panel lateral"}
-          >
-            {isSidebarCollapsed ? (
-              <>
-                <PanelLeftOpen className="w-4.5 h-4.5 text-brand-600" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">Mostrar Menú</span>
-              </>
-            ) : (
-              <>
-                <PanelLeftClose className="w-4.5 h-4.5 text-slate-500" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 hidden xl:inline">Ocultar Menú</span>
-              </>
-            )}
-          </button>
         </div>
 
         <div className="flex items-center gap-1.5 xs:gap-3 bg-white border border-slate-200 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-brand-500 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
@@ -240,19 +221,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar for Desktop (PC) */}
-        <aside className={`${isSidebarCollapsed ? 'hidden' : 'hidden lg:flex'} flex-col w-64 bg-white border-r border-slate-200 p-4 shrink-0 h-full relative justify-between select-none shadow-sm z-10 transition-all duration-300`}>
+        <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-[76px] px-2 py-4' : 'w-64 p-4'} bg-white border-r border-slate-200 shrink-0 h-full min-h-0 relative justify-between select-none shadow-sm z-10 transition-all duration-300`}>
           {/* Navigation Items */}
-          <div className="flex flex-col gap-1 overflow-y-auto no-scrollbar flex-1 pr-1">
-            <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-2 px-3">
-              <span>Módulos Activos</span>
-              <button 
-                onClick={() => setIsSidebarCollapsed(true)} 
-                className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
-                title="Ocultar Panel Lateral"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
+          <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar flex-1 min-h-0 pr-1 pb-12 scroll-smooth">
+            {isSidebarCollapsed ? (
+              <div className="flex items-center justify-center mb-3 pb-2 border-b border-slate-100">
+                <button 
+                  onClick={() => setIsSidebarCollapsed(false)} 
+                  className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all cursor-pointer border border-slate-200/80 shadow-xs"
+                  title="Expandir Panel Lateral"
+                >
+                  <PanelLeftOpen className="w-5 h-5 text-brand-600" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-2 px-3">
+                <span>Módulos Activos</span>
+                <button 
+                  onClick={() => setIsSidebarCollapsed(true)} 
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+                  title="Minimizar Panel"
+                >
+                  <PanelLeftClose className="w-4.5 h-4.5 text-slate-500" />
+                </button>
+              </div>
+            )}
             
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -270,6 +263,61 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 { id: 'REPORTES' as const, label: 'Reportes', icon: FileText },
               ];
 
+              if (isSidebarCollapsed) {
+                // Collapsed (Icon-Only Mode)
+                return (
+                  <React.Fragment key={item.id}>
+                    <button
+                      onClick={() => {
+                        setActiveView(item.id as any);
+                        if (isNavAdmin) {
+                          setIsAdminExpanded(!isAdminExpanded);
+                        }
+                      }}
+                      title={item.label}
+                      className={`flex flex-col items-center justify-center p-2.5 rounded-2xl transition-all duration-300 font-semibold relative group w-full cursor-pointer ${
+                        isActive 
+                          ? 'bg-brand-600 text-white shadow-sm' 
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
+                      <span className="text-[7.5px] font-black uppercase tracking-tight mt-1 leading-none text-center truncate max-w-full">
+                        {item.label}
+                      </span>
+                    </button>
+
+                    {/* Compact sub-module icons when ADMIN is expanded in collapsed mode */}
+                    {isNavAdmin && isAdminExpanded && (
+                      <div className="flex flex-col items-center gap-1 my-1 py-1.5 border-y border-slate-200/80 w-full bg-slate-50/50 rounded-xl">
+                        {adminSubModules.map((sub) => {
+                          const SubIcon = sub.icon;
+                          const isSubActive = activeView === 'ADMIN' && adminSubView === sub.id;
+                          return (
+                            <button
+                              key={sub.id}
+                              onClick={() => {
+                                setActiveView('ADMIN');
+                                setAdminSubView(sub.id);
+                              }}
+                              title={`Admin: ${sub.label}`}
+                              className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                                isSubActive
+                                  ? 'bg-brand-600 text-white shadow-xs'
+                                  : 'text-slate-400 hover:text-slate-800 hover:bg-slate-200/60'
+                              }`}
+                            >
+                              <SubIcon className="w-4 h-4" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              }
+
+              // Expanded Mode
               return (
                 <React.Fragment key={item.id}>
                   <button
@@ -306,11 +354,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   {/* Nested Sub-Modules when ADMIN is present and expanded */}
                   {isNavAdmin && isAdminExpanded && (
                     <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="ml-3.5 pl-2.5 border-l-2 border-slate-200 space-y-0.5 py-1 my-0.5 overflow-hidden"
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="ml-3.5 pl-2.5 border-l-2 border-slate-200 space-y-0.5 py-1 my-0.5"
                     >
                       {adminSubModules.map((sub) => {
                         const SubIcon = sub.icon;
@@ -341,37 +388,50 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
 
           {/* Sidebar Footer Info Card */}
-          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3 mt-5">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0">
+          {isSidebarCollapsed ? (
+            <div className="bg-slate-50 border border-slate-200 p-2 rounded-2xl mt-2 flex flex-col items-center gap-1.5 shrink-0">
+              <div className="w-8 h-8 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0" title={currentUser?.role}>
                 <ChefHat className="w-4 h-4" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[8.5px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
-                <p className="text-[11.5px] font-bold text-brand-700 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
-              </div>
-            </div>
-            
-            <div className="space-y-2 border-t border-slate-200 pt-3">
-              <div className="flex justify-between items-center text-[11px]">
-                <span className="text-slate-500 font-medium">Pedidos Abiertos</span>
-                <span className="font-extrabold text-brand-700 bg-brand-100/60 px-2 py-0.5 rounded-lg text-[9.5px]">
+              <div className="text-center" title="Pedidos Abiertos">
+                <span className="text-[8.5px] font-black text-brand-700 bg-brand-100/80 px-1.5 py-0.5 rounded-md block font-mono">
                   {activeOrdersCount}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-[11px]">
-                <span className="text-slate-500 font-medium">Caja General</span>
-                <span className="font-extrabold text-emerald-600">
-                  S/ {cajaTotalGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
+            </div>
+          ) : (
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2.5 mt-2.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0">
+                  <ChefHat className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[8.5px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
+                  <p className="text-[11.5px] font-bold text-brand-700 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-1.5 border-t border-slate-200 pt-2.5">
+                <div className="flex justify-between items-center text-[10.5px]">
+                  <span className="text-slate-500 font-medium">Pedidos Abiertos</span>
+                  <span className="font-extrabold text-brand-700 bg-brand-100/60 px-2 py-0.5 rounded-lg text-[9.5px]">
+                    {activeOrdersCount}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-[10.5px]">
+                  <span className="text-slate-500 font-medium">Caja General</span>
+                  <span className="font-extrabold text-emerald-600">
+                    S/ {cajaTotalGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200">
+                <span>Sabor Abanquino</span>
+                <span>v 2.5.0</span>
               </div>
             </div>
-            
-            <div className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200">
-              <span>Sabor Abanquino</span>
-              <span>v 2.5.0</span>
-            </div>
-          </div>
+          )}
         </aside>
 
         {/* Main Content Area */}
