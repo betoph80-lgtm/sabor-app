@@ -9,16 +9,12 @@ import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Mea
 import { motion } from 'motion/react';
 import { OrderItem, ItemStatus, Mesa } from '../types';
 import { OrderModal } from './OrderModal.tsx';
-import { PaymentModal } from './PaymentModal.tsx';
 import { OrderTimer } from './OrderTimer.tsx';
 
 export const MeseroView: React.FC = () => {
   const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, cashControls, currentUser } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const [paymentOrderId, setPaymentOrderId] = useState<string | null>(null);
-
-  const isCajaOrAdmin = currentUser?.role === 'CAJA' || currentUser?.role === 'ADMIN';
 
   const productsMap = React.useMemo(() => {
     const map = new Map<string, typeof products[0]>();
@@ -63,7 +59,7 @@ export const MeseroView: React.FC = () => {
   const deliveryOrdersCount = orders.filter(o => o.mesaId === '13' && o.estado === 'ABIERTO' && o.fecha === selectedDate).length;
 
   return (
-    <div className="p-1 md:p-8 space-y-4 md:space-y-8 max-w-5xl mx-auto">
+    <div className="w-full p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 md:space-y-6">
       {isCashClosed && (
         <div className="bg-amber-50 border border-amber-200 p-3 md:p-4 rounded-[24px] md:rounded-3xl flex items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-100 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
@@ -103,7 +99,7 @@ export const MeseroView: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-5">
+      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 sm:gap-4 md:gap-5">
         {sortedMesas.map((mesa) => {
           const allMesaActiveOrders = orders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
           const mesaActiveOrders = filteredOrders.filter(o => o.mesaId === mesa.id && o.estado === 'ABIERTO' && o.fecha === selectedDate);
@@ -120,8 +116,6 @@ export const MeseroView: React.FC = () => {
                 setSelectedMesa(mesa.id);
                 if (!isOccupied || mesa.id === '13') {
                   setShowOrderModal(true);
-                } else if (isCajaOrAdmin && activeOrder) {
-                  setPaymentOrderId(activeOrder.id);
                 }
               }}
               disabled={isCashClosed}
@@ -314,14 +308,7 @@ export const MeseroView: React.FC = () => {
                         Añadir
                       </button>
                       <button
-                        onClick={() => {
-                          if (isCashClosed) return;
-                          setPaymentOrderId(activeOrder.id);
-                        }}
-                        disabled={isCashClosed}
-                        className={`flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-brand-600 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-brand-700 transition-all soft-shadow active:scale-95 cursor-pointer ${
-                          isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className="flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-brand-600 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-brand-700 transition-all soft-shadow active:scale-95"
                       >
                         Pagar
                       </button>
@@ -340,14 +327,6 @@ export const MeseroView: React.FC = () => {
             </div>
           )}
         </div>
-      )}
-
-      {/* Payment Modal */}
-      {paymentOrderId && (
-        <PaymentModal
-          orderId={paymentOrderId}
-          onClose={() => setPaymentOrderId(null)}
-        />
       )}
 
       {/* New Order Modal */}

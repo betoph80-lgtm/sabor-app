@@ -122,6 +122,7 @@ interface AppContextType {
   seedDatabase: () => Promise<void>;
   identity: AppIdentity;
   updateIdentity: (updates: Partial<AppIdentity>) => Promise<void>;
+  deleteSelectedDayData: (dateStr?: string) => Promise<boolean>;
   dbConnectedStatus: 'conectando' | 'conectado' | 'error';
   dbConnectionErrorMessage: string | undefined;
   recheckDbConnection: () => Promise<boolean>;
@@ -1301,6 +1302,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const deleteSelectedDayData = async (dateStr?: string): Promise<boolean> => {
+    const targetDate = dateStr || selectedDate;
+    try {
+      const batch = writeBatch(db);
+
+      // 1. Delete all orders for targetDate
+      const qOrders = query(collection(db, 'pedidos'), where('fecha', '==', targetDate));
+      const snapOrders = await getDocs(qOrders);
+      snapOrders.forEach(d => batch.delete(d.ref));
+
+      // 2. Delete cash control records for targetDate
+      const qCash = query(collection(db, 'control_caja'), where('fecha', '==', targetDate));
+      const snapCash = await getDocs(qCash);
+      snapCash.forEach(d => batch.delete(d.ref));
+
+      // 3. Delete daily menu entries for targetDate
+      const qMenu = query(collection(db, 'menu_diario'), where('fecha', '==', targetDate));
+      const snapMenu = await getDocs(qMenu);
+      snapMenu.forEach(d => batch.delete(d.ref));
+
+      // 4. Reset customer history & recalculate balance for transactions on targetDate
+      (customers || []).forEach(customer => {
+        const todayTx = (customer.historial || []).filter(t => t.fecha === targetDate);
+        if (todayTx.length > 0) {
+          const newHistorial = (customer.historial || []).filter(t => t.fecha !== targetDate);
+          const newSaldo = newHistorial.reduce((acc, t) => acc + t.monto, 0);
+          batch.update(doc(db, 'clientes', customer.id), {
+            historial: newHistorial,
+            saldo: newSaldo
+          });
+        }
+      });
+
+      // 5. Reset all occupied mesas to LIBRE
+      (mesas || []).forEach(m => {
+        batch.update(doc(db, 'mesas', m.id), { estado: 'LIBRE' });
+      });
+
+      await batch.commit();
+      return true;
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `deleteSelectedDayData:${targetDate}`);
+      throw err;
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       activeView, setActiveView, adminSubView, setAdminSubView, currentUser, appUsers, login, logout,
@@ -1314,6 +1361,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       seedDatabase,
       identity,
       updateIdentity,
+      deleteSelectedDayData,
       dbConnectedStatus,
       dbConnectionErrorMessage,
       recheckDbConnection

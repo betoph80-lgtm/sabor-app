@@ -5,10 +5,13 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isAdminExpanded, setIsAdminExpanded] = React.useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
+
   const { 
     activeView, setActiveView, adminSubView, setAdminSubView, orders, currentMenu, products, 
     customers, currentCash, selectedDate, setSelectedDate, logout, 
@@ -125,6 +128,25 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </span>
             )}
           </div>
+
+          {/* Sidebar Toggle Button for Desktop */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-600 hover:text-brand-600 hover:bg-slate-100 border border-slate-200 transition-all font-bold text-xs ml-2 cursor-pointer shadow-2xs"
+            title={isSidebarCollapsed ? "Mostrar panel lateral" : "Ocultar panel lateral"}
+          >
+            {isSidebarCollapsed ? (
+              <>
+                <PanelLeftOpen className="w-4.5 h-4.5 text-brand-600" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">Mostrar Menú</span>
+              </>
+            ) : (
+              <>
+                <PanelLeftClose className="w-4.5 h-4.5 text-slate-500" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 hidden xl:inline">Ocultar Menú</span>
+              </>
+            )}
+          </button>
         </div>
 
         <div className="flex items-center gap-1.5 xs:gap-3 bg-white border border-slate-200 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-brand-500 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
@@ -218,11 +240,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar for Desktop (PC) */}
-        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 p-4 shrink-0 h-full relative justify-between select-none shadow-sm z-10">
+        <aside className={`${isSidebarCollapsed ? 'hidden' : 'hidden lg:flex'} flex-col w-64 bg-white border-r border-slate-200 p-4 shrink-0 h-full relative justify-between select-none shadow-sm z-10 transition-all duration-300`}>
           {/* Navigation Items */}
           <div className="flex flex-col gap-1 overflow-y-auto no-scrollbar flex-1 pr-1">
-            <div className="text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-2 px-3">
-              Módulos Activos
+            <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-2 px-3">
+              <span>Módulos Activos</span>
+              <button 
+                onClick={() => setIsSidebarCollapsed(true)} 
+                className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+                title="Ocultar Panel Lateral"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
             </div>
             
             {navigation.map((item) => {
@@ -246,8 +275,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <button
                     onClick={() => {
                       setActiveView(item.id as any);
+                      if (isNavAdmin) {
+                        setIsAdminExpanded(!isAdminExpanded);
+                      }
                     }}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full ${
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full cursor-pointer ${
                       isActive 
                         ? 'bg-brand-600 text-white shadow-sm' 
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -255,14 +287,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   >
                     <Icon className={`w-4.5 h-4.5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
                     <span className="text-[11px] font-bold uppercase tracking-[0.14em]">{item.label}</span>
+                    
+                    {isNavAdmin && (
+                      <span className="ml-auto flex items-center shrink-0">
+                        {isAdminExpanded ? (
+                          <ChevronDown className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        ) : (
+                          <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        )}
+                      </span>
+                    )}
+
                     {!isActive && (
                       <span className="absolute inset-0 bg-brand-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                     )}
                   </button>
 
-                  {/* Nested Sub-Modules when ADMIN is present */}
-                  {isNavAdmin && (
-                    <div className="ml-3.5 pl-2.5 border-l-2 border-slate-200 space-y-0.5 py-1 my-0.5">
+                  {/* Nested Sub-Modules when ADMIN is present and expanded */}
+                  {isNavAdmin && isAdminExpanded && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="ml-3.5 pl-2.5 border-l-2 border-slate-200 space-y-0.5 py-1 my-0.5 overflow-hidden"
+                    >
                       {adminSubModules.map((sub) => {
                         const SubIcon = sub.icon;
                         const isSubActive = activeView === 'ADMIN' && adminSubView === sub.id;
@@ -284,7 +333,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                           </button>
                         );
                       })}
-                    </div>
+                    </motion.div>
                   )}
                 </React.Fragment>
               );
