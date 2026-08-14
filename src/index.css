@@ -74,6 +74,17 @@
     @apply font-sans bg-background text-on-background antialiased selection:bg-brand-100 selection:text-brand-700;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Remove number input spinners/steppers for clean monetary and numeric inputs */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
 }
 
 @layer utilities {

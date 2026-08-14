@@ -13,7 +13,7 @@ import { CocinaView, CajaView } from './components/CocinaCajaViews.tsx';
 import { CustomersView } from './components/CustomersView.tsx';
 import LoginView from './components/LoginView.tsx';
 import { 
-  BarChart3, X, Utensils, Tag, Tags, Users, Compass, Settings, LayoutDashboard, FileText 
+  BarChart3, X, Utensils, Tag, Tags, Users, Compass, Settings, LayoutDashboard, FileText, Wallet 
 } from 'lucide-react';
 
 // Modular Admin Tab Components
@@ -25,6 +25,7 @@ import AdminUsuariosView from './components/AdminUsuariosView.tsx';
 import AdminMesasView from './components/AdminMesasView.tsx';
 import AdminIdentidadView from './components/AdminIdentidadView.tsx';
 import AdminReportesView from './components/AdminReportesView.tsx';
+import AdminAperturaCierreView from './components/AdminAperturaCierreView.tsx';
 
 const AdminPanel = () => {
   const { selectedDate, orders, customers, products, adminSubView, setAdminSubView } = useApp();
@@ -33,6 +34,7 @@ const AdminPanel = () => {
   // Tab configuration with matching icons and premium labels
   const tabs = [
     { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'APERTURA_CIERRE', label: 'Apertura y Cierre', icon: Wallet },
     { id: 'PANEL', label: 'Servicio', icon: Utensils },
     { id: 'PRODUCTOS', label: 'Productos', icon: Tag },
     { id: 'CATEGORIAS', label: 'Categorías', icon: Tags },
@@ -70,6 +72,7 @@ const AdminPanel = () => {
         {/* Dynamic Admin Sub-Views Router */}
         <div className="mt-8">
           {adminSubView === 'DASHBOARD' && <AdminDashboardView />}
+          {adminSubView === 'APERTURA_CIERRE' && <AdminAperturaCierreView />}
           {adminSubView === 'PANEL' && <AdminServicioView setShowReport={setShowReport} />}
           {adminSubView === 'PRODUCTOS' && <AdminProductosView />}
           {adminSubView === 'CATEGORIAS' && <AdminCategoriasView />}

@@ -38,7 +38,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { id: 'COCINA', label: 'Cocina', icon: ChefHat, roles: ['ADMIN', 'COCINA'] },
     { id: 'CAJA', label: 'Caja', icon: Wallet, roles: ['ADMIN', 'CAJA'] },
     { id: 'CUENTAS', label: 'Cuentas', icon: UsersIcon, roles: ['ADMIN'] },
-    { id: 'ADMIN', label: 'Admin', icon: UserIcon, roles: ['ADMIN'] },
+    { id: 'ADMIN', label: 'Admin', icon: UserIcon, roles: ['ADMIN', 'CAJA'] },
   ].filter(item => item.roles.includes(currentUser?.role as any));
 
   // Logic to handle date change from <input type="date">
@@ -65,25 +65,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     .filter(o => o.fecha === selectedDate)
     .flatMap(o => o.pagos || []);
 
-  const totalSalesEfAndYp = allPaymentsToday
-    .filter(p => p.metodo === 'EFECTIVO' || p.metodo === 'YAPE' || p.metodo === 'PLIN')
+  const totalEfectivoVentas = allPaymentsToday
+    .filter(p => p.metodo === 'EFECTIVO')
+    .reduce((acc, p) => acc + p.monto, 0);
+
+  const totalYapeVentas = allPaymentsToday
+    .filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN')
     .reduce((acc, p) => acc + p.monto, 0);
   
   const customerPaymentsTodayRaw = customers.flatMap(c => 
     c.historial.filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
   );
 
-  const totalCobrosEfAndYp = customerPaymentsTodayRaw
-    .filter(t => t.metodoPago === 'EFECTIVO' || t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
+  const totalEfectivoCobros = customerPaymentsTodayRaw
+    .filter(t => t.metodoPago === 'EFECTIVO')
+    .reduce((acc, t) => acc + t.monto, 0);
+
+  const totalYapeCobros = customerPaymentsTodayRaw
+    .filter(t => t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
     .reduce((acc, t) => acc + t.monto, 0);
 
   const baseCaja = currentCash?.montoApertura || 0;
   
-  const cajaTotalGlobal = totalSalesEfAndYp + totalCobrosEfAndYp + baseCaja;
-  
-  const cajaEfectivoOnly = allPaymentsToday.filter(p => p.metodo === 'EFECTIVO').reduce((acc, p) => acc + p.monto, 0) + 
-                           customerPaymentsTodayRaw.filter(t => t.metodoPago === 'EFECTIVO').reduce((acc, t) => acc + t.monto, 0) + 
-                           baseCaja;
+  const totalCajaGlobal = totalEfectivoVentas + totalEfectivoCobros + totalYapeVentas + totalYapeCobros + baseCaja;
+  const totalCajaEfectivo = totalEfectivoVentas + totalEfectivoCobros + baseCaja;
+  const totalYapeGlobal = totalYapeVentas + totalYapeCobros;
   
   // Calculate stock summaries
   const dailyMenu = currentMenu.filter(m => m.fecha === selectedDate);
@@ -253,15 +259,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               const isNavAdmin = item.id === 'ADMIN';
 
               const adminSubModules = [
-                { id: 'DASHBOARD' as const, label: 'Dashboard', icon: LayoutDashboard },
-                { id: 'PANEL' as const, label: 'Servicio', icon: Utensils },
-                { id: 'PRODUCTOS' as const, label: 'Productos', icon: Tag },
-                { id: 'CATEGORIAS' as const, label: 'Categorías', icon: Tags },
-                { id: 'USUARIOS' as const, label: 'Personal', icon: UsersIcon },
-                { id: 'MESAS' as const, label: 'Mesas', icon: Compass },
-                { id: 'IDENTIDAD' as const, label: 'Identidad', icon: Settings },
-                { id: 'REPORTES' as const, label: 'Reportes', icon: FileText },
-              ];
+                { id: 'DASHBOARD' as const, label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN'] },
+                { id: 'APERTURA_CIERRE' as const, label: 'Apertura y Cierre', icon: Wallet, roles: ['ADMIN', 'CAJA'] },
+                { id: 'PANEL' as const, label: 'Servicio', icon: Utensils, roles: ['ADMIN'] },
+                { id: 'PRODUCTOS' as const, label: 'Productos', icon: Tag, roles: ['ADMIN'] },
+                { id: 'CATEGORIAS' as const, label: 'Categorías', icon: Tags, roles: ['ADMIN'] },
+                { id: 'USUARIOS' as const, label: 'Personal', icon: UsersIcon, roles: ['ADMIN'] },
+                { id: 'MESAS' as const, label: 'Mesas', icon: Compass, roles: ['ADMIN'] },
+                { id: 'IDENTIDAD' as const, label: 'Identidad', icon: Settings, roles: ['ADMIN'] },
+                { id: 'REPORTES' as const, label: 'Reportes', icon: FileText, roles: ['ADMIN', 'CAJA'] },
+              ].filter(sub => !sub.roles || sub.roles.includes(currentUser?.role as any));
 
               if (isSidebarCollapsed) {
                 // Collapsed (Icon-Only Mode)
@@ -272,6 +279,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         setActiveView(item.id as any);
                         if (isNavAdmin) {
                           setIsAdminExpanded(!isAdminExpanded);
+                          if (currentUser?.role === 'CAJA' && adminSubView !== 'APERTURA_CIERRE' && adminSubView !== 'REPORTES') {
+                            setAdminSubView('APERTURA_CIERRE');
+                          }
                         }
                       }}
                       title={item.label}
@@ -325,6 +335,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       setActiveView(item.id as any);
                       if (isNavAdmin) {
                         setIsAdminExpanded(!isAdminExpanded);
+                        if (currentUser?.role === 'CAJA' && adminSubView !== 'APERTURA_CIERRE' && adminSubView !== 'REPORTES') {
+                          setAdminSubView('APERTURA_CIERRE');
+                        }
                       }
                     }}
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full cursor-pointer ${
@@ -393,6 +406,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <div className="w-8 h-8 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0" title={currentUser?.role}>
                 <ChefHat className="w-4 h-4" />
               </div>
+              <div className="text-center" title={`Caja Total: S/ ${totalCajaGlobal.toFixed(2)}`}>
+                <span className="text-[7.5px] font-black text-brand-700 bg-brand-50 border border-brand-200 px-1 py-0.5 rounded block font-mono">
+                  S/{Math.round(totalCajaGlobal)}
+                </span>
+              </div>
               <div className="text-center" title="Pedidos Abiertos">
                 <span className="text-[8.5px] font-black text-brand-700 bg-brand-100/80 px-1.5 py-0.5 rounded-md block font-mono">
                   {activeOrdersCount}
@@ -400,33 +418,70 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
           ) : (
-            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-2.5 mt-2.5 shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0">
-                  <ChefHat className="w-4 h-4" />
+            <div className="bg-slate-50 border border-slate-200 p-3 rounded-2xl space-y-2 mt-2 shrink-0">
+              {/* User Session & Status */}
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0">
+                    <ChefHat className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[8px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
+                    <p className="text-[11px] font-bold text-brand-700 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[8.5px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
-                  <p className="text-[11.5px] font-bold text-brand-700 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
-                </div>
+
+                <span className={`px-2 py-0.5 rounded-lg text-[7.5px] font-black uppercase tracking-wider ${
+                  currentCash?.estado === 'ABIERTA' 
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/80' 
+                    : currentCash?.estado === 'CERRADA'
+                      ? 'bg-slate-200 text-slate-700 border border-slate-300'
+                      : 'bg-rose-100 text-rose-800 border border-rose-200'
+                }`}>
+                  {currentCash?.estado === 'ABIERTA' ? 'Abierta' : currentCash?.estado === 'CERRADA' ? 'Cerrada' : 'Sin Caja'}
+                </span>
               </div>
               
-              <div className="space-y-1.5 border-t border-slate-200 pt-2.5">
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span className="text-slate-500 font-medium">Pedidos Abiertos</span>
-                  <span className="font-extrabold text-brand-700 bg-brand-100/60 px-2 py-0.5 rounded-lg text-[9.5px]">
+              {/* Resumen de Caja */}
+              <div className="space-y-1.5 border-t border-slate-200/80 pt-2">
+                {/* Caja Total Highlight */}
+                <div className="bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs flex justify-between items-center">
+                  <div>
+                    <span className="text-[8px] font-black text-brand-600 uppercase tracking-wider block">Caja Total</span>
+                    <span className="text-[6.5px] text-slate-400 font-bold uppercase block">Efectivo + Yape + Base</span>
+                  </div>
+                  <span className="font-extrabold text-slate-900 font-display text-xs">
+                    S/ {totalCajaGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                {/* Subtotales: Efectivo Real y Total Yape */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="bg-white/80 px-2 py-1 rounded-lg border border-slate-200/70">
+                    <span className="text-[7px] font-black text-emerald-600 uppercase tracking-wider block">Caja Real</span>
+                    <span className="font-bold text-slate-800 text-[10px] leading-tight block">
+                      S/ {totalCajaEfectivo.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-[6px] text-slate-400 font-medium uppercase block truncate">Efectivo + Base</span>
+                  </div>
+                  <div className="bg-white/80 px-2 py-1 rounded-lg border border-slate-200/70">
+                    <span className="text-[7px] font-black text-purple-600 uppercase tracking-wider block">Total Yape</span>
+                    <span className="font-bold text-slate-800 text-[10px] leading-tight block">
+                      S/ {totalYapeGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-[6px] text-slate-400 font-medium uppercase block truncate">Yape / Plin</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center px-1 pt-0.5 text-[10px]">
+                  <span className="text-slate-500 font-medium text-[9.5px]">Pedidos Abiertos</span>
+                  <span className="font-extrabold text-brand-700 bg-brand-100/70 px-1.5 py-0.5 rounded-md text-[9px] font-mono">
                     {activeOrdersCount}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-[10.5px]">
-                  <span className="text-slate-500 font-medium">Caja General</span>
-                  <span className="font-extrabold text-emerald-600">
-                    S/ {cajaTotalGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
               </div>
               
-              <div className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200">
+              <div className="text-[8px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200/60">
                 <span>Sabor Abanquino</span>
                 <span>v 2.5.0</span>
               </div>

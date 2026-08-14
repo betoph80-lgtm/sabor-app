@@ -12,7 +12,7 @@ export interface AppIdentity {
 
 export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA' | 'PEDIDOS' | 'CUENTAS';
 
-export type AdminSubView = 'DASHBOARD' | 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD' | 'REPORTES';
+export type AdminSubView = 'DASHBOARD' | 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD' | 'REPORTES' | 'APERTURA_CIERRE';
 
 export interface AppUser {
   id: string;
