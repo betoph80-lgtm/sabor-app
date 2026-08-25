@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -261,6 +261,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               const adminSubModules = [
                 { id: 'DASHBOARD' as const, label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN'] },
                 { id: 'APERTURA_CIERRE' as const, label: 'Apertura y Cierre', icon: Wallet, roles: ['ADMIN', 'CAJA'] },
+                { id: 'CONTABILIDAD' as const, label: 'Contabilidad SUNAT', icon: Scale, roles: ['ADMIN', 'CAJA'] },
                 { id: 'PANEL' as const, label: 'Servicio', icon: Utensils, roles: ['ADMIN'] },
                 { id: 'PRODUCTOS' as const, label: 'Productos', icon: Tag, roles: ['ADMIN'] },
                 { id: 'CATEGORIAS' as const, label: 'Categorías', icon: Tags, roles: ['ADMIN'] },

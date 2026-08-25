@@ -12,7 +12,7 @@ export interface AppIdentity {
 
 export type Role = 'ADMIN' | 'MESERO' | 'COCINA' | 'CAJA' | 'PEDIDOS' | 'CUENTAS';
 
-export type AdminSubView = 'DASHBOARD' | 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD' | 'REPORTES' | 'APERTURA_CIERRE';
+export type AdminSubView = 'DASHBOARD' | 'APERTURA_CIERRE' | 'PANEL' | 'PRODUCTOS' | 'CATEGORIAS' | 'USUARIOS' | 'MESAS' | 'IDENTIDAD' | 'REPORTES' | 'CONTABILIDAD';
 
 export interface AppUser {
   id: string;
@@ -164,3 +164,80 @@ export const MESAS: Mesa[] = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 MESAS.push({ id: '13', nombre: 'Para Llevar', estado: 'LIBRE' });
+
+// ==========================================
+// 🇵🇪 PLAN CONTABLE GENERAL EMPRESARIAL (PCGE) & SUNAT
+// ==========================================
+
+export interface AccountingEntryRow {
+  cuenta: string; // Ej: 1212, 40111, 70121, 1011, 1041, 6011, 4212, etc.
+  denominacion: string;
+  debe: number;
+  haber: number;
+}
+
+export interface AccountingEntry {
+  id: string;
+  fecha: string;
+  glosa: string;
+  libroSugerido: 'REGISTRO_VENTAS' | 'REGISTRO_COMPRAS' | 'LIBRO_DIARIO' | 'LIBRO_CAJA_BANCOS';
+  filas: AccountingEntryRow[];
+  totalDebe: number;
+  totalHaber: number;
+  tipoOperacion: 'VENTA' | 'COMPRA' | 'COBRANZA' | 'PAGO_GASTO' | 'APERTURA' | 'AJUSTE';
+  referenciaId?: string; // ID de orden o compra
+  timestamp: number;
+}
+
+export interface TaxSummary {
+  baseImponible: number;
+  igv: number;
+  total: number;
+  tasaIgv: number; // 0.18 por defecto
+  esInafecto?: boolean;
+  esExonerado?: boolean;
+  detraccion?: {
+    aplica: boolean;
+    tasa: number; // Ej: 0.04, 0.10, 0.12
+    monto: number;
+    concepto: string;
+  };
+}
+
+export interface PurchaseRecord {
+  id: string;
+  fecha: string;
+  proveedor: string;
+  rucProveedor: string;
+  tipoComprobante: 'FACTURA' | 'BOLETA' | 'RECIBO_HONORARIOS' | 'TICKET';
+  serieNumero: string;
+  baseImponible: number;
+  igv: number;
+  total: number;
+  categoria: 'INSUMOS_ALIMENTOS' | 'BEBIDAS' | 'SERVICIOS_BASICOS' | 'ALQUILER' | 'TRANSPORTE' | 'MANTENIMIENTO' | 'OTROS';
+  metodoPago: 'EFECTIVO' | 'TRANSFERENCIA' | 'YAPE' | 'CREDITO';
+  detraccionAplica?: boolean;
+  tasaDetraccion?: number;
+  montoDetraccion?: number;
+  bancarizado?: boolean; // Obligatorio si total > S/ 2,000 o $500
+  observaciones?: string;
+  timestamp: number;
+}
+
+export interface FiscalConfig {
+  ruc: string;
+  razonSocial: string;
+  nombreComercial: string;
+  direccionFiscal: string;
+  departamento: string;
+  provincia: string;
+  distrito: string;
+  ubigeo: string;
+  regimenTributario: 'MYPE_TRIBUTARIO' | 'REGIMEN_GENERAL' | 'REGIMEN_ESPECIAL';
+  tasaRentaMensual: number; // 0.01 (1.0% RMT) o 0.015 (1.5% RG)
+  uitVigente: number; // 2024: S/ 5,150
+  tasaIgv: number; // 0.18
+  serieBoleta: string; // Ej: B001
+  serieFactura: string; // Ej: F001
+}
+
