@@ -5,9 +5,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
-  Order, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
+  Order, OrderStatus, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
   OrderItem, ItemStatus, Customer, CustomerTransaction, 
-  DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role, AdminSubView,
+  DailyCashControl, Payment, PaymentMethod, AppUser, USUARIOS_BASE, Role, AdminSubView,
   AppIdentity, WaiterNotification
 } from './types';
 import { db, auth } from './firebase';
@@ -78,7 +78,16 @@ interface AppContextType {
   updateAllItemsStatusInOrder: (orderId: string, status?: ItemStatus) => Promise<void>;
   deleteItemFromOrder: (orderId: string, itemId: string) => void;
   updateItemQuantity: (orderId: string, itemId: string, newQty: number) => void;
-  payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN', amount: number, customerId?: string) => void;
+  payOrder: (
+    orderId: string, 
+    paymentsOrMethod: PaymentMethod | Array<{ metodo: PaymentMethod; monto: number }>, 
+    amount?: number, 
+    customerId?: string, 
+    customerNombre?: string,
+    adjustedTotal?: number,
+    tip?: number,
+    discount?: number
+  ) => Promise<void>;
   addItemsToOrder: (orderId: string, items: Partial<OrderItem>[]) => void;
   updateOrderInfo: (orderId: string, updates: Partial<Order>) => void;
   updateWholeOrder: (
@@ -132,6 +141,9 @@ interface AppContextType {
   dismissNotification: (id: string) => void;
   clearAllNotifications: () => void;
   testNotification: () => void;
+  selectedCustomerIdForView: string | null;
+  setSelectedCustomerIdForView: (id: string | null) => void;
+  navigateToCustomerInCuentas: (customerId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -150,6 +162,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const isTodaySelected = selectedDate === formatDate(new Date());
+  const [selectedCustomerIdForView, setSelectedCustomerIdForView] = useState<string | null>(null);
+
+  const navigateToCustomerInCuentas = (customerId: string) => {
+    setSelectedCustomerIdForView(customerId);
+    setActiveView('CUENTAS');
+  };
   
   const [authInitialized, setAuthInitialized] = useState(false);
   const [dbConnectedStatus, setDbConnectedStatus] = useState<'conectando' | 'conectado' | 'error'>('conectando');
@@ -461,7 +479,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [selectedDate, authInitialized]);
 
-  const currentCash = cashControls.find(c => c.fecha === selectedDate);
+  const currentCash = cashControls.find(c => c.fecha === selectedDate && (c.estado === 'ABIERTA' || c.estado === 'ABIERTO')) 
+    || cashControls.find(c => c.fecha === selectedDate);
 
   // 🔥 MUTATIONS
   const addCategory = (name: string) => {
@@ -913,73 +932,162 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const payOrder = async (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN', amount: number, customerId?: string) => {
-    // Check if cash is closed
-    const cashStatus = cashControls.find(c => c.fecha === selectedDate);
-    if (cashStatus?.estado === 'CERRADA') {
+  const payOrder = async (
+    orderId: string, 
+    paymentsOrMethod: PaymentMethod | Array<{ metodo: PaymentMethod; monto: number }>, 
+    amount?: number, 
+    customerId?: string, 
+    customerNombre?: string,
+    adjustedTotal?: number,
+    tip?: number,
+    discount?: number
+  ) => {
+    // 1. Check if cash is closed
+    const cashStatus = cashControls.find(c => c.fecha === selectedDate && (c.estado === 'ABIERTA' || c.estado === 'ABIERTO')) 
+      || cashControls.find(c => c.fecha === selectedDate);
+
+    if (cashStatus && (cashStatus.estado === 'CERRADA' || cashStatus.estado === 'CERRADO')) {
       alert('La caja del día está cerrada. No se pueden procesar pagos.');
       return;
     }
 
     const order = orders.find(o => o.id === orderId);
-    if (!order || order.estado === 'PAGADO') return;
-    if (!currentCash || currentCash.estado !== 'ABIERTA') {
+    if (!order || order.estado === 'PAGADO' || order.estado === 'CANCELADO') return;
+
+    // Effective cash check
+    const effectiveCash = cashStatus || currentCash;
+    if (!effectiveCash || (effectiveCash.estado !== 'ABIERTA' && effectiveCash.estado !== 'ABIERTO')) {
       alert(`Debe abrir la caja para la fecha ${selectedDate}`);
       return;
     }
 
-    const newPayment: Payment = {
-      id: Math.random().toString(36).substr(2, 9),
-      pedidoId: orderId,
-      monto: amount,
-      metodo: method,
-      usuarioNombre: currentUser?.nombre || 'Desconocido',
-      fecha: selectedDate,
-      hora: new Date().toLocaleTimeString(),
-      timestamp: Date.now()
-    };
-
-    const updatedPayments = [...(order.pagos || []), newPayment];
-    const totalPaid = updatedPayments.reduce((acc, p) => acc + p.monto, 0);
-    const isFullyPaid = totalPaid >= order.total - 0.01;
-    
-    const hasCredit = updatedPayments.some(p => p.metodo === 'CREDITO');
-    const newState = isFullyPaid ? (hasCredit ? 'CREDITO' : 'PAGADO') : order.estado;
-
-    const batch = writeBatch(db);
-    batch.update(doc(db, 'pedidos', orderId), {
-      estado: newState,
-      pagos: updatedPayments
-    });
-
-    if (isFullyPaid) {
-      batch.update(doc(db, 'mesas', order.mesaId), { estado: 'LIBRE' });
+    // Normalize payments list
+    let paymentItems: Array<{ metodo: PaymentMethod; monto: number }> = [];
+    if (Array.isArray(paymentsOrMethod)) {
+      paymentItems = paymentsOrMethod.filter(p => p.monto > 0);
+    } else {
+      const singleAmount = amount !== undefined ? amount : (adjustedTotal !== undefined ? adjustedTotal : order.total);
+      paymentItems = [{ metodo: paymentsOrMethod, monto: singleAmount }];
     }
 
-    batch.update(doc(db, 'control_caja', currentCash.id), {
-      ingresosEfectivo: currentCash.ingresosEfectivo + (method === 'EFECTIVO' ? amount : 0),
-      ingresosYape: currentCash.ingresosYape + ((method === 'YAPE' || method === 'PLIN') ? amount : 0),
-      ingresosFiar: currentCash.ingresosFiar + (method === 'CREDITO' ? amount : 0),
+    if (paymentItems.length === 0) {
+      paymentItems = [{ metodo: 'EFECTIVO', monto: adjustedTotal !== undefined ? adjustedTotal : order.total }];
+    }
+
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const nowTimestamp = Date.now();
+
+    // Resolve target customer
+    let targetCustomer = customerId ? customers.find(c => c.id === customerId) : undefined;
+    if (!targetCustomer && (customerNombre || order.cliente)) {
+      const searchName = (customerNombre || order.cliente).trim().toLowerCase();
+      targetCustomer = customers.find(c => c.nombre.trim().toLowerCase() === searchName);
+    }
+
+    const resolvedCustId = targetCustomer ? targetCustomer.id : (customerId || order.customerId || '');
+    const resolvedCustName = targetCustomer ? targetCustomer.nombre : (customerNombre || order.cliente || 'Cliente');
+
+    const newPaymentObjects: Payment[] = paymentItems.map((p, idx) => {
+      const paymentObj: Payment = {
+        id: `${nowTimestamp}-${idx}-${Math.random().toString(36).substr(2, 6)}`,
+        pedidoId: orderId,
+        monto: Number(p.monto.toFixed(2)),
+        metodo: p.metodo,
+        usuarioNombre: currentUser?.nombre || 'Desconocido',
+        fecha: selectedDate,
+        hora: nowTime,
+        timestamp: nowTimestamp + idx
+      };
+      if (resolvedCustId) paymentObj.customerId = resolvedCustId;
+      if (resolvedCustName) paymentObj.customerNombre = resolvedCustName;
+      return paymentObj;
     });
 
-    if (method === 'CREDITO') {
-      const cust = customerId ? customers.find(c => c.id === customerId) : customers.find(c => c.nombre.toLowerCase() === order.cliente.toLowerCase());
-      if (cust) {
-        const newT: CustomerTransaction = {
-          id: Math.random().toString(36).substr(2, 9),
-          tipo: 'CONSUMO',
-          monto: -amount,
-          descripcion: `Pago parcial (FIAR) en orden ${order.id}`,
-          orderId: order.id,
-          fecha: selectedDate,
-          hora: new Date().toLocaleTimeString(),
-          timestamp: Date.now()
-        };
-        batch.update(doc(db, 'clientes', cust.id), {
-          saldo: cust.saldo + newT.monto,
-          historial: [newT, ...cust.historial]
-        });
-      }
+    const finalOrderTotal = adjustedTotal !== undefined ? adjustedTotal : order.total;
+    const updatedPayments = [...(order.pagos || []), ...newPaymentObjects];
+    const totalPaid = updatedPayments.reduce((acc, p) => acc + p.monto, 0);
+    const isFullyPaid = totalPaid >= (finalOrderTotal - 0.01);
+    
+    const hasCredit = updatedPayments.some(p => p.metodo === 'CREDITO');
+    const newState: OrderStatus = isFullyPaid ? (hasCredit ? 'CREDITO' : 'PAGADO') : order.estado;
+
+    // Determine aggregated payment method for the whole order
+    const distinctMethods = Array.from(new Set(updatedPayments.map(p => p.metodo)));
+    let aggregatedMethod: PaymentMethod | 'MIXTO' = paymentItems[0]?.metodo || 'EFECTIVO';
+    if (distinctMethods.length === 1) {
+      aggregatedMethod = distinctMethods[0];
+    } else if (distinctMethods.length > 1) {
+      aggregatedMethod = 'MIXTO';
+    }
+
+    const batch = writeBatch(db);
+
+    // 1. Update Order in Firestore
+    const orderDocRef = doc(db, 'pedidos', orderId);
+    const orderUpdates: Record<string, any> = {
+      estado: newState,
+      total: Number(finalOrderTotal.toFixed(2)),
+      pagos: updatedPayments,
+      metodoPago: aggregatedMethod,
+      cliente: resolvedCustName || order.cliente || 'Cliente General',
+      customerNombre: resolvedCustName || order.cliente || 'Cliente General'
+    };
+    if (tip !== undefined && tip > 0) orderUpdates.propina = Number(tip.toFixed(2));
+    if (discount !== undefined && discount > 0) orderUpdates.descuento = Number(discount.toFixed(2));
+    if (resolvedCustId) orderUpdates.customerId = resolvedCustId;
+
+    batch.set(orderDocRef, orderUpdates, { merge: true });
+
+    // 2. Free Mesa if fully paid (use set with merge so it never throws if document was not previously created)
+    if (isFullyPaid && order.mesaId) {
+      const mesaDoc = doc(db, 'mesas', order.mesaId);
+      const existingMesa = mesas.find(m => m.id === order.mesaId);
+      const mesaNombre = existingMesa?.nombre || (order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`);
+      batch.set(mesaDoc, { 
+        id: order.mesaId,
+        nombre: mesaNombre,
+        estado: 'LIBRE' 
+      }, { merge: true });
+    }
+
+    // 3. Update cash register control safely without NaN or not found errors
+    const cashEfectivoAdd = paymentItems.filter(p => p.metodo === 'EFECTIVO').reduce((acc, p) => acc + p.monto, 0);
+    const cashYapeAdd = paymentItems.filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN').reduce((acc, p) => acc + p.monto, 0);
+    const cashTarjetaAdd = paymentItems.filter(p => p.metodo === 'TARJETA').reduce((acc, p) => acc + p.monto, 0);
+    const cashFiarAdd = paymentItems.filter(p => p.metodo === 'CREDITO').reduce((acc, p) => acc + p.monto, 0);
+
+    if (effectiveCash && effectiveCash.id) {
+      const cashRef = doc(db, 'control_caja', effectiveCash.id);
+      batch.set(cashRef, {
+        ingresosEfectivo: Number(((effectiveCash.ingresosEfectivo || 0) + cashEfectivoAdd).toFixed(2)),
+        ingresosYape: Number(((effectiveCash.ingresosYape || 0) + cashYapeAdd).toFixed(2)),
+        ingresosTarjeta: Number(((effectiveCash.ingresosTarjeta || 0) + cashTarjetaAdd).toFixed(2)),
+        ingresosFiar: Number(((effectiveCash.ingresosFiar || 0) + cashFiarAdd).toFixed(2)),
+      }, { merge: true });
+    }
+
+    // 4. If any payment is CREDITO / FIAR, update customer's ledger in Cuentas
+    if (cashFiarAdd > 0 && targetCustomer) {
+      const mesaItem = mesas.find(m => m.id === order.mesaId);
+      const mesaName = mesaItem ? mesaItem.nombre : (order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`);
+      
+      const newT: CustomerTransaction = {
+        id: Math.random().toString(36).substr(2, 9),
+        tipo: 'CONSUMO',
+        monto: Number((-cashFiarAdd).toFixed(2)),
+        descripcion: `Consumo ${mesaName} - Pedido #${order.id.split('-').pop()}`,
+        orderId: order.id,
+        metodoPago: 'CREDITO',
+        fecha: selectedDate,
+        hora: nowTime,
+        timestamp: nowTimestamp
+      };
+      
+      const custRef = doc(db, 'clientes', targetCustomer.id);
+      batch.set(custRef, {
+        saldo: Number(((targetCustomer.saldo || 0) + newT.monto).toFixed(2)),
+        historial: [newT, ...(targetCustomer.historial || [])]
+      }, { merge: true });
     }
 
     await batch.commit();
@@ -1491,7 +1599,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       notifications,
       dismissNotification,
       clearAllNotifications,
-      testNotification
+      testNotification,
+      selectedCustomerIdForView,
+      setSelectedCustomerIdForView,
+      navigateToCustomerInCuentas
     }}>
       {children}
       <ConfirmModal 

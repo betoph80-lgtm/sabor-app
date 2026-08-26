@@ -11,7 +11,8 @@ import {
   AlertCircle, ChevronRight, Calculator, Coins, 
   ArrowUpDown, TrendingUp, TrendingDown, DollarSign,
   Receipt, Sparkles, Building2, Mail, CreditCard,
-  QrCode, Scale, ChevronDown
+  QrCode, Scale, ChevronDown, ArrowUpRight, UserPlus,
+  ExternalLink, RefreshCw, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderModal } from './OrderModal.tsx';
@@ -27,17 +28,21 @@ interface PartialCheckoutPayment {
 export const CajaView: React.FC = () => {
   const { 
     currentUser, orders, payOrder, products, customers, 
+    addCustomer, navigateToCustomerInCuentas,
     updateWholeOrder, currentMenu, mesas, selectedDate, 
     cashControls, identity, openCash, closeCash, reopenCash,
     currentCash
   } = useApp();
 
   const isCashClosed = useMemo(() => {
-    return cashControls.find(c => c.fecha === selectedDate)?.estado === 'CERRADA';
+    const cash = cashControls.find(c => c.fecha === selectedDate && (c.estado === 'ABIERTA' || c.estado === 'ABIERTO'))
+      || cashControls.find(c => c.fecha === selectedDate);
+    return cash?.estado === 'CERRADA' || cash?.estado === 'CERRADO';
   }, [cashControls, selectedDate]);
 
   const activeCashControl = useMemo(() => {
-    return cashControls.find(c => c.fecha === selectedDate);
+    return cashControls.find(c => c.fecha === selectedDate && (c.estado === 'ABIERTA' || c.estado === 'ABIERTO'))
+      || cashControls.find(c => c.fecha === selectedDate);
   }, [cashControls, selectedDate]);
 
   const productsMap = useMemo(() => {
@@ -85,21 +90,34 @@ export const CajaView: React.FC = () => {
   const [includeTip, setIncludeTip] = useState<boolean>(false);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
 
+  // Credit / Cuentas selected customer
+  const [selectedCreditCustomerId, setSelectedCreditCustomerId] = useState<string>('');
+  const [showQuickCustomerModal, setShowQuickCustomerModal] = useState<boolean>(false);
+  const [newCustForm, setNewCustForm] = useState({ nombre: '', documento: '', telefono: '' });
+
   // Sync billing data when currentOrder changes
   useEffect(() => {
     if (currentOrder) {
       // Check if order customer matches a registered customer
-      const foundCustomer = customers.find(c => 
-        c.nombre.trim().toLowerCase() === currentOrder.cliente.trim().toLowerCase() ||
-        (c.documento && c.documento === currentOrder.cliente)
-      );
+      let foundCustomer = currentOrder.customerId 
+        ? customers.find(c => c.id === currentOrder.customerId) 
+        : undefined;
+
+      if (!foundCustomer) {
+        foundCustomer = customers.find(c => 
+          c.nombre.trim().toLowerCase() === (currentOrder.cliente || '').trim().toLowerCase() ||
+          (c.documento && c.documento === currentOrder.cliente)
+        );
+      }
 
       if (foundCustomer) {
         setDocNumber(foundCustomer.documento || '00000000');
         setClientName(foundCustomer.nombre);
+        setSelectedCreditCustomerId(foundCustomer.id);
       } else {
         setClientName(currentOrder.cliente || 'Clientes Varios');
         setDocNumber('00000000');
+        setSelectedCreditCustomerId('');
       }
       setIncludeTip(false);
       setDiscountAmount(0);
@@ -107,10 +125,10 @@ export const CajaView: React.FC = () => {
       setCurrentPaymentAmount('');
       setCashReceived('');
     }
-  }, [currentOrder?.id, customers]);
+  }, [currentOrder?.id]);
 
-  // SUNAT Invoice Type: Boleta B001, Factura F001, Nota de Venta
-  const [comprobanteType, setComprobanteType] = useState<'BOLETA' | 'FACTURA' | 'NOTA_VENTA'>('BOLETA');
+  // SUNAT Invoice Type: Sin Comprobante / Pago Rápido, Boleta B001, Factura F001, Nota de Venta
+  const [comprobanteType, setComprobanteType] = useState<'SIN_COMPROBANTE' | 'BOLETA' | 'FACTURA' | 'NOTA_VENTA'>('SIN_COMPROBANTE');
 
   // Payment composing states
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'EFECTIVO' | 'YAPE' | 'PLIN' | 'TARJETA' | 'CREDITO'>('EFECTIVO');
@@ -122,6 +140,7 @@ export const CajaView: React.FC = () => {
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [showArqueoModal, setShowArqueoModal] = useState<boolean>(false);
   const [showCashMovementModal, setShowCashMovementModal] = useState<boolean>(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false);
   const [ticketToPrint, setTicketToPrint] = useState<{
     order: typeof orders[0];
     comprobante: string;
@@ -133,6 +152,11 @@ export const CajaView: React.FC = () => {
     pagos: PartialCheckoutPayment[];
     vuelto: number;
   } | null>(null);
+
+  // Quick helper to compute customer balance
+  const getCustomerBalance = (cust: typeof customers[0]) => {
+    return (cust.historial || []).reduce((acc, tx) => acc + tx.monto, 0);
+  };
 
   // Calculations for current selected order
   const orderBaseTotal = useMemo(() => {
@@ -231,7 +255,7 @@ export const CajaView: React.FC = () => {
 
   // Execute complete order checkout & close table
   const handleEmitAndCloseTable = async () => {
-    if (!currentOrder) return;
+    if (!currentOrder || isProcessingPayment) return;
     if (isCashClosed) {
       alert('La caja del día está cerrada. No se pueden procesar cobros.');
       return;
@@ -258,55 +282,93 @@ export const CajaView: React.FC = () => {
       }];
     }
 
+    setIsProcessingPayment(true);
     try {
       // Find customer for credit/fiado if any payment is CREDITO
-      let targetCustomerId: string | undefined = undefined;
+      let targetCustomerId: string | undefined = selectedCreditCustomerId || undefined;
+      let targetCustomerName: string = clientName;
+
       const hasCredit = finalPayments.some(p => p.metodo === 'CREDITO');
       if (hasCredit) {
-        const found = customers.find(c => 
-          c.nombre.toLowerCase().trim() === clientName.toLowerCase().trim() ||
-          (c.documento && c.documento === docNumber && docNumber !== '00000000')
-        );
+        let found = targetCustomerId ? customers.find(c => c.id === targetCustomerId) : undefined;
         if (!found) {
-          alert(`Para registrar pago a crédito/fiar, el cliente "${clientName}" debe estar registrado en el módulo de Cuentas.`);
+          found = customers.find(c => 
+            c.nombre.toLowerCase().trim() === clientName.toLowerCase().trim() ||
+            (c.documento && c.documento === docNumber && docNumber !== '00000000')
+          );
+        }
+
+        if (!found) {
+          alert(`Para registrar pago a crédito/fiar, el cliente "${clientName}" debe estar registrado en el módulo de Cuentas. Por favor selecciónelo o use "+ Registrar Cliente".`);
+          setIsProcessingPayment(false);
           return;
         }
         targetCustomerId = found.id;
+        targetCustomerName = found.nombre;
       }
 
-      // Process each payment in AppContext
-      for (const p of finalPayments) {
-        const mappedMethod: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN' = 
-          p.metodo === 'TARJETA' ? 'EFECTIVO' : p.metodo;
-        await payOrder(currentOrder.id, mappedMethod, p.monto, targetCustomerId);
+      // Process complete payment atomically in AppContext
+      await payOrder(
+        currentOrder.id, 
+        finalPayments, 
+        undefined, 
+        targetCustomerId, 
+        targetCustomerName,
+        finalTotalToPay,
+        tipAmount,
+        discountAmount
+      );
+
+      // Set ticket to print only if requested
+      if (comprobanteType !== 'SIN_COMPROBANTE') {
+        const correlativo = comprobanteType === 'BOLETA' 
+          ? `B001-${String(Math.floor(Math.random() * 9000 + 1000))}`
+          : comprobanteType === 'FACTURA'
+            ? `F001-${String(Math.floor(Math.random() * 9000 + 1000))}`
+            : `NV01-${currentOrder.id.split('-').pop()}`;
+
+        setTicketToPrint({
+          order: currentOrder,
+          comprobante: `${comprobanteType === 'BOLETA' ? 'Boleta de Venta' : comprobanteType === 'FACTURA' ? 'Factura Electrónica' : 'Nota de Venta'} (${correlativo})`,
+          docNumber,
+          clientName: targetCustomerName || clientName,
+          clientEmail,
+          tip: tipAmount,
+          total: finalTotalToPay,
+          pagos: finalPayments,
+          vuelto: cashChange
+        });
       }
-
-      // Set ticket to print
-      const correlativo = comprobanteType === 'BOLETA' 
-        ? `B001-${String(Math.floor(Math.random() * 9000 + 1000))}`
-        : comprobanteType === 'FACTURA'
-          ? `F001-${String(Math.floor(Math.random() * 9000 + 1000))}`
-          : `NV01-${currentOrder.id.split('-').pop()}`;
-
-      setTicketToPrint({
-        order: currentOrder,
-        comprobante: `${comprobanteType === 'BOLETA' ? 'Boleta de Venta' : comprobanteType === 'FACTURA' ? 'Factura Electrónica' : 'Nota de Venta'} (${correlativo})`,
-        docNumber,
-        clientName,
-        clientEmail,
-        tip: tipAmount,
-        total: finalTotalToPay,
-        pagos: finalPayments,
-        vuelto: cashChange
-      });
 
       // Clear selection
       setAddedPayments([]);
       setCashReceived('');
     } catch (err: any) {
       console.error(err);
-      alert('Error al procesar el pago y emitir comprobante: ' + err.message);
+      alert('Error al procesar el pago y emitir comprobante: ' + (err?.message || err));
+    } finally {
+      setIsProcessingPayment(false);
     }
+  };
+
+  const handleQuickCreateCustomerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustForm.nombre.trim()) return;
+
+    const newId = Math.random().toString(36).substr(2, 9);
+    addCustomer({
+      nombre: newCustForm.nombre.trim(),
+      documento: newCustForm.documento.trim(),
+      telefono: newCustForm.telefono.trim()
+    });
+
+    setClientName(newCustForm.nombre.trim());
+    if (newCustForm.documento.trim()) {
+      setDocNumber(newCustForm.documento.trim());
+    }
+    setSelectedCreditCustomerId(newId);
+    setShowQuickCustomerModal(false);
+    setNewCustForm({ nombre: '', documento: '', telefono: '' });
   };
 
   const getMesaName = (mesaId: string) => {
@@ -473,62 +535,83 @@ export const CajaView: React.FC = () => {
 
               {currentOrder ? (
                 <>
-                  {/* DATOS DE FACTURACIÓN */}
-                  <div className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/60 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-indigo-600" />
-                        DATOS DE FACTURACIÓN
-                      </p>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setDocType('DNI')}
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-md ${docType === 'DNI' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
-                        >
-                          DNI
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDocType('RUC')}
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-md ${docType === 'RUC' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
-                        >
-                          RUC
-                        </button>
+                  {/* DATOS DE FACTURACIÓN O PAGO RÁPIDO */}
+                  {comprobanteType === 'SIN_COMPROBANTE' ? (
+                    <div className="bg-emerald-50/80 p-3.5 rounded-2xl border border-emerald-200/80 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-black text-emerald-950 uppercase tracking-wide">
+                            ⚡ Modo Pago Rápido (Sin Comprobante)
+                          </p>
+                          <p className="text-[10px] font-semibold text-emerald-800">
+                            Cobro express directo a caja sin emitir ticket ni reporte SUNAT
+                          </p>
+                        </div>
                       </div>
+                      <span className="text-[9.5px] font-black text-emerald-900 bg-emerald-200/70 px-2.5 py-0.5 rounded-md border border-emerald-300 uppercase tracking-wider">
+                        Rápido
+                      </span>
                     </div>
+                  ) : (
+                    <div className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/60 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-indigo-600" />
+                          DATOS DE FACTURACIÓN
+                        </p>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setDocType('DNI')}
+                            className={`text-[9px] font-black px-2 py-0.5 rounded-md ${docType === 'DNI' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
+                          >
+                            DNI
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDocType('RUC')}
+                            className={`text-[9px] font-black px-2 py-0.5 rounded-md ${docType === 'RUC' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
+                          >
+                            RUC
+                          </button>
+                        </div>
+                      </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <input
+                            type="text"
+                            value={docNumber}
+                            onChange={(e) => handleDocChange(e.target.value)}
+                            placeholder={docType === 'DNI' ? 'DNI (8 dígitos)' : 'RUC (11 dígitos)'}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          />
+                        </div>
+                        <div>
+                          <input
+                            type="text"
+                            value={clientName}
+                            onChange={(e) => setClientName(e.target.value)}
+                            placeholder="Nombre o Razón Social"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          />
+                        </div>
+                      </div>
+
                       <div>
                         <input
-                          type="text"
-                          value={docNumber}
-                          onChange={(e) => handleDocChange(e.target.value)}
-                          placeholder={docType === 'DNI' ? 'DNI (8 dígitos)' : 'RUC (11 dígitos)'}
+                          type="email"
+                          value={clientEmail}
+                          onChange={(e) => setClientEmail(e.target.value)}
+                          placeholder="cliente@restaurante.pe (Envío de Comprobante)"
                           className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                       </div>
-                      <div>
-                        <input
-                          type="text"
-                          value={clientName}
-                          onChange={(e) => setClientName(e.target.value)}
-                          placeholder="Nombre o Razón Social"
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        />
-                      </div>
                     </div>
-
-                    <div>
-                      <input
-                        type="email"
-                        value={clientEmail}
-                        onChange={(e) => setClientEmail(e.target.value)}
-                        placeholder="cliente@restaurante.pe (Envío de Comprobante)"
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   {/* LIST OF CONSUMED DISHES */}
                   <div className="space-y-2.5 max-h-[220px] overflow-y-auto no-scrollbar pr-1 divide-y divide-slate-100">
@@ -627,13 +710,18 @@ export const CajaView: React.FC = () => {
               {/* TIPO DE COMPROBANTE SUNAT */}
               <div className="space-y-1.5">
                 <label className="text-[10.5px] font-black text-slate-600 uppercase tracking-wider block">
-                  Tipo de Comprobante SUNAT
+                  Tipo de Comprobante
                 </label>
                 <select
                   value={comprobanteType}
                   onChange={(e) => setComprobanteType(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                  className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 cursor-pointer transition-all ${
+                    comprobanteType === 'SIN_COMPROBANTE'
+                      ? 'bg-emerald-50 border border-emerald-300 text-emerald-900 focus:ring-emerald-500/20'
+                      : 'bg-slate-50 border border-slate-200 text-slate-800 focus:ring-indigo-500/20'
+                  }`}
                 >
+                  <option value="SIN_COMPROBANTE">⚡ Sin Comprobante / Pago Rápido (Sin Reporte)</option>
                   <option value="BOLETA">Boleta de Venta Electrónica (B001)</option>
                   <option value="FACTURA">Factura Electrónica (F001)</option>
                   <option value="NOTA_VENTA">Nota de Venta / Ticket de Consumo</option>
@@ -658,6 +746,84 @@ export const CajaView: React.FC = () => {
                   <option value="TARJETA">Tarjeta Débito / Crédito</option>
                   <option value="CREDITO">Crédito / Fiar a Cuenta</option>
                 </select>
+
+                {/* DEDICATED PANEL FOR CRÉDITO / FIAR A CUENTA */}
+                {(selectedPaymentMethod === 'CREDITO' || addedPayments.some(p => p.metodo === 'CREDITO')) && (
+                  <div className="bg-amber-50/80 rounded-2xl p-3.5 border border-amber-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10.5px] font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <Wallet className="w-3.5 h-3.5 text-amber-700" />
+                        Cliente para Crédito / Fiar (Módulo Cuentas)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowQuickCustomerModal(true)}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 bg-amber-200/70 hover:bg-amber-300/80 px-2 py-0.5 rounded-lg border border-amber-300 transition-colors cursor-pointer"
+                      >
+                        <UserPlus className="w-3 h-3" />
+                        <span>+ Registrar Cliente</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <select
+                        value={selectedCreditCustomerId}
+                        onChange={(e) => {
+                          const custId = e.target.value;
+                          setSelectedCreditCustomerId(custId);
+                          const cust = customers.find(c => c.id === custId);
+                          if (cust) {
+                            setClientName(cust.nombre);
+                            if (cust.documento) setDocNumber(cust.documento);
+                          }
+                        }}
+                        className="w-full px-3 py-2 bg-white border border-amber-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
+                      >
+                        <option value="">-- Seleccione Cliente Registrado --</option>
+                        {customers.map(c => {
+                          const bal = getCustomerBalance(c);
+                          const balText = bal < 0 
+                            ? `(Debe: S/ ${Math.abs(bal).toFixed(2)})` 
+                            : bal > 0 
+                              ? `(A favor: S/ ${bal.toFixed(2)})` 
+                              : `(Al día)`;
+                          return (
+                            <option key={c.id} value={c.id}>
+                              {c.nombre} {c.documento ? `[${c.documento}]` : ''} - {balText}
+                            </option>
+                          );
+                        })}
+                      </select>
+
+                      {selectedCreditCustomerId && (() => {
+                        const selectedCust = customers.find(c => c.id === selectedCreditCustomerId);
+                        if (!selectedCust) return null;
+                        const bal = getCustomerBalance(selectedCust);
+                        return (
+                          <div className="flex items-center justify-between pt-1 px-1 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-slate-500">Saldo actual:</span>
+                              <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-md ${
+                                bal < 0 ? 'bg-rose-100 text-rose-800' : bal > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                              }`}>
+                                S/ {bal.toFixed(2)} {bal < 0 ? '(Debe)' : bal > 0 ? '(A favor)' : '(Al día)'}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => navigateToCustomerInCuentas(selectedCust.id)}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 hover:text-amber-950 underline underline-offset-2 cursor-pointer"
+                            >
+                              <span>Ver Cuenta</span>
+                              <ArrowUpRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
 
                 {/* Amount input + Añadir Pago button */}
                 <div className="flex gap-2">
@@ -755,11 +921,35 @@ export const CajaView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleEmitAndCloseTable}
-                disabled={!currentOrder || isCashClosed}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-200 text-white rounded-2xl font-display font-black text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 flex items-center justify-center gap-2 cursor-pointer"
+                disabled={!currentOrder || isCashClosed || isProcessingPayment}
+                className={`w-full py-4 rounded-2xl font-display font-black text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-200 ${
+                  comprobanteType === 'SIN_COMPROBANTE'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25 hover:shadow-emerald-600/35 text-white'
+                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20 hover:shadow-indigo-600/30 text-white'
+                }`}
               >
-                <Receipt className="w-5 h-5" />
-                {comprobanteType === 'FACTURA' ? 'Emitir Factura y Cerrar Mesa' : 'Emitir Boleta y Cerrar Mesa'}
+                {isProcessingPayment ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span>Procesando Pago...</span>
+                  </>
+                ) : comprobanteType === 'SIN_COMPROBANTE' ? (
+                  <>
+                    <Zap className="w-5 h-5 fill-white/20" />
+                    <span>Cobrar S/ {finalTotalToPay.toFixed(2)} y Cerrar Mesa</span>
+                  </>
+                ) : (
+                  <>
+                    <Receipt className="w-5 h-5" />
+                    <span>
+                      {comprobanteType === 'FACTURA' 
+                        ? 'Emitir Factura y Cerrar Mesa' 
+                        : comprobanteType === 'NOTA_VENTA'
+                          ? 'Emitir Nota de Venta y Cerrar Mesa'
+                          : 'Emitir Boleta y Cerrar Mesa'}
+                    </span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -1058,25 +1248,37 @@ export const CajaView: React.FC = () => {
       <div className="bg-white rounded-3xl p-5 md:p-6 border border-slate-200/80 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div>
-            <h3 className="font-display font-black text-slate-900 text-base uppercase tracking-tight">
+            <h3 className="font-display font-black text-slate-900 text-base uppercase tracking-tight flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-indigo-600" />
               Registro Histórico de Comprobantes
             </h3>
-            <p className="text-xs text-slate-400 font-medium">Ventas cobradas y canceladas en la fecha seleccionada ({selectedDate})</p>
+            <p className="text-xs text-slate-400 font-medium">Ventas, métodos de pago y cuentas corrientes registradas en ({selectedDate})</p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 const todayOrders = orders.filter(o => o.fecha === selectedDate);
-                const exportData = todayOrders.map(o => ({
-                  'N° Pedido': o.id,
-                  'Hora': o.hora || '',
-                  'Mesa': getMesaName(o.mesaId),
-                  'Cliente': o.cliente,
-                  'Estado': o.estado,
-                  'Método Pago': o.metodoPago || '',
-                  'Total S/': o.total
-                }));
+                const exportData = todayOrders.map(o => {
+                  let paymentMethodDisplay = o.metodoPago || (o.estado === 'ABIERTO' ? 'PENDIENTE' : 'EFECTIVO');
+                  if (o.pagos && o.pagos.length > 0) {
+                    if (o.pagos.length === 1) {
+                      paymentMethodDisplay = o.pagos[0].metodo;
+                    } else {
+                      paymentMethodDisplay = `MIXTO (${o.pagos.map(p => `${p.metodo}: S/ ${p.monto.toFixed(2)}`).join(', ')})`;
+                    }
+                  }
+
+                  return {
+                    'N° Pedido': o.id,
+                    'Hora': o.hora || '',
+                    'Mesa': getMesaName(o.mesaId),
+                    'Cliente': o.cliente,
+                    'Estado': o.estado,
+                    'Método Pago': paymentMethodDisplay,
+                    'Total S/': o.total
+                  };
+                });
                 const ws = XLSX.utils.json_to_sheet(exportData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Ventas_Caja');
@@ -1091,15 +1293,15 @@ export const CajaView: React.FC = () => {
 
         {/* Table of Orders */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[750px] text-xs">
+          <table className="w-full text-left border-collapse min-w-[850px] text-xs">
             <thead>
               <tr className="bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100">
                 <th className="py-3 px-4">N° Pedido</th>
                 <th className="py-3 px-3">Hora</th>
                 <th className="py-3 px-4">Mesa</th>
                 <th className="py-3 px-4">Cliente</th>
-                <th className="py-3 px-3">Platos</th>
-                <th className="py-3 px-4">Método Pago</th>
+                <th className="py-3 px-3 text-center">Platos</th>
+                <th className="py-3 px-4">Método de Pago</th>
                 <th className="py-3 px-3">Estado</th>
                 <th className="py-3 px-4 text-right">Total S/</th>
               </tr>
@@ -1112,35 +1314,134 @@ export const CajaView: React.FC = () => {
                   const itemsCount = order.items.reduce((acc, i) => acc + i.cantidad, 0);
                   const mesaName = getMesaName(order.mesaId);
 
+                  // Find matching customer in Cuentas
+                  const matchedCustomer = (order.customerId ? customers.find(c => c.id === order.customerId) : undefined) ||
+                    customers.find(c => c.nombre.trim().toLowerCase() === order.cliente.trim().toLowerCase());
+
+                  // Calculate exact payment method representation
+                  const hasPaymentsList = order.pagos && order.pagos.length > 0;
+                  const distinctMethods = hasPaymentsList 
+                    ? Array.from(new Set(order.pagos!.map(p => p.metodo)))
+                    : [];
+
+                  const isSinglePayment = hasPaymentsList && distinctMethods.length === 1;
+                  const isMultiplePayments = hasPaymentsList && distinctMethods.length > 1;
+                  const singleMethod = isSinglePayment ? distinctMethods[0] : (order.metodoPago || (order.estado === 'CREDITO' ? 'CREDITO' : 'EFECTIVO'));
+
+                  const hasCreditPayment = (hasPaymentsList && order.pagos!.some(p => p.metodo === 'CREDITO')) ||
+                    order.metodoPago === 'CREDITO' ||
+                    order.estado === 'CREDITO';
+
                   return (
-                    <tr key={order.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-slate-600">
+                    <tr key={order.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-600">
                         #{order.id.split('-').pop()}
                       </td>
-                      <td className="py-3 px-3 font-mono text-slate-400">
+                      <td className="py-3.5 px-3 font-mono text-slate-400">
                         {order.hora || '12:00'}
                       </td>
-                      <td className="py-3 px-4 font-bold text-slate-800">
+                      <td className="py-3.5 px-4 font-bold text-slate-800">
                         {mesaName}
                       </td>
-                      <td className="py-3 px-4 text-slate-700 truncate max-w-[140px]">
-                        {order.cliente}
+                      <td className="py-3.5 px-4 text-slate-700">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-slate-900">{order.cliente}</span>
+                          {matchedCustomer && (
+                            <button
+                              onClick={() => navigateToCustomerInCuentas(matchedCustomer.id)}
+                              title={`Abrir estado de cuenta de ${matchedCustomer.nombre}`}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-200/60 transition-colors cursor-pointer"
+                            >
+                              <span>Cuentas</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
-                      <td className="py-3 px-3 font-bold text-slate-600">
+                      <td className="py-3.5 px-3 text-center font-bold text-slate-600">
                         {itemsCount}
                       </td>
-                      <td className="py-3 px-4">
-                        <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md ${
-                          order.metodoPago === 'EFECTIVO' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                          order.metodoPago === 'YAPE' ? 'bg-sky-50 text-sky-700 border border-sky-200' :
-                          order.metodoPago === 'CREDITO' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                          'bg-slate-100 text-slate-600'
-                        }`}>
-                          {order.metodoPago || 'PENDIENTE'}
-                        </span>
+                      
+                      {/* MÉTODO DE PAGO CONECTADO CON OPCIONES Y CUENTAS */}
+                      <td className="py-3.5 px-4">
+                        {order.estado === 'ABIERTO' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
+                            <Clock className="w-3 h-3 text-slate-400" /> Pendiente
+                          </span>
+                        ) : isMultiplePayments ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200">
+                                <Coins className="w-3 h-3 text-violet-600" /> Mixto
+                              </span>
+                              {hasCreditPayment && matchedCustomer && (
+                                <button
+                                  onClick={() => navigateToCustomerInCuentas(matchedCustomer.id)}
+                                  className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-800 bg-amber-100/80 hover:bg-amber-200 px-2 py-0.5 rounded-md border border-amber-300 transition-colors cursor-pointer"
+                                >
+                                  <Wallet className="w-3 h-3 text-amber-700" />
+                                  <span>Ver en Cuentas</span>
+                                  <ArrowUpRight className="w-2.5 h-2.5" />
+                                </button>
+                              )}
+                            </div>
+                            <div className="text-[9.5px] font-mono text-slate-500 font-medium">
+                              {order.pagos!.map(p => `${p.metodo === 'CREDITO' ? 'Crédito' : p.metodo}: S/ ${p.monto.toFixed(2)}`).join(' + ')}
+                            </div>
+                          </div>
+                        ) : singleMethod === 'EFECTIVO' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <DollarSign className="w-3 h-3 text-emerald-600" /> Efectivo
+                          </span>
+                        ) : singleMethod === 'YAPE' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200">
+                            <QrCode className="w-3 h-3 text-sky-600" /> Yape
+                          </span>
+                        ) : singleMethod === 'PLIN' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 border border-teal-200">
+                            <Sparkles className="w-3 h-3 text-teal-600" /> Plin
+                          </span>
+                        ) : singleMethod === 'TARJETA' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-200">
+                            <CreditCard className="w-3 h-3 text-purple-600" /> Tarjeta
+                          </span>
+                        ) : singleMethod === 'CREDITO' || hasCreditPayment ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
+                              <Wallet className="w-3 h-3 text-amber-700" /> Crédito / Fiar
+                            </span>
+                            {matchedCustomer ? (
+                              <button
+                                onClick={() => navigateToCustomerInCuentas(matchedCustomer.id)}
+                                title={`Ver cuenta de ${matchedCustomer.nombre} en módulo Cuentas`}
+                                className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md border border-amber-300/80 transition-colors cursor-pointer"
+                              >
+                                <span>Ver en Cuentas</span>
+                                <ArrowUpRight className="w-3 h-3 text-amber-800" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setNewCustForm({ nombre: order.cliente, documento: '', telefono: '' });
+                                  setShowQuickCustomerModal(true);
+                                }}
+                                title="Vincular / Registrar cliente en módulo Cuentas"
+                                className="inline-flex items-center gap-1 text-[9px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded border border-slate-200 transition-colors cursor-pointer"
+                              >
+                                <UserPlus className="w-2.5 h-2.5" />
+                                <span>Vincular Cuenta</span>
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                            {order.metodoPago || 'EFECTIVO'}
+                          </span>
+                        )}
                       </td>
-                      <td className="py-3 px-3">
-                        <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md ${
+
+                      <td className="py-3.5 px-3">
+                        <span className={`text-[9.5px] font-black uppercase px-2.5 py-0.5 rounded-md ${
                           order.estado === 'PAGADO' ? 'bg-emerald-100 text-emerald-800' :
                           order.estado === 'CREDITO' ? 'bg-amber-100 text-amber-800' :
                           order.estado === 'CANCELADO' ? 'bg-slate-100 text-slate-500' :
@@ -1149,7 +1450,7 @@ export const CajaView: React.FC = () => {
                           {order.estado}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right font-display font-black text-slate-900">
+                      <td className="py-3.5 px-4 text-right font-display font-black text-slate-900">
                         S/ {order.total.toFixed(2)}
                       </td>
                     </tr>
@@ -1159,6 +1460,102 @@ export const CajaView: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* QUICK REGISTER CUSTOMER MODAL */}
+      <AnimatePresence>
+        {showQuickCustomerModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-5"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100">
+                    <UserPlus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-slate-900 text-sm uppercase tracking-tight">
+                      Registrar Cliente en Cuentas
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Permite registrar fiados y controlar su saldo corriente</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickCustomerModal(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleQuickCreateCustomerSubmit} className="space-y-3.5">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                    Nombre o Razón Social *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newCustForm.nombre}
+                    onChange={(e) => setNewCustForm({ ...newCustForm, nombre: e.target.value })}
+                    placeholder="Ej. Juan Pérez / Empresa SAC"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                      DNI / RUC
+                    </label>
+                    <input
+                      type="text"
+                      value={newCustForm.documento}
+                      onChange={(e) => setNewCustForm({ ...newCustForm, documento: e.target.value })}
+                      placeholder="8 o 11 dígitos"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                      Teléfono
+                    </label>
+                    <input
+                      type="text"
+                      value={newCustForm.telefono}
+                      onChange={(e) => setNewCustForm({ ...newCustForm, telefono: e.target.value })}
+                      placeholder="987654321"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickCustomerModal(false)}
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold uppercase text-[10.5px] transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!newCustForm.nombre.trim()}
+                    className="flex-[2] py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-200 text-white rounded-xl font-bold uppercase text-[10.5px] tracking-wider transition-all shadow-md shadow-amber-600/20 flex items-center justify-center gap-1.5"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" /> Guardar y Seleccionar
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

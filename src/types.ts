@@ -44,7 +44,7 @@ export interface CustomerTransaction {
   tipo: TransactionType;
   monto: number; // Positivo para depósitos/pagos, negativo para consumos (o manejar con tipo)
   descripcion: string;
-  metodoPago?: 'EFECTIVO' | 'YAPE';
+  metodoPago?: PaymentMethod | string;
   orderId?: string;
 }
 
@@ -93,12 +93,17 @@ export interface OrderItem {
   timestampServido?: number;
 }
 
+export type PaymentMethod = 'EFECTIVO' | 'YAPE' | 'PLIN' | 'TARJETA' | 'CREDITO';
+
 export interface Payment {
   id: string;
   pedidoId: string;
   monto: number;
-  metodo: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN';
+  metodo: PaymentMethod;
+  referencia?: string;
   usuarioNombre?: string;
+  customerId?: string;
+  customerNombre?: string;
   fecha: string;
   hora: string;
   timestamp: number;
@@ -112,6 +117,8 @@ export interface DailyCashControl {
   montoApertura: number;
   ingresosEfectivo: number;
   ingresosYape: number;
+  ingresosPlin?: number;
+  ingresosTarjeta?: number;
   ingresosFiar: number; // Créditos otorgados hoy
   montoCierre: number;
   efectivoFisico?: number;
@@ -126,10 +133,14 @@ export interface Order {
   id: string;
   mesaId: string;
   cliente: string;
+  customerId?: string;
+  customerNombre?: string;
   items: OrderItem[];
   estado: OrderStatus;
   total: number;
-  metodoPago?: 'EFECTIVO' | 'YAPE' | 'CREDITO'; // Maintain for legacy/single payments
+  descuento?: number;
+  propina?: number;
+  metodoPago?: PaymentMethod | 'MIXTO' | string; // Maintain for quick queries / summaries
   pagos?: Payment[];
   usuarioId: string;
   usuarioNombre?: string;

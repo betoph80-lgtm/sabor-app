@@ -3,14 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext';
-import { User, Plus, Search, Receipt, Wallet, ArrowUpRight, ArrowDownLeft, X, Edit2, Check, Trash2 } from 'lucide-react';
+import { User, Plus, Search, Receipt, Wallet, ArrowUpRight, ArrowDownLeft, X, Edit2, Check, Trash2, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Customer } from '../types';
 
 export const CustomersView: React.FC = () => {
-  const { customers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction, requestConfirmation, isTodaySelected, selectedDate } = useApp();
+  const { 
+    customers, addCustomer, updateCustomer, deleteCustomer, 
+    addTransaction, deleteTransaction, updateTransaction, 
+    requestConfirmation, isTodaySelected, selectedDate,
+    selectedCustomerIdForView, setSelectedCustomerIdForView,
+    orders, products
+  } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   
@@ -39,6 +45,16 @@ export const CustomersView: React.FC = () => {
   );
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+
+  // Sync when navigated from CajaView or other views
+  useEffect(() => {
+    if (selectedCustomerIdForView) {
+      setSelectedCustomerId(selectedCustomerIdForView);
+      // Clean up search so customer is visible
+      setSearchTerm('');
+    }
+  }, [selectedCustomerIdForView]);
+
   const selectedCustomer = customers.find(c => c.id === selectedCustomerId) || null;
   
   const [showAddTransaction, setShowAddTransaction] = useState(false);
