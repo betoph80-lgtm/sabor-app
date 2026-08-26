@@ -5,11 +5,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Check, Clock, Utensils } from 'lucide-react';
+import { Check, CheckCheck, Clock, Utensils, Bell, Volume2 } from 'lucide-react';
 import { OrderTimer } from './OrderTimer.tsx';
 
 export const CocinaView: React.FC = () => {
-  const { orders, products, updateItemStatus, currentMenu, selectedDate, isTodaySelected, mesas } = useApp();
+  const { 
+    orders, 
+    products, 
+    updateItemStatus, 
+    updateAllItemsStatusInOrder, 
+    currentMenu, 
+    selectedDate, 
+    isTodaySelected, 
+    mesas,
+    testNotification 
+  } = useApp();
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -162,9 +172,20 @@ export const CocinaView: React.FC = () => {
         </div>
       </div>
 
-      {/* Preparation Count Floating Style */}
-      <div className="flex justify-end pr-2">
-        <span className="bg-brand-50 text-brand-700 border border-brand-100/50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider soft-shadow-sm flex items-center gap-1.5 selection:bg-transparent">
+      {/* Preparation Count & Sound Alert Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 px-1">
+        <button
+          id="btn-cocina-test-audio"
+          type="button"
+          onClick={testNotification}
+          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 cursor-pointer"
+          title="Probar sonido y vibración que recibe el mesero"
+        >
+          <Volume2 className="w-3.5 h-3.5 text-brand-600 animate-bounce" />
+          <span>Probar Timbre y Vibración Mesero</span>
+        </button>
+
+        <span className="bg-brand-50 text-brand-700 border border-brand-100/50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider soft-shadow-sm flex items-center justify-center gap-1.5 selection:bg-transparent">
           <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping"></span>
           {itemsToPrepare.length} Items en Proceso
         </span>
@@ -179,6 +200,11 @@ export const CocinaView: React.FC = () => {
           
           const orderId = items[0].orderId;
           const fullOrder = orders.find(o => o.id === orderId);
+
+          const totalOrderItems = fullOrder?.items || [];
+          const pendingItemsCount = totalOrderItems.filter(i => i.estado !== 'SERVIDO').length;
+          const totalItemsCount = totalOrderItems.length;
+          const allItemsReady = pendingItemsCount === 0;
 
           // "Falta Segundo" alert check
           const totalSoupItems = fullOrder?.items.filter(i => {
@@ -228,6 +254,7 @@ export const CocinaView: React.FC = () => {
           return (
             <div 
               key={key} 
+              id={`ticket-card-${orderId}`}
               className={`bg-white rounded-[32px] md:rounded-[40px] border shadow-sm overflow-hidden flex flex-col transition-all duration-300 ${
                 isFaltaSegundoAlert
                   ? 'border-rose-500 ring-2 ring-rose-200 shadow-[0_4px_24px_rgba(239,68,68,0.12)]'
@@ -249,6 +276,34 @@ export const CocinaView: React.FC = () => {
                   <OrderTimer timestamp={orderTimestamp} className="text-base md:text-lg" />
                   <p className="text-[7px] md:text-[8px] font-sans font-extrabold uppercase tracking-widest tabular-nums px-1.5 py-0.5 bg-black/20 rounded-md md:rounded-lg backdrop-blur-sm border border-white/5">A las {items[0].horaPedido}</p>
                </div>
+            </div>
+
+            {/* Ticket Quick Batch Action Bar: Listo a Todos los Platos */}
+            <div className="px-4 py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Progreso:</span>
+                <span className="text-[10px] font-black text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200/80 shadow-2xs">
+                  {totalItemsCount - pendingItemsCount} / {totalItemsCount} listos
+                </span>
+              </div>
+
+              {allItemsReady ? (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-[9.5px] font-black uppercase tracking-wider">
+                  <Check className="w-3 h-3 text-emerald-600" />
+                  Todos Listos ✓
+                </span>
+              ) : (
+                <button
+                  id={`btn-listo-todo-${orderId}`}
+                  type="button"
+                  onClick={() => updateAllItemsStatusInOrder(orderId, 'SERVIDO')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-[9.5px] font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                  title="Marcar todos los platos de este ticket como listos y enviar sonido/vibración al mesero"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  <span>Listo Todo ({pendingItemsCount})</span>
+                </button>
+              )}
             </div>
 
             <div className="p-3 md:p-4 space-y-2 md:space-y-3 flex-1 overflow-auto">
@@ -298,7 +353,7 @@ export const CocinaView: React.FC = () => {
                   const isSoup = product?.tipo === 'SOPA';
                   
                   return (
-                    <div key={item.id} className="flex items-center justify-between group py-1 border-b border-slate-50 last:border-0 pb-1.5 last:pb-0.5">
+                    <div key={item.id} className="flex items-center justify-between group py-1.5 border-b border-slate-50 last:border-0 pb-2 last:pb-0.5">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${
                           isSoup ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-brand-50 text-brand-700 border border-brand-100'
@@ -328,9 +383,13 @@ export const CocinaView: React.FC = () => {
                         </div>
                       ) : (
                         <button
+                          id={`btn-listo-item-${item.id}`}
+                          type="button"
                           onClick={() => updateItemStatus(item.orderId, item.id, 'SERVIDO')}
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-100 flex items-center gap-2 cursor-pointer"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-sm shadow-emerald-100 flex items-center gap-2 cursor-pointer"
+                          title="Marcar este plato como listo y notificar al mesero"
                         >
+                          <Check className="w-3.5 h-3.5" />
                           Listo
                         </button>
                       )}
@@ -342,7 +401,7 @@ export const CocinaView: React.FC = () => {
           </div>
         );
       })}
-    </div>
+      </div>
     </div>
   );
 };

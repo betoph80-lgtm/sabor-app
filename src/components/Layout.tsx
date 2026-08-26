@@ -5,8 +5,9 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { WaiterNotificationToast } from './WaiterNotificationToast.tsx';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdminExpanded, setIsAdminExpanded] = React.useState(true);
@@ -108,6 +109,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex flex-col h-screen bg-background text-slate-800 overflow-hidden font-sans">
+      {/* Waiter Live Notification Banners */}
+      <WaiterNotificationToast />
+
       {/* Header / Navbar */}
       <nav className="min-h-[72px] py-1 md:h-22 bg-white border-b border-slate-200/80 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3 md:gap-4 shrink-0 group cursor-pointer">

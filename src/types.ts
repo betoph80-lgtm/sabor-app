@@ -138,6 +138,20 @@ export interface Order {
   timestamp: number;
 }
 
+export interface WaiterNotification {
+  id: string;
+  orderId: string;
+  mesaId: string;
+  mesaNombre: string;
+  platoNombre: string;
+  cantidad: number;
+  usuarioId: string;
+  usuarioNombre: string;
+  timestamp: number;
+  hora: string;
+  tipo: 'INDIVIDUAL' | 'TODO';
+}
+
 export interface Mesa {
   id: string;
   nombre: string;

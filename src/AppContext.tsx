@@ -8,7 +8,7 @@ import {
   Order, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
   OrderItem, ItemStatus, Customer, CustomerTransaction, 
   DailyCashControl, Payment, AppUser, USUARIOS_BASE, Role, AdminSubView,
-  AppIdentity
+  AppIdentity, WaiterNotification
 } from './types';
 import { db, auth } from './firebase';
 import { 
@@ -17,6 +17,7 @@ import {
   getDoc, writeBatch, serverTimestamp, runTransaction 
 } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { triggerWaiterNotificationAlert } from './utils/notificationSound.ts';
 
 enum OperationType {
   CREATE = 'create',
@@ -74,6 +75,7 @@ interface AppContextType {
   setMesas: React.Dispatch<React.SetStateAction<Mesa[]>>;
   createOrder: (mesaId: string, cliente: string, items: Partial<OrderItem>[]) => void;
   updateItemStatus: (orderId: string, itemId: string, status: ItemStatus) => void;
+  updateAllItemsStatusInOrder: (orderId: string, status?: ItemStatus) => Promise<void>;
   deleteItemFromOrder: (orderId: string, itemId: string) => void;
   updateItemQuantity: (orderId: string, itemId: string, newQty: number) => void;
   payOrder: (orderId: string, method: 'EFECTIVO' | 'YAPE' | 'CREDITO' | 'PLIN', amount: number, customerId?: string) => void;
@@ -126,6 +128,10 @@ interface AppContextType {
   dbConnectedStatus: 'conectando' | 'conectado' | 'error';
   dbConnectionErrorMessage: string | undefined;
   recheckDbConnection: () => Promise<boolean>;
+  notifications: WaiterNotification[];
+  dismissNotification: (id: string) => void;
+  clearAllNotifications: () => void;
+  testNotification: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -212,6 +218,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     onConfirm: () => {},
     onCancel: () => {}
   });
+
+  const [notifications, setNotifications] = useState<WaiterNotification[]>([]);
+  const knownServedItemIds = React.useRef<Set<string>>(new Set());
+  const isInitialOrdersLoad = React.useRef(true);
+  const currentUserRef = React.useRef(currentUser);
+  currentUserRef.current = currentUser;
+  const productsRef = React.useRef(products);
+  productsRef.current = products;
+  const mesasRef = React.useRef(mesas);
+  mesasRef.current = mesas;
+
+  const dismissNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  const testNotification = () => {
+    triggerWaiterNotificationAlert();
+    const testNotif: WaiterNotification = {
+      id: `test-${Date.now()}`,
+      orderId: 'TEST-001',
+      mesaId: '1',
+      mesaNombre: 'Mesa 1 (Prueba)',
+      platoNombre: 'Lomo Saltado',
+      cantidad: 1,
+      usuarioId: currentUser?.id || 'test',
+      usuarioNombre: currentUser?.nombre || 'Mesero',
+      timestamp: Date.now(),
+      hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      tipo: 'INDIVIDUAL'
+    };
+    setNotifications(prev => [testNotif, ...prev].slice(0, 20));
+  };
 
   const requestConfirmation = (title: string, message: string, onConfirm: () => void) => {
     setConfirmAction({
@@ -334,7 +376,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // 5. PEDIDOS
     const qOrders = query(collection(db, 'pedidos'), where('fecha', '==', selectedDate));
     const unsubscribeOrders = onSnapshot(qOrders, (snapshot) => {
-      setOrders(snapshot.docs.map(doc => ({ ...doc.data() } as Order)));
+      const currentOrders = snapshot.docs.map(doc => ({ ...doc.data() } as Order));
+      setOrders(currentOrders);
+
+      if (isInitialOrdersLoad.current) {
+        // Seed initial served items so we don't alert on page load
+        currentOrders.forEach(o => {
+          o.items?.forEach(i => {
+            if (i.estado === 'SERVIDO') {
+              knownServedItemIds.current.add(`${o.id}-${i.id}`);
+            }
+          });
+        });
+        isInitialOrdersLoad.current = false;
+      } else {
+        // Check for newly served items
+        let alertTriggered = false;
+        const newlyServedNotifs: WaiterNotification[] = [];
+        const user = currentUserRef.current;
+        const currentProducts = productsRef.current;
+        const currentMesas = mesasRef.current;
+
+        currentOrders.forEach(order => {
+          order.items?.forEach(item => {
+            if (item.estado === 'SERVIDO') {
+              const key = `${order.id}-${item.id}`;
+              if (!knownServedItemIds.current.has(key)) {
+                knownServedItemIds.current.add(key);
+
+                // Check if the notification is for the current logged-in waiter (or admin / kitchen supervisor)
+                const isTargetWaiter = 
+                  user?.role === 'ADMIN' || 
+                  (user?.id && (order.usuarioId === user.id || item.usuarioId === user.id)) ||
+                  (user?.role === 'MESERO' && (!order.usuarioId || order.usuarioId === user?.id || user?.nombre === order.usuarioNombre));
+
+                if (isTargetWaiter) {
+                  alertTriggered = true;
+                  const product = currentProducts.find(p => p.id === item.productoId);
+                  const mesaObj = currentMesas.find(m => m.id === order.mesaId);
+                  const mesaNombre = order.mesaId === '13' ? 'Para Llevar' : (mesaObj?.nombre || `Mesa ${order.mesaId}`);
+
+                  newlyServedNotifs.push({
+                    id: `${order.id}-${item.id}-${Date.now()}`,
+                    orderId: order.id,
+                    mesaId: order.mesaId,
+                    mesaNombre,
+                    platoNombre: product?.nombre || 'Plato Listo',
+                    cantidad: item.cantidad,
+                    usuarioId: order.usuarioId,
+                    usuarioNombre: order.usuarioNombre || 'Mesero',
+                    timestamp: Date.now(),
+                    hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                    tipo: 'INDIVIDUAL'
+                  });
+                }
+              }
+            }
+          });
+        });
+
+        if (alertTriggered && newlyServedNotifs.length > 0) {
+          triggerWaiterNotificationAlert();
+          setNotifications(prev => [...newlyServedNotifs, ...prev].slice(0, 20));
+        }
+      }
     }, (err) => handleFirestoreError(err, OperationType.LIST, `pedidos?fecha=${selectedDate}`));
 
     // 6. MENU DIARIO
@@ -534,19 +639,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const updateItemStatus = (orderId: string, itemId: string, status: ItemStatus) => {
+  const updateItemStatus = async (orderId: string, itemId: string, status: ItemStatus) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
+    const now = Date.now();
     const newItems = order.items.map(i => 
       i.id === itemId 
         ? { 
             ...i, 
             estado: status, 
-            timestampServido: status === 'SERVIDO' ? Date.now() : i.timestampServido 
+            timestampServido: status === 'SERVIDO' ? now : i.timestampServido 
           } 
         : i
     );
-    updateDoc(doc(db, 'pedidos', orderId), { items: newItems });
+    await updateDoc(doc(db, 'pedidos', orderId), { items: newItems });
+  };
+
+  const updateAllItemsStatusInOrder = async (orderId: string, status: ItemStatus = 'SERVIDO') => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    const now = Date.now();
+    const newItems = order.items.map(i => {
+      if (i.estado !== status) {
+        return {
+          ...i,
+          estado: status,
+          timestampServido: status === 'SERVIDO' ? now : i.timestampServido
+        };
+      }
+      return i;
+    });
+    await updateDoc(doc(db, 'pedidos', orderId), { items: newItems });
   };
 
   const deleteItemFromOrder = async (orderId: string, itemId: string) => {
@@ -1353,7 +1476,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       activeView, setActiveView, adminSubView, setAdminSubView, currentUser, appUsers, login, logout,
       addAppUser, updateAppUser, deleteAppUser,
       orders, setOrders, products, categories, addCategory, deleteCategory, addProduct, updateProduct, deleteProduct, currentMenu, mesas, setMesas,
-      createOrder, updateItemStatus, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateWholeOrder, updateMenuItemStock, deleteOrder, resetStock, addMesa, updateMesa, deleteMesa, toggleProductInMenu,
+      createOrder, updateItemStatus, updateAllItemsStatusInOrder, deleteItemFromOrder, updateItemQuantity, payOrder, addItemsToOrder, updateOrderInfo, updateWholeOrder, updateMenuItemStock, deleteOrder, resetStock, addMesa, updateMesa, deleteMesa, toggleProductInMenu,
       customers, setCustomers, addCustomer, updateCustomer, deleteCustomer, addTransaction, deleteTransaction, updateTransaction,
       cashControls, openCash, closeCash, reopenCash, updateCashOpening, currentCash,
       confirmAction, requestConfirmation, closeConfirmation,
@@ -1364,7 +1487,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deleteSelectedDayData,
       dbConnectedStatus,
       dbConnectionErrorMessage,
-      recheckDbConnection
+      recheckDbConnection,
+      notifications,
+      dismissNotification,
+      clearAllNotifications,
+      testNotification
     }}>
       {children}
       <ConfirmModal 
