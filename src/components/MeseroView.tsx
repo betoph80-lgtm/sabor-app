@@ -153,18 +153,18 @@ export const MeseroView: React.FC = () => {
                   <div className="w-full h-full flex flex-col justify-between text-center overflow-hidden">
                     {/* Top Ticket metadata */}
                     <div className="flex flex-col select-none w-full">
-                      <p className={`text-[5.5px] xs:text-[6.5px] md:text-[8px] font-extrabold uppercase tracking-tight leading-none ${
+                      <p className={`text-[7px] xs:text-[8px] md:text-[9px] font-extrabold uppercase tracking-tight leading-none ${
                         mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'
                       }`}>
                         PEDIDO: #{(activeOrder?.id || '').split('-').pop()}
                       </p>
-                      <p className={`text-[5px] xs:text-[6.0px] md:text-[7px] font-semibold leading-none mt-0.5 ${
+                      <p className={`text-[6.5px] xs:text-[7.5px] md:text-[8px] font-semibold leading-none mt-0.5 ${
                         mesa.id === '13' ? 'text-brand-200/90' : 'text-rose-200/90'
                       }`}>
-                        A LAS {activeOrder?.hora}
+                        {activeOrder?.hora}
                       </p>
                       <div className="flex items-center justify-center gap-1 mt-0.5 select-none w-full leading-none">
-                        <span className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase text-white truncate max-w-[80%]">
+                        <span className="text-[7px] xs:text-[8px] md:text-[8.5px] font-black uppercase text-white truncate max-w-[90%]">
                           {activeOrder?.cliente || 'CONSU. FINAL'}
                         </span>
                       </div>
@@ -172,7 +172,7 @@ export const MeseroView: React.FC = () => {
 
                     {/* Big table label */}
                     <div className="relative flex items-center justify-center my-0.5 shrink-0">
-                      <div className="font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.2)] transition-transform duration-300 group-hover:scale-110">
+                      <div className="font-display font-black leading-none uppercase text-lg xs:text-xl sm:text-2xl md:text-3xl text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.2)] transition-transform duration-300 group-hover:scale-110">
                         {label}
                       </div>
                     </div>
@@ -187,7 +187,7 @@ export const MeseroView: React.FC = () => {
                     </div>
 
                     {/* Footer - who took the order */}
-                    <div className={`text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase tracking-wider truncate max-w-full leading-none border-t pt-1 mt-0.5 shrink-0 ${
+                    <div className={`text-[6.5px] xs:text-[7.5px] md:text-[8px] font-black uppercase tracking-wider truncate max-w-full leading-none border-t pt-1 mt-0.5 shrink-0 ${
                       mesa.id === '13' ? 'text-brand-100 border-brand-400/30' : 'text-rose-100 border-rose-400/30'
                     }`}>
                       {activeOrder?.usuarioNombre?.split(' ')[0] || 'ADMINISTRADOR'}
@@ -197,13 +197,13 @@ export const MeseroView: React.FC = () => {
               })() : (
                 <>
                   <div className={`font-display font-black leading-none uppercase px-1 text-center select-none text-white transition-all duration-300 group-hover:scale-110 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.2)] ${
-                    label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
+                    label.length > 3 ? 'text-sm md:text-base tracking-tight' : 'text-2xl md:text-3.5xl'
                   }`}>
                     {label}
                   </div>
                   
                   {mesa.id !== '13' && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-emerald-600/55 border border-emerald-400/30 rounded-full text-[6.5px] md:text-[8px] font-black text-emerald-50 uppercase tracking-wider whitespace-nowrap select-none">
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-emerald-600/55 border border-emerald-400/30 rounded-full text-[7.5px] md:text-[8.5px] font-black text-emerald-50 uppercase tracking-wider whitespace-nowrap select-none">
                       {mesa.sillas || 0} sil.
                     </div>
                   )}

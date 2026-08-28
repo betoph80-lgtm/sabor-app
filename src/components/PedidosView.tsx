@@ -198,87 +198,87 @@ export const PedidosView: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-display font-black text-xs border-2 border-white soft-shadow-sm shrink-0 ${
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-display font-black text-sm border-2 border-white soft-shadow-sm shrink-0 ${
                         view === 'HISTORIAL' ? 'bg-slate-200 text-slate-500' : 'bg-brand-600 text-white'
                       }`}>
                         {order.mesaId === '13' ? 'PL' : (mesas.find(m => m.id === order.mesaId)?.nombre.replace(/mesa\s+/i, '') || order.mesaId)}
                       </div>
                       <div>
-                        <p className="font-extrabold text-slate-900 text-xs leading-none">
+                        <p className="font-extrabold text-slate-900 text-sm leading-none">
                           {order.mesaId === '13' ? 'Para Llevar' : (mesas.find(m => m.id === order.mesaId)?.nombre || `Mesa ${order.mesaId}`)}
                         </p>
-                        <p className="text-[7.5px] text-slate-400 font-extrabold uppercase mt-0.5 leading-none">#{order.id.split('-').pop()} • {order.usuarioNombre?.split(' ')[0] || 'Desconocido'}</p>
+                        <p className="text-[10px] text-slate-400 font-extrabold uppercase mt-1 leading-none">#{order.id.split('-').pop()} • {order.usuarioNombre?.split(' ')[0] || 'Desconocido'}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-display font-black leading-none ${view === 'HISTORIAL' ? 'text-emerald-500' : 'text-slate-900'}`}>
+                      <p className={`text-base font-display font-black leading-none ${view === 'HISTORIAL' ? 'text-emerald-600' : 'text-slate-900'}`}>
                         S/ {order.total.toFixed(2)}
                       </p>
-                      <p className="text-[7.5px] text-slate-400 font-extrabold uppercase mt-0.5 leading-none">{order.hora}</p>
+                      <p className="text-[10px] text-slate-400 font-extrabold uppercase mt-1 leading-none">{order.hora}</p>
                     </div>
                   </div>
 
                   {/* Estado de Cocina Mobile Banner */}
-                  <div className="bg-slate-50/70 p-2 rounded-xl border border-slate-100 space-y-1">
+                  <div className="bg-slate-50/70 p-2.5 rounded-xl border border-slate-100 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                        <ChefHat className="w-2.5 h-2.5 text-brand-600" /> Estado de Cocina
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <ChefHat className="w-3.5 h-3.5 text-brand-600" /> Estado de Cocina
                       </span>
                       {isAllServed || view === 'HISTORIAL' ? (
-                        <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> Listo / Servido
+                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Listo / Servido
                         </span>
                       ) : isFaltaSegundoAlert ? (
-                        <span className="text-[8px] font-black text-white bg-rose-500 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
-                          <AlertCircle className="w-2.5 h-2.5" /> ¡Falta Segundo!
+                        <span className="text-[10px] font-black text-white bg-rose-500 px-2.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                          <AlertCircle className="w-3 h-3" /> ¡Falta Segundo!
                         </span>
                       ) : isOnlySoupAndNoSeconds && isSoupServed ? (
-                        <span className="text-[8px] font-black text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5" /> Esperando Segundo
+                        <span className="text-[10px] font-black text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Esperando Segundo
                         </span>
                       ) : isPartiallyServed ? (
-                        <span className="text-[8px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <ChefHat className="w-2.5 h-2.5" /> En Preparación ({servedItemsQty}/{totalItemsQty})
+                        <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <ChefHat className="w-3 h-3" /> En Preparación ({servedItemsQty}/{totalItemsQty})
                         </span>
                       ) : (
-                        <span className="text-[8px] font-black text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Utensils className="w-2.5 h-2.5" /> En Cocina ({pendingItemsQty})
+                        <span className="text-[10px] font-black text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <Utensils className="w-3 h-3" /> En Cocina ({pendingItemsQty})
                         </span>
                       )}
                     </div>
                     {isFaltaSegundoAlert && (
-                      <p className="text-[7.5px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 text-center">
+                      <p className="text-[9px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded border border-rose-100 text-center">
                         Sopa servida hace: {minutesSinceSoupListo}m {secondsSinceSoupListo}s — Sin segundo pedido
                       </p>
                     )}
                     {!isFaltaSegundoAlert && isOnlySoupAndNoSeconds && isSoupServed && (
-                      <p className="text-[7.5px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 text-center">
+                      <p className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200/60 text-center">
                         Sopa servida hace: {minutesSinceSoupListo}m {secondsSinceSoupListo}s
                       </p>
                     )}
                   </div>
 
-                  <div className="bg-slate-50/50 rounded-lg p-1.5 border border-slate-100/50">
-                    <div className="flex items-center gap-1 mb-1 leading-none">
-                      <User className="w-2 h-2 text-slate-400" />
-                      <span className="text-[8px] font-extrabold text-slate-500 truncate uppercase tracking-tight">
+                  <div className="bg-slate-50/50 rounded-xl p-2 border border-slate-100/50">
+                    <div className="flex items-center gap-1.5 mb-1.5 leading-none">
+                      <User className="w-3 h-3 text-slate-400" />
+                      <span className="text-[10px] font-extrabold text-slate-600 truncate uppercase tracking-tight">
                         {order.cliente || 'Consumidor Final'}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {order.items.map((item, idx) => {
                         const p = products.find(prod => prod.id === item.productoId);
                         const isServed = item.estado === 'SERVIDO' || view === 'HISTORIAL';
                         return (
                           <div 
                             key={`${order.id}-${item.id}-${idx}`}
-                            className={`text-[8px] font-bold uppercase px-1 py-0.5 rounded flex items-center gap-0.5 border leading-none ${
-                              isServed ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-white text-slate-500 border-slate-100'
+                            className={`text-[10.5px] font-bold uppercase px-2 py-1 rounded-lg flex items-center gap-1 border leading-none ${
+                              isServed ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-white text-slate-700 border-slate-200/80 shadow-2xs'
                             }`}
                           >
-                            <span className="text-brand-500 font-black">{item.cantidad}x</span>
-                            <span className="max-w-[55px] truncate">{p?.nombre}</span>
+                            <span className="text-brand-600 font-black">{item.cantidad}x</span>
+                            <span className="max-w-[120px] truncate">{p?.nombre}</span>
                           </div>
                         );
                       })}
@@ -286,15 +286,15 @@ export const PedidosView: React.FC = () => {
                   </div>
 
                   {isTodaySelected && (
-                    <div className="flex gap-1.5 pt-0.5">
+                    <div className="flex gap-2 pt-1">
                       {view === 'ACTIVOS' && (
                         <>
                           <button
                             onClick={() => navigateToCajaWithOrder(order.id)}
-                            className="flex-1 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all"
+                            className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                             title="Cobrar en Caja"
                           >
-                            <Receipt className="w-2.5 h-2.5" /> Cobrar
+                            <Receipt className="w-3.5 h-3.5" /> Cobrar
                           </button>
                           <button
                             onClick={() => {
@@ -302,11 +302,11 @@ export const PedidosView: React.FC = () => {
                               setEditingOrder(order.id);
                             }}
                             disabled={isCashClosed}
-                            className={`flex-1 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center justify-center gap-1 ${
+                            className={`flex-1 py-2 bg-brand-50 text-brand-600 border border-brand-100 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                               isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
-                            <Edit2 className="w-2.5 h-2.5" /> Editar
+                            <Edit2 className="w-3.5 h-3.5" /> Editar
                           </button>
                         </>
                       )}
@@ -320,11 +320,11 @@ export const PedidosView: React.FC = () => {
                           );
                         }}
                         disabled={isCashClosed}
-                        className={`flex-1 py-1.5 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500'} rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center justify-center gap-1 ${
+                        className={`flex-1 py-2 ${view === 'HISTORIAL' ? 'bg-slate-100 text-slate-400' : 'bg-rose-50 text-rose-500 border border-rose-100'} rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                           isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
-                        <Trash2 className="w-2.5 h-2.5" /> Borrar
+                        <Trash2 className="w-3.5 h-3.5" /> Borrar
                       </button>
                     </div>
                   )}
