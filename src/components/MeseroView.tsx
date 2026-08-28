@@ -5,14 +5,18 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Meal, Lock } from 'lucide-react';
+import { Plus, Minus, Check, Clock, User, X, ChevronRight, Soup, Utensils as Meal, Lock, Receipt, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { OrderItem, ItemStatus, Mesa } from '../types';
 import { OrderModal } from './OrderModal.tsx';
 import { OrderTimer } from './OrderTimer.tsx';
 
 export const MeseroView: React.FC = () => {
-  const { mesas, orders, createOrder, products, currentMenu, updateItemStatus, addItemsToOrder, selectedDate, isTodaySelected, cashControls, currentUser } = useApp();
+  const { 
+    mesas, orders, createOrder, products, currentMenu, 
+    updateItemStatus, addItemsToOrder, selectedDate, 
+    isTodaySelected, cashControls, currentUser, navigateToCajaWithOrder 
+  } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
@@ -113,20 +117,33 @@ export const MeseroView: React.FC = () => {
               key={mesa.id}
               onClick={() => {
                 if (isCashClosed) return;
+                
+                // OPCIÓN A: Para Administrador o Cajero, clic en mesa ocupada va directo a Caja para cobrar
+                const isCashierOrAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'CAJA' || (currentUser?.role as string) === 'CAJERO';
+                if (isOccupied && activeOrder && isCashierOrAdmin && mesa.id !== '13') {
+                  navigateToCajaWithOrder(activeOrder.id);
+                  return;
+                }
+
                 setSelectedMesa(mesa.id);
                 if (!isOccupied || mesa.id === '13') {
                   setShowOrderModal(true);
                 }
               }}
+              title={
+                isOccupied && (currentUser?.role === 'ADMIN' || currentUser?.role === 'CAJA' || (currentUser?.role as string) === 'CAJERO')
+                  ? '⚡ Clic para Cobrar en Caja'
+                  : undefined
+              }
               disabled={isCashClosed}
               className={`relative aspect-square min-h-[96px] rounded-2xl md:rounded-[36px] border flex flex-col items-center justify-between transition-all duration-300 group hover:-translate-y-1 active:scale-[0.95] w-full p-2.5 md:p-4 ${
                 isCashClosed ? 'opacity-40 cursor-not-allowed grayscale' : ''
               } ${
                 isOccupied
                   ? mesa.id === '13' 
-                    ? 'bg-brand-500 border-brand-600 text-white shadow-md shadow-brand-100/40 hover:bg-brand-600 hover:border-brand-700' 
-                    : 'bg-rose-500 border-rose-600 text-white shadow-md shadow-rose-100/40 hover:bg-rose-600 hover:border-rose-700'
-                  : 'bg-emerald-500 border-emerald-600 text-white hover:bg-emerald-600 hover:border-emerald-700 shadow-md shadow-emerald-100/40 justify-center'
+                    ? 'bg-brand-500 border-brand-600 text-white shadow-md shadow-brand-100/40 hover:bg-brand-600 hover:border-brand-700 cursor-pointer' 
+                    : 'bg-rose-500 border-rose-600 text-white shadow-md shadow-rose-100/40 hover:bg-rose-600 hover:border-rose-700 cursor-pointer'
+                  : 'bg-emerald-500 border-emerald-600 text-white hover:bg-emerald-600 hover:border-emerald-700 shadow-md shadow-emerald-100/40 justify-center cursor-pointer'
               }`}
             >
               {isOccupied ? (() => {
@@ -308,9 +325,11 @@ export const MeseroView: React.FC = () => {
                         Añadir
                       </button>
                       <button
-                        className="flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-brand-600 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-brand-700 transition-all soft-shadow active:scale-95"
+                        onClick={() => navigateToCajaWithOrder(activeOrder.id)}
+                        className="flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-brand-600 hover:bg-brand-700 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl transition-all soft-shadow active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        Pagar
+                        <Receipt className="w-3.5 h-3.5" />
+                        Cobrar en Caja
                       </button>
                     </div>
                   </div>

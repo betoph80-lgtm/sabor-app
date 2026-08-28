@@ -31,7 +31,7 @@ export const CajaView: React.FC = () => {
     addCustomer, navigateToCustomerInCuentas,
     updateWholeOrder, currentMenu, mesas, selectedDate, 
     cashControls, identity, openCash, closeCash, reopenCash,
-    currentCash
+    currentCash, selectedOrderIdForCaja, setSelectedOrderIdForCaja
   } = useApp();
 
   const isCashClosed = useMemo(() => {
@@ -66,6 +66,14 @@ export const CajaView: React.FC = () => {
 
   // Selected order for checkout
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  // Sync selectedOrderId if navigated from Mesas or other views
+  useEffect(() => {
+    if (selectedOrderIdForCaja) {
+      setSelectedOrderId(selectedOrderIdForCaja);
+      setSelectedOrderIdForCaja(null);
+    }
+  }, [selectedOrderIdForCaja, setSelectedOrderIdForCaja]);
 
   // If none selected, default to first active order
   useEffect(() => {
@@ -140,6 +148,16 @@ export const CajaView: React.FC = () => {
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [showArqueoModal, setShowArqueoModal] = useState<boolean>(false);
   const [showCashMovementModal, setShowCashMovementModal] = useState<boolean>(false);
+  const [movementType, setMovementType] = useState<'INGRESO' | 'EGRESO'>('INGRESO');
+  const [movementDescription, setMovementDescription] = useState<string>('');
+  const [movementAmount, setMovementAmount] = useState<string>('');
+  const [cashMovementsList, setCashMovementsList] = useState<Array<{
+    id: string;
+    tipo: 'INGRESO' | 'EGRESO';
+    desc: string;
+    monto: number;
+    hora: string;
+  }>>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState<boolean>(false);
   const [ticketToPrint, setTicketToPrint] = useState<{
     order: typeof orders[0];
@@ -253,11 +271,49 @@ export const CajaView: React.FC = () => {
     }
   };
 
+  // Direct quick cash payment handler for a specific order
+  const handleDirectQuickPay = async (targetOrder: typeof orders[0]) => {
+    if (isProcessingPayment) return;
+    if (isCashClosed) {
+      if (confirm('La caja está cerrada. ¿Deseas reabrirla ahora para poder cobrar?')) {
+        reopenCash();
+      }
+      return;
+    }
+    setIsProcessingPayment(true);
+    try {
+      const finalPayments: PartialCheckoutPayment[] = [{
+        id: `p-quick-${Date.now()}`,
+        metodo: 'EFECTIVO',
+        monto: targetOrder.total
+      }];
+      await payOrder(
+        targetOrder.id,
+        finalPayments,
+        undefined,
+        undefined,
+        targetOrder.cliente || 'Consumidor Final',
+        targetOrder.total,
+        0,
+        0
+      );
+      setAddedPayments([]);
+      setCashReceived('');
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al realizar cobro directo: ' + (err?.message || err));
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   // Execute complete order checkout & close table
   const handleEmitAndCloseTable = async () => {
     if (!currentOrder || isProcessingPayment) return;
     if (isCashClosed) {
-      alert('La caja del día está cerrada. No se pueden procesar cobros.');
+      if (confirm('La caja del día está cerrada. ¿Deseas reabrirla ahora para procesar el cobro?')) {
+        reopenCash();
+      }
       return;
     }
 
@@ -388,9 +444,13 @@ export const CajaView: React.FC = () => {
             Facturación & Checkout
           </h1>
           <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-500 font-medium">
-            <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold border border-emerald-200/60">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Turno activo desde: {selectedDate} {activeCashControl?.horaApertura || '08:00'}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold border ${
+              isCashClosed 
+                ? 'text-amber-800 bg-amber-50 border-amber-200' 
+                : 'text-emerald-700 bg-emerald-50 border-emerald-200/60'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${isCashClosed ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}`} />
+              {isCashClosed ? 'Caja Cerrada' : `Turno activo desde: ${selectedDate} ${activeCashControl?.horaApertura || '08:00'}`}
             </span>
             <span className="text-slate-300">•</span>
             <span>Cajero: <strong className="text-slate-800">{currentUser?.nombre || 'Administrador'}</strong></span>
@@ -399,6 +459,15 @@ export const CajaView: React.FC = () => {
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2.5 flex-wrap">
+          {isCashClosed && (
+            <button
+              onClick={() => reopenCash()}
+              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/20 cursor-pointer"
+            >
+              🔓 Reabrir Caja Hoy
+            </button>
+          )}
+
           <button
             onClick={() => setShowArqueoModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-xs cursor-pointer"
@@ -416,6 +485,27 @@ export const CajaView: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Warning if cash is closed */}
+      {isCashClosed && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-black text-sm uppercase tracking-tight">Caja del Día Cerrada</h4>
+              <p className="text-xs text-amber-700 font-medium">No se pueden procesar cobros mientras la caja esté cerrada. Reábrala para continuar cobrando comandas.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => reopenCash()}
+            className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black uppercase text-[11px] tracking-wider transition-all active:scale-95 shrink-0 shadow-sm cursor-pointer"
+          >
+            🔓 Reabrir Caja Ahora
+          </button>
+        </div>
+      )}
 
       {/* 2. THREE-COLUMN CHECKOUT LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -503,6 +593,22 @@ export const CajaView: React.FC = () => {
                           </span>
                         </div>
                       </div>
+
+                      {/* Quick direct charge button right on card */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedOrderId(order.id);
+                          handleDirectQuickPay(order);
+                        }}
+                        disabled={isProcessingPayment}
+                        className="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200/80 rounded-xl text-[10.5px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Cobrar comanda en Efectivo en 1 clic"
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-current" />
+                        <span>Cobro Rápido (Efectivo) S/ {order.total.toFixed(2)}</span>
+                      </button>
                     </div>
                   );
                 })
@@ -918,14 +1024,28 @@ export const CajaView: React.FC = () => {
                 <span className="font-mono font-black text-amber-700">S/ {remainingToPay.toFixed(2)}</span>
               </div>
 
+              {/* Button status info */}
+              {!currentOrder && activeOrders.length > 0 && (
+                <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-center font-bold">
+                  👈 Seleccione una mesa activa en la columna izquierda para cobrar.
+                </p>
+              )}
+              {!currentOrder && activeOrders.length === 0 && (
+                <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center font-medium">
+                  No hay comandas activas pendientes de cobro para hoy.
+                </p>
+              )}
+
               <button
                 type="button"
                 onClick={handleEmitAndCloseTable}
-                disabled={!currentOrder || isCashClosed || isProcessingPayment}
-                className={`w-full py-4 rounded-2xl font-display font-black text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-200 ${
-                  comprobanteType === 'SIN_COMPROBANTE'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25 hover:shadow-emerald-600/35 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20 hover:shadow-indigo-600/30 text-white'
+                disabled={!currentOrder || isProcessingPayment}
+                className={`w-full py-4 rounded-2xl font-display font-black text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-200 disabled:shadow-none ${
+                  isCashClosed
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
+                    : comprobanteType === 'SIN_COMPROBANTE'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25 hover:shadow-emerald-600/35 text-white'
+                      : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20 hover:shadow-indigo-600/30 text-white'
                 }`}
               >
                 {isProcessingPayment ? (
@@ -933,6 +1053,13 @@ export const CajaView: React.FC = () => {
                     <RefreshCw className="w-5 h-5 animate-spin" />
                     <span>Procesando Pago...</span>
                   </>
+                ) : isCashClosed ? (
+                  <>
+                    <AlertCircle className="w-5 h-5" />
+                    <span>Caja Cerrada (Clic para Reabrir y Cobrar)</span>
+                  </>
+                ) : !currentOrder ? (
+                  <span>Seleccione una Mesa para Cobrar</span>
                 ) : comprobanteType === 'SIN_COMPROBANTE' ? (
                   <>
                     <Zap className="w-5 h-5 fill-white/20" />
@@ -1000,18 +1127,61 @@ export const CajaView: React.FC = () => {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedDate}</p>
                   </div>
                 </div>
-                <button onClick={() => setShowArqueoModal(false)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400">
+                <button onClick={() => setShowArqueoModal(false)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-4 text-xs">
+              <div className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto no-scrollbar">
                 {(() => {
-                  const todayOrders = orders.filter(o => o.fecha === selectedDate && o.estado === 'PAGADO');
-                  const efectivoVentas = todayOrders.filter(o => o.metodoPago === 'EFECTIVO').reduce((acc, o) => acc + o.total, 0);
-                  const yapeVentas = todayOrders.filter(o => o.metodoPago === 'YAPE' || o.metodoPago === 'PLIN').reduce((acc, o) => acc + o.total, 0);
+                  const todayOrders = orders.filter(o => o.fecha === selectedDate);
+                  const paidOrCreditOrders = todayOrders.filter(o => o.estado === 'PAGADO' || o.estado === 'CREDITO');
+
+                  // Extract all payments accurately
+                  const allPaymentsToday = paidOrCreditOrders.flatMap(o => 
+                    o.pagos && o.pagos.length > 0 
+                      ? o.pagos 
+                      : (o.metodoPago ? [{ id: o.id, metodo: o.metodoPago, monto: o.total }] : [])
+                  );
+
+                  const efectivoVentas = allPaymentsToday
+                    .filter(p => p.metodo === 'EFECTIVO')
+                    .reduce((acc, p) => acc + p.monto, 0);
+
+                  const yapeVentas = allPaymentsToday
+                    .filter(p => p.metodo === 'YAPE' || p.metodo === 'PLIN')
+                    .reduce((acc, p) => acc + p.monto, 0);
+
+                  const tarjetaVentas = allPaymentsToday
+                    .filter(p => p.metodo === 'TARJETA')
+                    .reduce((acc, p) => acc + p.monto, 0);
+
+                  const creditoVentas = allPaymentsToday
+                    .filter(p => p.metodo === 'CREDITO')
+                    .reduce((acc, p) => acc + p.monto, 0);
+
+                  // Customer Cuenta transactions collected today
+                  const customerTxToday = customers.flatMap(c => 
+                    (c.historial || [])
+                      .filter(t => t.fecha === selectedDate && (t.tipo === 'DEPOSITO' || t.tipo === 'PAGO_CREDITO'))
+                  );
+                  const cobrosEfectivo = customerTxToday
+                    .filter(t => t.metodoPago === 'EFECTIVO')
+                    .reduce((acc, t) => acc + t.monto, 0);
+                  const cobrosYape = customerTxToday
+                    .filter(t => t.metodoPago === 'YAPE' || t.metodoPago === 'PLIN')
+                    .reduce((acc, t) => acc + t.monto, 0);
+
+                  const movIngresos = cashMovementsList
+                    .filter(m => m.tipo === 'INGRESO')
+                    .reduce((acc, m) => acc + m.monto, 0);
+                  const movEgresos = cashMovementsList
+                    .filter(m => m.tipo === 'EGRESO')
+                    .reduce((acc, m) => acc + m.monto, 0);
+
                   const apertura = activeCashControl?.montoApertura || 0;
-                  const totalEsperadoEfectivo = apertura + efectivoVentas;
+                  const totalEsperadoEfectivo = apertura + efectivoVentas + cobrosEfectivo + movIngresos - movEgresos;
+                  const totalVentasGlobal = efectivoVentas + yapeVentas + tarjetaVentas + creditoVentas;
 
                   return (
                     <div className="space-y-4">
@@ -1028,15 +1198,39 @@ export const CajaView: React.FC = () => {
                           <span className="text-[9px] font-black uppercase text-sky-600">Ventas Yape/Plin:</span>
                           <p className="text-base font-display font-black text-sky-900">S/ {yapeVentas.toFixed(2)}</p>
                         </div>
-                        <div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-100">
-                          <span className="text-[9px] font-black uppercase text-indigo-600">Total en Gaveta:</span>
-                          <p className="text-base font-display font-black text-indigo-900">S/ {totalEsperadoEfectivo.toFixed(2)}</p>
+                        <div className="p-3 bg-purple-50 rounded-2xl border border-purple-100">
+                          <span className="text-[9px] font-black uppercase text-purple-600">Ventas Tarjeta:</span>
+                          <p className="text-base font-display font-black text-purple-900">S/ {tarjetaVentas.toFixed(2)}</p>
+                        </div>
+                        {creditoVentas > 0 && (
+                          <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100">
+                            <span className="text-[9px] font-black uppercase text-amber-600">Crédito / Fiado:</span>
+                            <p className="text-base font-display font-black text-amber-900">S/ {creditoVentas.toFixed(2)}</p>
+                          </div>
+                        )}
+                        {(cobrosEfectivo > 0 || cobrosYape > 0) && (
+                          <div className="p-3 bg-teal-50 rounded-2xl border border-teal-100">
+                            <span className="text-[9px] font-black uppercase text-teal-600">Cobros de Cuentas:</span>
+                            <p className="text-base font-display font-black text-teal-900">S/ {(cobrosEfectivo + cobrosYape).toFixed(2)}</p>
+                          </div>
+                        )}
+                        <div className="col-span-2 p-3 bg-indigo-50 rounded-2xl border border-indigo-100 flex justify-between items-center">
+                          <div>
+                            <span className="text-[9px] font-black uppercase text-indigo-600 block">Total Efectivo en Gaveta:</span>
+                            <span className="text-[10px] text-slate-400 font-medium">(Apertura + Ventas Efec. + Cobros - Egresos)</span>
+                          </div>
+                          <p className="text-xl font-display font-black text-indigo-900">S/ {totalEsperadoEfectivo.toFixed(2)}</p>
                         </div>
                       </div>
 
                       <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-1 text-center">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total de Ventas Realizadas Hoy:</span>
-                        <p className="text-2xl font-display font-black text-emerald-400">S/ {(efectivoVentas + yapeVentas).toFixed(2)}</p>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total de Ventas Globales Hoy:</span>
+                        <p className="text-2xl font-display font-black text-emerald-400">S/ {totalVentasGlobal.toFixed(2)}</p>
+                        <div className="text-[10px] text-slate-400 pt-1 flex justify-center gap-3">
+                          <span>Comandas: {paidOrCreditOrders.length} cobradas</span>
+                          <span>•</span>
+                          <span>Pendientes: {todayOrders.filter(o => o.estado === 'ABIERTO').length}</span>
+                        </div>
                       </div>
 
                       <div className="flex gap-2 pt-2">
@@ -1085,7 +1279,7 @@ export const CajaView: React.FC = () => {
                     Movimiento de Caja Chica
                   </h3>
                 </div>
-                <button onClick={() => setShowCashMovementModal(false)} className="p-1.5 hover:bg-slate-100 rounded-xl text-slate-400">
+                <button onClick={() => setShowCashMovementModal(false)} className="p-1.5 hover:bg-slate-100 rounded-xl text-slate-400 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1094,10 +1288,26 @@ export const CajaView: React.FC = () => {
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Tipo de Movimiento</label>
                   <div className="grid grid-cols-2 gap-2">
-                    <button type="button" className="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-800 font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setMovementType('INGRESO')}
+                      className={`p-2.5 rounded-xl font-bold transition-all cursor-pointer ${
+                        movementType === 'INGRESO'
+                          ? 'border-2 border-emerald-500 bg-emerald-50 text-emerald-800 shadow-xs'
+                          : 'border border-slate-200 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
                       Ingreso de Dinero
                     </button>
-                    <button type="button" className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setMovementType('EGRESO')}
+                      className={`p-2.5 rounded-xl font-bold transition-all cursor-pointer ${
+                        movementType === 'EGRESO'
+                          ? 'border-2 border-rose-500 bg-rose-50 text-rose-800 shadow-xs'
+                          : 'border border-slate-200 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
                       Egreso / Gasto Menor
                     </button>
                   </div>
@@ -1107,8 +1317,10 @@ export const CajaView: React.FC = () => {
                   <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Motivo / Descripción</label>
                   <input
                     type="text"
+                    value={movementDescription}
+                    onChange={(e) => setMovementDescription(e.target.value)}
                     placeholder="Ej: Compra de hielo, recarga de sencillo..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
                   />
                 </div>
 
@@ -1116,25 +1328,57 @@ export const CajaView: React.FC = () => {
                   <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Monto (S/)</label>
                   <input
                     type="number"
-                    step="1"
+                    step="0.50"
+                    value={movementAmount}
+                    onChange={(e) => setMovementAmount(e.target.value)}
                     placeholder="0.00"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-base font-display font-black text-slate-900 focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-base font-display font-black text-slate-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
                   />
                 </div>
+
+                {cashMovementsList.length > 0 && (
+                  <div className="pt-2 border-t border-slate-100 space-y-1.5 max-h-32 overflow-y-auto no-scrollbar">
+                    <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Movimientos registrados hoy:</span>
+                    {cashMovementsList.map(m => (
+                      <div key={m.id} className="p-2 bg-slate-50 rounded-xl border border-slate-200/60 flex justify-between items-center text-[11px]">
+                        <span className="font-semibold text-slate-800">{m.desc} ({m.hora})</span>
+                        <span className={`font-mono font-bold ${m.tipo === 'INGRESO' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {m.tipo === 'INGRESO' ? '+' : '-'} S/ {m.monto.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="pt-2 flex gap-2">
                   <button
                     onClick={() => setShowCashMovementModal(false)}
-                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold uppercase text-[10px] tracking-wider"
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold uppercase text-[10px] tracking-wider cursor-pointer"
                   >
-                    Cancelar
+                    Cerrar
                   </button>
                   <button
+                    disabled={!movementDescription.trim() || !movementAmount || parseFloat(movementAmount) <= 0}
                     onClick={() => {
-                      alert('Movimiento registrado en caja correctamente.');
+                      const amt = parseFloat(movementAmount);
+                      if (isNaN(amt) || amt <= 0) return;
+                      const now = new Date();
+                      const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                      setCashMovementsList(prev => [
+                        ...prev,
+                        {
+                          id: `mov-${Date.now()}`,
+                          tipo: movementType,
+                          desc: movementDescription.trim(),
+                          monto: amt,
+                          hora
+                        }
+                      ]);
+                      setMovementDescription('');
+                      setMovementAmount('');
                       setShowCashMovementModal(false);
                     }}
-                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold uppercase text-[10px] tracking-wider shadow-sm"
+                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 text-white rounded-xl font-bold uppercase text-[10px] tracking-wider shadow-sm cursor-pointer"
                   >
                     Registrar
                   </button>

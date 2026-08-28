@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useApp } from '../AppContext';
-import { Clock, User, Trash2, Plus, Minus, AlertCircle, Edit2, ChefHat, Check, Utensils, CheckCircle2 } from 'lucide-react';
+import { Clock, User, Trash2, Plus, Minus, AlertCircle, Edit2, ChefHat, Check, Utensils, CheckCircle2, Receipt } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderModal } from './OrderModal.tsx';
 import { OrderTimer } from './OrderTimer.tsx';
@@ -27,7 +27,8 @@ export const PedidosView: React.FC = () => {
     selectedDate,
     isTodaySelected,
     cashControls,
-    currentUser
+    currentUser,
+    navigateToCajaWithOrder
   } = useApp();
   const [view, setView] = React.useState<'ACTIVOS' | 'HISTORIAL'>('ACTIVOS');
   const [editingOrder, setEditingOrder] = React.useState<string | null>(null);
@@ -287,18 +288,27 @@ export const PedidosView: React.FC = () => {
                   {isTodaySelected && (
                     <div className="flex gap-1.5 pt-0.5">
                       {view === 'ACTIVOS' && (
-                        <button
-                          onClick={() => {
-                            if (isCashClosed) return;
-                            setEditingOrder(order.id);
-                          }}
-                          disabled={isCashClosed}
-                          className={`flex-1 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center justify-center gap-1 ${
-                            isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        >
-                          <Edit2 className="w-2.5 h-2.5" /> Editar
-                        </button>
+                        <>
+                          <button
+                            onClick={() => navigateToCajaWithOrder(order.id)}
+                            className="flex-1 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all"
+                            title="Cobrar en Caja"
+                          >
+                            <Receipt className="w-2.5 h-2.5" /> Cobrar
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (isCashClosed) return;
+                              setEditingOrder(order.id);
+                            }}
+                            disabled={isCashClosed}
+                            className={`flex-1 py-1.5 bg-brand-50 text-brand-600 rounded-lg text-[8px] font-black uppercase tracking-wider flex items-center justify-center gap-1 ${
+                              isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Edit2 className="w-2.5 h-2.5" /> Editar
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => {
@@ -550,13 +560,22 @@ export const PedidosView: React.FC = () => {
                         {isTodaySelected ? (
                           <div className="flex items-center justify-center gap-2">
                             {view === 'ACTIVOS' && (
-                              <button
-                                onClick={() => setEditingOrder(order.id)}
-                                className="w-8 h-8 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-lg transition-all active:scale-95"
-                                title="Editar Pedido"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => navigateToCajaWithOrder(order.id)}
+                                  className="w-8 h-8 flex items-center justify-center bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg transition-all active:scale-95"
+                                  title="Cobrar en Caja"
+                                >
+                                  <Receipt className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setEditingOrder(order.id)}
+                                  className="w-8 h-8 flex items-center justify-center bg-brand-50 hover:bg-brand-600 text-brand-600 hover:text-white rounded-lg transition-all active:scale-95"
+                                  title="Editar Pedido"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                              </>
                             )}
                             <button
                               onClick={() => {

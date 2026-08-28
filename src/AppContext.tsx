@@ -144,6 +144,9 @@ interface AppContextType {
   selectedCustomerIdForView: string | null;
   setSelectedCustomerIdForView: (id: string | null) => void;
   navigateToCustomerInCuentas: (customerId: string) => void;
+  selectedOrderIdForCaja: string | null;
+  setSelectedOrderIdForCaja: (id: string | null) => void;
+  navigateToCajaWithOrder: (orderId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -163,10 +166,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const isTodaySelected = selectedDate === formatDate(new Date());
   const [selectedCustomerIdForView, setSelectedCustomerIdForView] = useState<string | null>(null);
+  const [selectedOrderIdForCaja, setSelectedOrderIdForCaja] = useState<string | null>(null);
 
   const navigateToCustomerInCuentas = (customerId: string) => {
     setSelectedCustomerIdForView(customerId);
     setActiveView('CUENTAS');
+  };
+
+  const navigateToCajaWithOrder = (orderId: string) => {
+    setSelectedOrderIdForCaja(orderId);
+    setActiveView('CAJA');
   };
   
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -942,23 +951,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     tip?: number,
     discount?: number
   ) => {
-    // 1. Check if cash is closed
+    // 1. Check if cash is closed or missing
     const cashStatus = cashControls.find(c => c.fecha === selectedDate && (c.estado === 'ABIERTA' || c.estado === 'ABIERTO')) 
       || cashControls.find(c => c.fecha === selectedDate);
 
     if (cashStatus && (cashStatus.estado === 'CERRADA' || cashStatus.estado === 'CERRADO')) {
-      alert('La caja del día está cerrada. No se pueden procesar pagos.');
+      alert(`La caja del día (${selectedDate}) está cerrada. Debe reabrirla desde la sección de Apertura/Cierre o Caja para procesar pagos.`);
       return;
     }
 
     const order = orders.find(o => o.id === orderId);
-    if (!order || order.estado === 'PAGADO' || order.estado === 'CANCELADO') return;
-
-    // Effective cash check
-    const effectiveCash = cashStatus || currentCash;
-    if (!effectiveCash || (effectiveCash.estado !== 'ABIERTA' && effectiveCash.estado !== 'ABIERTO')) {
-      alert(`Debe abrir la caja para la fecha ${selectedDate}`);
+    if (!order) {
+      alert('No se encontró el pedido a cobrar.');
       return;
+    }
+    if (order.estado === 'PAGADO' || order.estado === 'CANCELADO') {
+      alert(`El pedido ya se encuentra en estado ${order.estado}.`);
+      return;
+    }
+
+    // Effective cash check: Auto-initialize cash if none exists yet
+    let effectiveCash = cashStatus || currentCash;
+    const batch = writeBatch(db);
+
+    if (!effectiveCash) {
+      const newCashId = `caja-${selectedDate.replace(/\//g, '-')}-${Date.now().toString(36)}`;
+      const newCashObj: DailyCashControl = {
+        id: newCashId,
+        fecha: selectedDate,
+        montoApertura: 0,
+        ingresosEfectivo: 0,
+        ingresosYape: 0,
+        ingresosTarjeta: 0,
+        ingresosFiar: 0,
+        montoCierre: 0,
+        estado: 'ABIERTA',
+        horaApertura: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        usuarioId: currentUser?.id || 'admin-1'
+      };
+      effectiveCash = newCashObj;
+      batch.set(doc(db, 'control_caja', newCashId), newCashObj);
     }
 
     // Normalize payments list
@@ -1019,8 +1051,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else if (distinctMethods.length > 1) {
       aggregatedMethod = 'MIXTO';
     }
-
-    const batch = writeBatch(db);
 
     // 1. Update Order in Firestore
     const orderDocRef = doc(db, 'pedidos', orderId);
@@ -1602,7 +1632,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       testNotification,
       selectedCustomerIdForView,
       setSelectedCustomerIdForView,
-      navigateToCustomerInCuentas
+      navigateToCustomerInCuentas,
+      selectedOrderIdForCaja,
+      setSelectedOrderIdForCaja,
+      navigateToCajaWithOrder
     }}>
       {children}
       <ConfirmModal 
