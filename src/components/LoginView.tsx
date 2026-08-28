@@ -5,11 +5,13 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../AppContext';
+import { useTheme } from '../ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, UserPlus, Lock, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { ArrowRight, UserPlus, Lock, ShieldCheck, User as UserIcon, Sun, Moon } from 'lucide-react';
 
 const LoginView = () => {
   const { login, appUsers, seedDatabase, requestConfirmation, identity } = useApp();
+  const { isDark, toggleTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -47,38 +49,60 @@ const LoginView = () => {
   }, [pin, username]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6 relative transition-colors">
+      {/* Theme Toggle Top-Right */}
+      <div className="absolute top-6 right-6">
+        <button
+          onClick={toggleTheme}
+          type="button"
+          aria-label="Cambiar tema claro u oscuro"
+          className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 shadow-sm transition-all cursor-pointer flex items-center gap-2 text-xs font-bold"
+        >
+          {isDark ? (
+            <>
+              <Sun className="w-4 h-4 text-amber-400" />
+              <span className="hidden sm:inline">Modo Claro</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-4 h-4 text-slate-500" />
+              <span className="hidden sm:inline">Modo Oscuro</span>
+            </>
+          )}
+        </button>
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm"
       >
-        <div className="bg-white rounded-[48px] p-10 shadow-2xl border border-slate-100 space-y-8">
+        <div className="bg-white dark:bg-slate-900 rounded-[48px] p-10 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-8">
           <div className="text-center space-y-3">
-             <div className="w-16 h-16 bg-brand-600 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-brand-100">
+             <div className="w-16 h-16 bg-brand-600 dark:bg-brand-500 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-brand-100 dark:shadow-none">
                <Lock className="w-8 h-8 text-white" />
              </div>
-             <h1 className="text-2xl font-display font-bold text-slate-800">{identity?.nombre || 'Sabor Abanquino'}</h1>
-             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Control de Acceso</p>
+             <h1 className="text-2xl font-display font-bold text-slate-800 dark:text-white">{identity?.nombre || 'Sabor Abanquino'}</h1>
+             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">Control de Acceso</p>
           </div>
 
           <div className="space-y-6">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Usuario</label>
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Usuario</label>
               <div className="relative">
-                <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 dark:text-slate-600" />
                 <input 
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Nombre de usuario"
-                  className="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-transparent dark:border-slate-700 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl pl-12 pr-6 py-4 text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4 text-center block">PIN de Acceso</label>
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4 text-center block">PIN de Acceso</label>
               {/* PIN Display */}
               <div className="flex justify-center gap-4">
                 {[0, 1, 2, 3].map(i => (
@@ -86,10 +110,10 @@ const LoginView = () => {
                     key={i}
                     className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
                       pin.length > i 
-                        ? 'bg-brand-600 scale-125' 
+                        ? 'bg-brand-600 dark:bg-brand-400 scale-125' 
                         : error 
                           ? 'bg-rose-400 animate-shake' 
-                          : 'bg-slate-200'
+                          : 'bg-slate-200 dark:bg-slate-700'
                     }`}
                   />
                 ))}
@@ -106,10 +130,10 @@ const LoginView = () => {
                       else if (val === 'DEL') handleBackspace();
                       else handleKeyPress(val);
                     }}
-                    className={`h-14 rounded-2xl text-base font-black transition-all active:scale-95 ${
+                    className={`h-14 rounded-2xl text-base font-black transition-all active:scale-95 cursor-pointer ${
                       val === 'C' || val === 'DEL' 
-                        ? 'bg-slate-50 text-slate-400 hover:text-slate-600' 
-                        : 'bg-white border border-slate-100 text-slate-700 hover:bg-brand-50 hover:border-brand-100 hover:text-brand-600'
+                        ? 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-white' 
+                        : 'bg-white dark:bg-slate-850 border border-slate-100 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-brand-950/40 hover:border-brand-100 dark:hover:border-brand-800 hover:text-brand-600 dark:hover:text-brand-400'
                     }`}
                   >
                     {val === 'DEL' ? '←' : val}
@@ -130,7 +154,7 @@ const LoginView = () => {
           )}
 
           {/* Reset button - Show always if system is not configured or as a fallback */}
-          <div className="pt-4 border-t border-slate-50">
+          <div className="pt-4 border-t border-slate-50 dark:border-slate-800">
             <button 
               type="button"
               onClick={() => requestConfirmation(
@@ -138,7 +162,7 @@ const LoginView = () => {
                 '¿Desea restablecer los usuarios a los valores por defecto?',
                 seedDatabase
               )}
-              className="w-full py-4 text-[10px] font-black uppercase text-slate-300 hover:text-brand-600 tracking-widest hover:bg-brand-50 rounded-2xl transition-all"
+              className="w-full py-4 text-[10px] font-black uppercase text-slate-300 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 tracking-widest hover:bg-brand-50 dark:hover:bg-brand-950/40 rounded-2xl transition-all cursor-pointer"
             >
               Configurar primer acceso
             </button>
@@ -147,7 +171,7 @@ const LoginView = () => {
 
         {identity?.eslogan && identity.eslogan.trim() !== '' && identity.eslogan.trim() !== '-' && (
           <div className="mt-8 text-center">
-            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">
               {identity.eslogan}
             </p>
           </div>

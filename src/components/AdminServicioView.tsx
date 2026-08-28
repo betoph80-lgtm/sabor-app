@@ -28,13 +28,13 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
         </div>
 
         {/* Categories sliding filter pill line */}
-        <div className="flex gap-1.5 p-1 bg-slate-100 rounded-2xl overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl overflow-x-auto no-scrollbar scroll-smooth">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`flex-1 py-2.5 px-4 text-[10px] font-black uppercase tracking-tight rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                activeCategory === cat ? 'bg-white text-brand-600 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-800'
+                activeCategory === cat ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               {cat}
@@ -43,12 +43,12 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
         </div>
 
         {/* Product toggle scrolling board */}
-        <div className="bg-slate-50/50 rounded-[32px] p-5 border border-slate-200/35 min-h-[400px] max-h-[650px] overflow-y-auto no-scrollbar space-y-3">
+        <div className="bg-slate-50/50 dark:bg-slate-900/50 rounded-[32px] p-5 border border-slate-200/35 dark:border-slate-800 min-h-[400px] max-h-[650px] overflow-y-auto no-scrollbar space-y-3">
           {products.filter(p => p.categoria === activeCategory).length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[250px] space-y-2 text-slate-400">
-              <Utensils className="w-9 h-9 text-slate-300" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-450">Sin platos en catálogo</p>
-              <span className="text-[8.5px] text-slate-400 font-bold uppercase tracking-tight">Regístralos primero en la pestaña "Productos"</span>
+            <div className="flex flex-col items-center justify-center min-h-[250px] space-y-2 text-slate-400 dark:text-slate-500">
+              <Utensils className="w-9 h-9 text-slate-300 dark:text-slate-600" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-450 dark:text-slate-500">Sin platos en catálogo</p>
+              <span className="text-[8.5px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">Regístralos primero en la pestaña "Productos"</span>
             </div>
           ) : (
             products.filter(p => p.categoria === activeCategory).map(product => {
@@ -62,12 +62,12 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                     onClick={() => toggleProductInMenu(product.id)}
                     className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 relative text-left outline-none cursor-pointer ${
                       isInMenu 
-                        ? 'bg-gradient-to-br from-brand-50/80 to-white border-brand-400 shadow-[0_4px_16px_rgba(109,40,217,0.06)]' 
-                        : 'bg-white border-slate-150 hover:border-slate-350 hover:shadow-sm'
+                        ? 'bg-gradient-to-br from-brand-50/80 to-white dark:from-brand-950/40 dark:to-slate-900 border-brand-400 dark:border-brand-600 shadow-[0_4px_16px_rgba(109,40,217,0.06)]' 
+                        : 'bg-white dark:bg-slate-900 border-slate-150 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden shrink-0 flex items-center justify-center relative">
+                      <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 overflow-hidden shrink-0 flex items-center justify-center relative">
                         {product.imagen ? (
                           <img 
                             src={product.imagen} 
@@ -80,33 +80,33 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                           />
                         ) : (
                           <div className={`w-full h-full flex items-center justify-center text-[11px] font-black ${
-                              product.categoria === 'MENÚ' ? 'bg-brand-100 text-brand-700' :
-                              product.categoria === 'EXTRA' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
+                              product.categoria === 'MENÚ' ? 'bg-brand-100 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300' :
+                              product.categoria === 'EXTRA' ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                           }`}>
                             {product.categoria[0]}
                           </div>
                         )}
                       </div>
                       <div className="min-w-0">
-                          <p className={`font-black text-xs md:text-sm leading-tight truncate ${isInMenu ? 'text-brand-950' : 'text-slate-800'}`}>
+                          <p className={`font-black text-xs md:text-sm leading-tight truncate ${isInMenu ? 'text-brand-950 dark:text-brand-300' : 'text-slate-800 dark:text-slate-200'}`}>
                             {product.nombre}
                           </p>
-                          <p className="text-[8.5px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">S/. {product.precio.toFixed(2)} sugerido</p>
+                          <p className="text-[8.5px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">S/. {product.precio.toFixed(2)} sugerido</p>
                       </div>
                     </div>
                     {isInMenu ? (
-                      <CheckCircle2 className="w-5.5 h-5.5 text-brand-600 shrink-0" />
+                      <CheckCircle2 className="w-5.5 h-5.5 text-brand-600 dark:text-brand-400 shrink-0" />
                     ) : (
-                      <div className="w-5.5 h-5.5 rounded-full border-2 border-slate-150 shrink-0" />
+                      <div className="w-5.5 h-5.5 rounded-full border-2 border-slate-150 dark:border-slate-700 shrink-0" />
                     )}
                   </button>
 
                   {/* Stock and custom pricing configure forms inside sliding boxes */}
                   {isInMenu && (
-                    <div className="mx-2 bg-white/70 border border-brand-100 rounded-2xl p-3.5 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in slide-in-from-top-1.5 duration-300">
+                    <div className="mx-2 bg-white/70 dark:bg-slate-900/80 border border-brand-100 dark:border-brand-900/50 rounded-2xl p-3.5 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in slide-in-from-top-1.5 duration-300">
                       
                       <div className="flex items-center gap-2.5">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none shrink-0">Roscas / Stock Inicial</span>
+                        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none shrink-0">Roscas / Stock Inicial</span>
                         <div className="flex-1">
                           <input 
                             type="number"
@@ -121,13 +121,13 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                                   updateMenuItemStock(product.id, val, undefined, currentPrice);
                               }
                             }}
-                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-black text-slate-700 outline-none text-center focus:border-brand-400 transition-colors"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-750 rounded-lg px-2 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 outline-none text-center focus:border-brand-400 transition-colors"
                           />
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none shrink-0">Precio Personalizado (S/.)</span>
+                        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none shrink-0">Precio Personalizado (S/.)</span>
                         <div className="flex-1">
                           <input 
                             type="number"
@@ -142,7 +142,7 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                               const currentStockActual = menuItem?.stockActual ?? 25;
                               updateMenuItemStock(product.id, currentStock, currentStockActual, priceVal);
                             }}
-                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white rounded-lg px-2 py-1.5 text-xs font-black text-slate-700 outline-none text-center focus:border-brand-400 transition-colors"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-750 rounded-lg px-2 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 outline-none text-center focus:border-brand-400 transition-colors"
                           />
                         </div>
                       </div>

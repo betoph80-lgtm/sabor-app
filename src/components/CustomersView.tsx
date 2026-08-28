@@ -138,12 +138,12 @@ export const CustomersView: React.FC = () => {
     <div className="p-2 md:p-8 space-y-4 md:space-y-6 max-w-6xl mx-auto h-full overflow-y-auto no-scrollbar">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 md:gap-6 pb-1 md:pb-2">
         <div className="text-center sm:text-left">
-          <h2 className="text-xl md:text-2xl font-display font-bold text-slate-900 tracking-tight leading-tight">Clientes & Cuentas</h2>
-          <p className="text-slate-500 text-[11px] md:text-sm font-medium">Gestión de saldos y créditos.</p>
+          <h2 className="text-xl md:text-2xl font-display font-bold text-slate-900 dark:text-white tracking-tight leading-tight">Clientes & Cuentas</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-[11px] md:text-sm font-medium">Gestión de saldos y créditos.</p>
         </div>
         <button 
           onClick={() => setShowAddCustomer(true)}
-          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl md:rounded-[24px] font-black uppercase text-[10px] md:text-[11px] tracking-widest transition-all active:scale-95 bg-brand-600 text-white soft-shadow hover:bg-brand-700"
+          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl md:rounded-[24px] font-black uppercase text-[10px] md:text-[11px] tracking-widest transition-all active:scale-95 bg-brand-600 text-white soft-shadow hover:bg-brand-700 cursor-pointer"
         >
           <Plus className="w-4 h-4 md:w-5 md:h-5" />
           Registrar Cliente
@@ -154,48 +154,48 @@ export const CustomersView: React.FC = () => {
         {/* Customer List */}
         <div className={`lg:col-span-1 space-y-4 md:space-y-6 ${selectedCustomer ? 'hidden lg:block' : 'block'}`}>
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-400 group-focus-within:text-brand-500 transition-colors" />
             <input 
               type="text" 
               placeholder="Buscar cliente..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-slate-100 rounded-2xl md:rounded-[28px] py-3 md:py-4 pl-10 md:pl-14 pr-6 text-xs md:text-sm font-bold soft-shadow focus:border-brand-500 outline-none transition-all"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl md:rounded-[28px] py-3 md:py-4 pl-10 md:pl-14 pr-6 text-xs md:text-sm font-bold soft-shadow text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:border-brand-500 outline-none transition-all"
             />
           </div>
 
           <div className="space-y-2 md:space-y-3 overflow-y-auto max-h-[50vh] lg:max-h-[65vh] no-scrollbar pr-1">
             {filteredCustomers.length === 0 ? (
-              <div className="text-center py-12 md:py-20 bg-white rounded-3xl md:rounded-[40px] border border-slate-100 soft-shadow">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-6 h-6 md:w-8 md:h-8 text-slate-200" />
+              <div className="text-center py-12 md:py-20 bg-white dark:bg-slate-900 rounded-3xl md:rounded-[40px] border border-slate-100 dark:border-slate-800 soft-shadow">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-6 h-6 md:w-8 md:h-8 text-slate-200 dark:text-slate-700" />
                 </div>
-                <p className="text-slate-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Sin resultados</p>
+                <p className="text-slate-400 dark:text-slate-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">Sin resultados</p>
               </div>
             ) : (
               filteredCustomers.map(customer => (
                 <button
                   key={customer.id}
                   onClick={() => setSelectedCustomerId(customer.id)}
-                  className={`w-full text-left p-3.5 md:p-5 rounded-2xl md:rounded-[32px] border transition-all flex items-center justify-between group h-20 md:h-24 ${
+                  className={`w-full text-left p-3.5 md:p-5 rounded-2xl md:rounded-[32px] border transition-all flex items-center justify-between group h-20 md:h-24 cursor-pointer ${
                     selectedCustomerId === customer.id 
-                      ? 'bg-brand-50 border-brand-100 soft-shadow ring-2 ring-brand-50/50' 
-                      : 'bg-white border-transparent hover:border-slate-100 soft-shadow-sm'
+                      ? 'bg-brand-50 dark:bg-brand-950/40 border-brand-200 dark:border-brand-800/60 soft-shadow ring-2 ring-brand-50/50 dark:ring-brand-950/50' 
+                      : 'bg-white dark:bg-slate-900 border-transparent hover:border-slate-100 dark:hover:border-slate-800 soft-shadow-sm'
                   }`}
                 >
                   <div className="flex items-center gap-3 md:gap-4">
                     <div className={`w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center font-display font-bold text-base md:text-lg transition-colors ${
-                       selectedCustomerId === customer.id ? 'bg-white text-brand-600 soft-shadow' : 'bg-slate-50 text-slate-400'
+                       selectedCustomerId === customer.id ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 soft-shadow' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                     }`}>
                       {customer.nombre[0].toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-display font-bold text-slate-900 group-hover:text-brand-700 transition-colors truncate text-sm md:text-base">{customer.nombre}</p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{customer.documento || 'ID no reg.'}</p>
+                      <p className="font-display font-bold text-slate-900 dark:text-white group-hover:text-brand-700 dark:group-hover:text-brand-400 transition-colors truncate text-sm md:text-base">{customer.nombre}</p>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-0.5">{customer.documento || 'ID no reg.'}</p>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`text-base md:text-lg font-display font-bold ${getCustomerSaldoAtDate(customer) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    <p className={`text-base md:text-lg font-display font-bold ${getCustomerSaldoAtDate(customer) >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
                       S/ {getCustomerSaldoAtDate(customer).toFixed(2)}
                     </p>
                   </div>
@@ -211,15 +211,15 @@ export const CustomersView: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-[40px] border border-slate-100 soft-shadow overflow-hidden h-full flex flex-col"
+              className="bg-white dark:bg-slate-900 rounded-[40px] border border-slate-100 dark:border-slate-800 soft-shadow overflow-hidden h-full flex flex-col"
             >
-               <div className="bg-slate-900 p-6 md:p-10 text-white flex flex-col sm:flex-row justify-between items-center gap-6 md:gap-8 relative overflow-hidden">
+               <div className="bg-slate-900 dark:bg-slate-950 p-6 md:p-10 text-white flex flex-col sm:flex-row justify-between items-center gap-6 md:gap-8 relative overflow-hidden border-b border-slate-800">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -translate-y-32 translate-x-32" />
                 
                 <div className="flex items-center gap-4 md:gap-6 w-full sm:w-auto relative z-10">
                    <button 
                     onClick={() => setSelectedCustomerId(null)}
-                    className="lg:hidden p-2.5 bg-white/10 rounded-xl mr-1"
+                    className="lg:hidden p-2.5 bg-white/10 rounded-xl mr-1 cursor-pointer"
                    >
                      <ArrowDownLeft className="w-4 h-4 rotate-45" />
                    </button>
@@ -255,13 +255,13 @@ export const CustomersView: React.FC = () => {
                             <button 
                               type="button"
                               onClick={() => setIsEditing(false)}
-                              className="flex-1 py-1.5 bg-white/10 text-white/60 rounded-lg text-[10px] font-black uppercase hover:bg-white/20"
+                              className="flex-1 py-1.5 bg-white/10 text-white/60 rounded-lg text-[10px] font-black uppercase hover:bg-white/20 cursor-pointer"
                             >
                               Cancelar
                             </button>
                             <button 
                               type="submit"
-                              className="flex-[2] py-1.5 bg-brand-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-brand-600 shadow-lg shadow-brand-900/20"
+                              className="flex-[2] py-1.5 bg-brand-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-brand-600 shadow-lg shadow-brand-900/20 cursor-pointer"
                             >
                               Guardar
                             </button>
@@ -275,14 +275,14 @@ export const CustomersView: React.FC = () => {
                           <div className="flex gap-1 ml-auto sm:ml-0 shrink-0">
                             <button 
                               onClick={handleStartEdit}
-                              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white"
+                              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-white cursor-pointer"
                               title="Editar cliente"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button 
                               onClick={handleDeleteCustomer}
-                              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-rose-400"
+                              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/40 hover:text-rose-400 cursor-pointer"
                               title="Eliminar cliente"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -312,10 +312,10 @@ export const CustomersView: React.FC = () => {
 
               <div className="p-4 md:p-10 flex-1 flex flex-col space-y-4 md:space-y-8 overflow-hidden">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 md:gap-6">
-                   <h4 className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em]">Historial</h4>
+                   <h4 className="text-[9px] md:text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-[0.3em]">Historial</h4>
                    <button 
                     onClick={() => setShowAddTransaction(true)}
-                    className="w-full sm:w-auto py-3 md:py-4 px-6 md:px-8 bg-brand-50 rounded-xl md:rounded-[20px] text-[10px] md:text-[11px] font-black uppercase tracking-widest text-brand-600 hover:text-brand-700 transition-colors flex items-center justify-center gap-2 border border-brand-100/50"
+                    className="w-full sm:w-auto py-3 md:py-4 px-6 md:px-8 bg-brand-50 dark:bg-brand-950/60 rounded-xl md:rounded-[20px] text-[10px] md:text-[11px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 transition-colors flex items-center justify-center gap-2 border border-brand-100/50 dark:border-brand-900/50 cursor-pointer"
                    >
                      <Plus className="w-3.5 h-3.5" /> Movimiento
                    </button>
@@ -323,8 +323,8 @@ export const CustomersView: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 md:space-y-4">
                   {selectedCustomer.historial.filter(tx => toSortableDate(tx.fecha) <= selectedDateVal).length === 0 ? (
-                    <div className="text-center py-12 md:py-20 bg-slate-50/50 rounded-2xl md:rounded-[40px] border-2 border-dashed border-slate-100">
-                      <p className="text-slate-300 font-bold uppercase text-[9px] md:text-[10px] tracking-widest italic">Sin movimientos registrados</p>
+                    <div className="text-center py-12 md:py-20 bg-slate-50/50 dark:bg-slate-800/40 rounded-2xl md:rounded-[40px] border-2 border-dashed border-slate-100 dark:border-slate-800">
+                      <p className="text-slate-300 dark:text-slate-600 font-bold uppercase text-[9px] md:text-[10px] tracking-widest italic">Sin movimientos registrados</p>
                     </div>
                   ) : (
                     [...selectedCustomer.historial]
@@ -341,31 +341,31 @@ export const CustomersView: React.FC = () => {
 
                         if (isEditingTx) {
                           return (
-                            <div key={tx.id} className="p-4 md:p-6 bg-brand-50 rounded-2xl md:rounded-[32px] border border-brand-200 soft-shadow space-y-4">
+                            <div key={tx.id} className="p-4 md:p-6 bg-brand-50 dark:bg-brand-950/40 rounded-2xl md:rounded-[32px] border border-brand-200 dark:border-brand-800/60 soft-shadow space-y-4">
                               <div className="flex gap-4">
                                 <div className="flex-1 space-y-1">
-                                  <label className="text-[8px] font-bold text-brand-600 uppercase tracking-widest pl-1">Monto</label>
+                                  <label className="text-[8px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest pl-1">Monto</label>
                                   <input 
                                     type="number"
                                     value={editTxData.amount}
                                     onChange={e => setEditTxData({...editTxData, amount: parseFloat(e.target.value) || 0})}
-                                    className="w-full bg-white border border-brand-100 rounded-xl px-3 py-2 text-sm font-bold outline-none"
+                                    className="w-full bg-white dark:bg-slate-900 border border-brand-100 dark:border-brand-800 rounded-xl px-3 py-2 text-sm font-bold outline-none text-slate-800 dark:text-slate-100"
                                   />
                                 </div>
                                 <div className="flex-[2] space-y-1">
-                                  <label className="text-[8px] font-bold text-brand-600 uppercase tracking-widest pl-1">Descripción</label>
+                                  <label className="text-[8px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest pl-1">Descripción</label>
                                   <input 
                                     type="text"
                                     value={editTxData.description}
                                     onChange={e => setEditTxData({...editTxData, description: e.target.value})}
-                                    className="w-full bg-white border border-brand-100 rounded-xl px-3 py-2 text-sm font-bold outline-none"
+                                    className="w-full bg-white dark:bg-slate-900 border border-brand-100 dark:border-brand-800 rounded-xl px-3 py-2 text-sm font-bold outline-none text-slate-800 dark:text-slate-100"
                                   />
                                 </div>
                               </div>
                               <div className="flex gap-2">
                                 <button 
                                   onClick={() => setEditingTxId(null)}
-                                  className="flex-1 py-2 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase"
+                                  className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-[10px] font-black uppercase cursor-pointer"
                                 >
                                   Cancelar
                                 </button>
@@ -378,7 +378,7 @@ export const CustomersView: React.FC = () => {
                                     });
                                     setEditingTxId(null);
                                   }}
-                                  className="flex-[2] py-2 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase"
+                                  className="flex-[2] py-2 bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase cursor-pointer"
                                 >
                                   Guardar
                                 </button>
@@ -388,21 +388,21 @@ export const CustomersView: React.FC = () => {
                         }
 
                         return (
-                          <div key={tx.id} className="flex items-center justify-between p-4 md:p-6 bg-slate-50/50 hover:bg-slate-50 rounded-2xl md:rounded-[32px] border border-slate-100/50 transition-all group soft-shadow-sm">
+                          <div key={tx.id} className="flex items-center justify-between p-4 md:p-6 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/70 rounded-2xl md:rounded-[32px] border border-slate-100/50 dark:border-slate-800/60 transition-all group soft-shadow-sm">
                             <div className="flex items-center gap-4 md:gap-6">
                               <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${
-                                tx.tipo === 'CONSUMO' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'
+                                tx.tipo === 'CONSUMO' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400'
                               }`}>
                                 {tx.tipo === 'CONSUMO' ? <ArrowUpRight className="w-4 h-4 md:w-6 md:h-6" /> : <ArrowDownLeft className="w-4 h-4 md:w-6 md:h-6" />}
                               </div>
                               <div>
-                                <p className="font-bold text-slate-900 text-sm md:text-base leading-tight uppercase tracking-tight">{tx.descripcion}</p>
-                                <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{tx.fecha} • {tx.hora}</p>
+                                <p className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight uppercase tracking-tight">{tx.descripcion}</p>
+                                <p className="text-[8px] md:text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">{tx.fecha} • {tx.hora}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-4">
                               {tx.metodoPago && (
-                                <span className="text-[7px] md:text-[8px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                <span className="text-[7px] md:text-[8px] font-black text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                   {tx.metodoPago}
                                 </span>
                               )}
@@ -410,7 +410,7 @@ export const CustomersView: React.FC = () => {
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button 
                                     onClick={() => handleStartEditTx(tx)}
-                                    className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-brand-500 transition-colors"
+                                    className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-brand-500 transition-colors cursor-pointer"
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                   </button>
@@ -422,17 +422,17 @@ export const CustomersView: React.FC = () => {
                                         () => deleteTransaction(selectedCustomer.id, tx.id)
                                       );
                                     }}
-                                    className="p-2 hover:bg-white rounded-lg text-slate-400 hover:text-rose-500 transition-colors"
+                                    className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               )}
                               <div className="text-right shrink-0">
-                                <p className={`text-base md:text-xl font-display font-bold tracking-tight ${tx.monto >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                <p className={`text-base md:text-xl font-display font-bold tracking-tight ${tx.monto >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
                                   {tx.monto > 0 ? '+' : ''}{tx.monto.toFixed(2)}
                                 </p>
-                                <span className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{tx.tipo}</span>
+                                <span className="text-[8px] md:text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">{tx.tipo}</span>
                               </div>
                             </div>
                           </div>
@@ -443,11 +443,11 @@ export const CustomersView: React.FC = () => {
               </div>
             </motion.div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 text-slate-300 p-12 text-center">
-              <div className="w-20 h-20 bg-slate-50 rounded-[40px] flex items-center justify-center mb-4">
+            <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-[40px] border-2 border-dashed border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 p-12 text-center">
+              <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-[40px] flex items-center justify-center mb-4">
                 <Search className="w-10 h-10" />
               </div>
-              <h3 className="text-xl font-black text-slate-400 uppercase tracking-tight">Seleccione un cliente</h3>
+              <h3 className="text-xl font-black text-slate-400 dark:text-slate-500 uppercase tracking-tight">Seleccione un cliente</h3>
               <p className="max-w-xs text-sm font-medium mt-2 leading-relaxed italic">
                 Elija un cliente de la lista para ver su historial de movimientos y estado de cuenta.
               </p>
@@ -464,14 +464,14 @@ export const CustomersView: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl space-y-8"
+              className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[40px] p-8 shadow-2xl space-y-8 border border-slate-100 dark:border-slate-800"
             >
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h3 className="text-2xl font-display font-bold text-slate-900 tracking-tight leading-none">Nuevo Cliente</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-2 italic">Registro de identidad</p>
+                  <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white tracking-tight leading-none">Nuevo Cliente</h3>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-2 italic">Registro de identidad</p>
                 </div>
-                <button onClick={() => setShowAddCustomer(false)} className="p-3 bg-slate-50 rounded-2xl hover:bg-rose-50 hover:text-rose-500 transition-colors border border-slate-100">
+                <button onClick={() => setShowAddCustomer(false)} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-500 transition-colors border border-slate-100 dark:border-slate-700 cursor-pointer">
                   <X className="w-6 h-6 text-slate-400" />
                 </button>
               </div>
@@ -479,35 +479,35 @@ export const CustomersView: React.FC = () => {
               <form onSubmit={handleAddCustomer} className="space-y-6">
                 <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Nombre Completo</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Nombre Completo</label>
                     <input 
                       required
                       type="text" 
                       value={newCustomer.nombre}
                       onChange={(e) => setNewCustomer(prev => ({ ...prev, nombre: e.target.value }))}
                       placeholder="Identificación del comensal"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 font-bold text-slate-800 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-5 font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Documento</label>
+                      <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Documento</label>
                       <input 
                         type="text" 
                         value={newCustomer.documento}
                         onChange={(e) => setNewCustomer(prev => ({ ...prev, documento: e.target.value }))}
                         placeholder="DNI / RUC"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 font-bold text-slate-800 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition-all"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-5 font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Teléfono</label>
+                      <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Teléfono</label>
                       <input 
                         type="text" 
                         value={newCustomer.telefono}
                         onChange={(e) => setNewCustomer(prev => ({ ...prev, telefono: e.target.value }))}
                         placeholder="Contacto"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 font-bold text-slate-800 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition-all"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-5 font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                       />
                     </div>
                   </div>
@@ -515,7 +515,7 @@ export const CustomersView: React.FC = () => {
 
                 <button 
                   type="submit"
-                  className="w-full py-4.5 bg-brand-600 text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-[24px] soft-shadow hover:bg-brand-700 transition-all active:scale-95"
+                  className="w-full py-4.5 bg-brand-600 text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-[24px] soft-shadow hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
                 >
                   Registrar nuevo perfil
                 </button>
@@ -533,14 +533,14 @@ export const CustomersView: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl space-y-8"
+              className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[40px] p-8 shadow-2xl space-y-8 border border-slate-100 dark:border-slate-800"
             >
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h3 className="text-2xl font-display font-bold text-slate-900 tracking-tight leading-none">Nuevo Movimiento</h3>
-                  <p className="text-[10px] font-bold text-brand-600 tracking-[0.3em] uppercase mt-2 italic">{selectedCustomer.nombre}</p>
+                  <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white tracking-tight leading-none">Nuevo Movimiento</h3>
+                  <p className="text-[10px] font-bold text-brand-600 dark:text-brand-400 tracking-[0.3em] uppercase mt-2 italic">{selectedCustomer.nombre}</p>
                 </div>
-                <button onClick={() => setShowAddTransaction(false)} className="p-3 bg-slate-50 rounded-2xl hover:bg-rose-50 hover:text-rose-500 transition-colors border border-slate-100">
+                <button onClick={() => setShowAddTransaction(false)} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-500 transition-colors border border-slate-100 dark:border-slate-700 cursor-pointer">
                   <X className="w-6 h-6 text-slate-400" />
                 </button>
               </div>
@@ -548,15 +548,15 @@ export const CustomersView: React.FC = () => {
               <form onSubmit={handleAddTransaction} className="space-y-6">
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Categoría de operación</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Categoría de operación</label>
                     <div className="grid grid-cols-2 gap-3">
                        <button
                         type="button"
                         onClick={() => setNewTransaction(prev => ({ ...prev, type: 'DEPOSITO' }))}
-                        className={`py-4 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 ${
+                        className={`py-4 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 cursor-pointer ${
                           newTransaction.type === 'DEPOSITO' 
-                            ? 'bg-emerald-50 border-emerald-500 text-emerald-600'
-                            : 'bg-white border-slate-50 text-slate-400 hover:border-slate-100'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-600 dark:text-emerald-300'
+                            : 'bg-white dark:bg-slate-800 border-slate-50 dark:border-slate-700 text-slate-400 dark:text-slate-400 hover:border-slate-100 dark:hover:border-slate-600'
                         }`}
                        >
                          <ArrowDownLeft className="w-3 h-3" /> Abono Recibido
@@ -564,10 +564,10 @@ export const CustomersView: React.FC = () => {
                        <button
                         type="button"
                         onClick={() => setNewTransaction(prev => ({ ...prev, type: 'PAGO_CREDITO' }))}
-                        className={`py-4 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 ${
+                        className={`py-4 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 cursor-pointer ${
                           newTransaction.type === 'PAGO_CREDITO' 
-                            ? 'bg-brand-50 border-brand-600 text-brand-700'
-                            : 'bg-white border-slate-50 text-slate-400 hover:border-slate-100'
+                            ? 'bg-brand-50 dark:bg-brand-950/60 border-brand-600 text-brand-700 dark:text-brand-300'
+                            : 'bg-white dark:bg-slate-800 border-slate-50 dark:border-slate-700 text-slate-400 dark:text-slate-400 hover:border-slate-100 dark:hover:border-slate-600'
                         }`}
                        >
                          <Check className="w-3 h-3" /> Cancelar Deuda
@@ -575,15 +575,15 @@ export const CustomersView: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Método de Pago</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Método de Pago</label>
                     <div className="grid grid-cols-2 gap-3">
                        <button
                         type="button"
                         onClick={() => setNewTransaction(prev => ({ ...prev, metodoPago: 'EFECTIVO' }))}
-                        className={`py-3.5 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 ${
+                        className={`py-3.5 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 cursor-pointer ${
                           newTransaction.metodoPago === 'EFECTIVO' 
-                            ? 'bg-slate-900 border-slate-900 text-white'
-                            : 'bg-white border-slate-50 text-slate-400 hover:border-slate-100'
+                            ? 'bg-slate-900 dark:bg-slate-700 border-slate-900 dark:border-slate-600 text-white'
+                            : 'bg-white dark:bg-slate-800 border-slate-50 dark:border-slate-700 text-slate-400 dark:text-slate-400 hover:border-slate-100 dark:hover:border-slate-600'
                         }`}
                        >
                          Efectivo
@@ -591,10 +591,10 @@ export const CustomersView: React.FC = () => {
                        <button
                         type="button"
                         onClick={() => setNewTransaction(prev => ({ ...prev, metodoPago: 'YAPE' }))}
-                        className={`py-3.5 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 ${
+                        className={`py-3.5 rounded-2xl border-2 font-bold text-[10px] uppercase tracking-widest transition-all soft-shadow-sm flex items-center justify-center gap-2 cursor-pointer ${
                           newTransaction.metodoPago === 'YAPE' 
                             ? 'bg-brand-600 border-brand-600 text-white'
-                            : 'bg-white border-slate-50 text-slate-400 hover:border-slate-100'
+                            : 'bg-white dark:bg-slate-800 border-slate-50 dark:border-slate-700 text-slate-400 dark:text-slate-400 hover:border-slate-100 dark:hover:border-slate-600'
                         }`}
                        >
                          Yape
@@ -602,7 +602,7 @@ export const CustomersView: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Monto en Soles (S/)</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Monto en Soles (S/)</label>
                     <input 
                       required
                       min="0.1"
@@ -611,24 +611,24 @@ export const CustomersView: React.FC = () => {
                       value={newTransaction.amount || ''}
                       onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
                       placeholder="0.00"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-5 font-display font-bold text-lg outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-5 font-display font-bold text-lg outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-brand-500/10 transition-all text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Concepto o Referencia</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest px-1">Concepto o Referencia</label>
                     <input 
                       type="text" 
                       value={newTransaction.description}
                       onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Detalle opcional..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 font-bold text-slate-800 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition-all"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-5 font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 </div>
 
                 <button 
                   type="submit"
-                  className="w-full py-4.5 bg-brand-600 text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-[24px] soft-shadow hover:bg-brand-700 transition-all active:scale-95"
+                  className="w-full py-4.5 bg-brand-600 text-white font-bold uppercase tracking-[0.2em] text-[11px] rounded-[24px] soft-shadow hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
                 >
                   Registrar movimiento contable
                 </button>

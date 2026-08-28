@@ -107,72 +107,72 @@ export default function AdminDashboardView() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         
         {/* Total Recaudado */}
-        <div className="bg-white border border-slate-200/80 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Recaudado Caja</span>
-            <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Recaudado Caja</span>
+            <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 tracking-tight">
+          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
             S/ {totalRecaudadoCaja.toFixed(2)}
           </p>
-          <div className="mt-2 text-[10px] text-slate-500 font-semibold flex items-center gap-1">
-            <span className="text-emerald-600 font-bold">Efectivo + Yape + Abonos</span>
+          <div className="mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1">
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Efectivo + Yape + Abonos</span>
           </div>
         </div>
 
         {/* Total Pedidos */}
-        <div className="bg-white border border-slate-200/80 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Pedidos Hoy</span>
-            <div className="w-9 h-9 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center font-black">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Pedidos Hoy</span>
+            <div className="w-9 h-9 rounded-2xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center font-black">
               <ShoppingBag className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 tracking-tight">
+          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
             {todayOrders.length}
           </p>
           <div className="mt-2 text-[10px] font-bold flex items-center gap-2">
-            <span className="text-emerald-600 flex items-center gap-0.5">
+            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
               <CheckCircle2 className="w-3 h-3" /> {completedOrders.length} Listos
             </span>
-            <span className="text-amber-600 flex items-center gap-0.5">
+            <span className="text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
               <Clock className="w-3 h-3" /> {openOrders.length} En proceso
             </span>
           </div>
         </div>
 
         {/* Ticket Promedio */}
-        <div className="bg-white border border-slate-200/80 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Ticket Promedio</span>
-            <div className="w-9 h-9 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-black">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Ticket Promedio</span>
+            <div className="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center font-black">
               <PieChart className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 tracking-tight">
+          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
             S/ {averageTicket.toFixed(2)}
           </p>
-          <div className="mt-2 text-[10px] text-slate-500 font-semibold">
+          <div className="mt-2 text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
             Promedio por mesa/pedido
           </div>
         </div>
 
         {/* Ocupación de Mesas */}
-        <div className="bg-white border border-slate-200/80 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 md:p-6 rounded-3xl shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Mesas Ocupadas</span>
-            <div className="w-9 h-9 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Mesas Ocupadas</span>
+            <div className="w-9 h-9 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black">
               <Compass className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 tracking-tight">
-            {occupiedTables} <span className="text-base text-slate-400 font-normal">/ {totalTables}</span>
+          <p className="text-2xl md:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
+            {occupiedTables} <span className="text-base text-slate-400 dark:text-slate-500 font-normal">/ {totalTables}</span>
           </p>
-          <div className="mt-2 text-[10px] font-bold text-slate-600 flex items-center justify-between">
+          <div className="mt-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-between">
             <span>{occupancyPercentage}% de Capacidad</span>
-            <span className="text-emerald-600">{freeTables} Libres</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{freeTables} Libres</span>
           </div>
         </div>
 
@@ -182,13 +182,13 @@ export default function AdminDashboardView() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Sales by Payment Method */}
-        <div className="bg-white border border-slate-200/80 p-6 rounded-[28px] shadow-xs space-y-5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 rounded-[28px] shadow-xs space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-brand-600" />
-              <h3 className="font-display font-black text-slate-900 text-sm uppercase tracking-wider">Desglose de Ingresos</h3>
+              <CreditCard className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+              <h3 className="font-display font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider">Desglose de Ingresos</h3>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Hoy</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Hoy</span>
           </div>
 
           <div className="space-y-4">
@@ -196,12 +196,12 @@ export default function AdminDashboardView() {
             {/* Efectivo */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                  <Wallet className="w-4 h-4 text-emerald-600" /> Efectivo Real
+                <span className="font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Efectivo Real
                 </span>
-                <span className="font-display font-black text-slate-900">S/ {totalEfectivo.toFixed(2)}</span>
+                <span className="font-display font-black text-slate-900 dark:text-white">S/ {totalEfectivo.toFixed(2)}</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                 <div 
                   className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500"
                   style={{ width: `${totalRecaudadoCaja > 0 ? (totalEfectivo / totalRecaudadoCaja) * 100 : 0}%` }}
@@ -212,12 +212,12 @@ export default function AdminDashboardView() {
             {/* Yape */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-sky-600" /> Yape / Digital Real
+                <span className="font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-sky-600 dark:text-sky-400" /> Yape / Digital Real
                 </span>
-                <span className="font-display font-black text-slate-900">S/ {totalYape.toFixed(2)}</span>
+                <span className="font-display font-black text-slate-900 dark:text-white">S/ {totalYape.toFixed(2)}</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                 <div 
                   className="bg-sky-500 h-2.5 rounded-full transition-all duration-500"
                   style={{ width: `${totalRecaudadoCaja > 0 ? (totalYape / totalRecaudadoCaja) * 100 : 0}%` }}
@@ -228,12 +228,12 @@ export default function AdminDashboardView() {
             {/* Cobro Créditos / Abonos */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-purple-600" /> Abonos / Cobro Créditos
+                <span className="font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Abonos / Cobro Créditos
                 </span>
-                <span className="font-display font-black text-slate-900">S/ {totalCustomerPayments.toFixed(2)}</span>
+                <span className="font-display font-black text-slate-900 dark:text-white">S/ {totalCustomerPayments.toFixed(2)}</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                 <div 
                   className="bg-purple-500 h-2.5 rounded-full transition-all duration-500"
                   style={{ width: `${totalRecaudadoCaja > 0 ? (totalCustomerPayments / totalRecaudadoCaja) * 100 : 0}%` }}
@@ -242,28 +242,28 @@ export default function AdminDashboardView() {
             </div>
 
             {/* Ventas a Crédito (Pendiente) */}
-            <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs text-rose-600 bg-rose-50/50 p-3 rounded-2xl">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/40 p-3 rounded-2xl">
               <span className="font-bold flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4" /> Ventas a Crédito (Por Cobrar)
               </span>
-              <span className="font-display font-black text-rose-700 text-sm">S/ {totalCreditoVendido.toFixed(2)}</span>
+              <span className="font-display font-black text-rose-700 dark:text-rose-300 text-sm">S/ {totalCreditoVendido.toFixed(2)}</span>
             </div>
 
           </div>
         </div>
 
         {/* Top 5 Products */}
-        <div className="bg-white border border-slate-200/80 p-6 rounded-[28px] shadow-xs space-y-5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 rounded-[28px] shadow-xs space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-500" />
-              <h3 className="font-display font-black text-slate-900 text-sm uppercase tracking-wider">Top Platos de Hoy</h3>
+              <h3 className="font-display font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider">Top Platos de Hoy</h3>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Por Cantidad</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Por Cantidad</span>
           </div>
 
           {topProducts.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 font-medium text-xs border border-dashed border-slate-200 rounded-2xl">
+            <div className="p-8 text-center text-slate-400 dark:text-slate-500 font-medium text-xs border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
               No hay ventas registradas en esta fecha.
             </div>
           ) : (
@@ -271,22 +271,22 @@ export default function AdminDashboardView() {
               {topProducts.map((p, idx) => (
                 <div key={p.nombre} className="space-y-1">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-slate-800 flex items-center gap-2 truncate pr-2">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 truncate pr-2">
                       <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 ${
-                        idx === 0 ? 'bg-amber-100 text-amber-800' :
-                        idx === 1 ? 'bg-slate-200 text-slate-700' :
-                        idx === 2 ? 'bg-amber-800/10 text-amber-900' : 'bg-slate-100 text-slate-500'
+                        idx === 0 ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300' :
+                        idx === 1 ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' :
+                        idx === 2 ? 'bg-amber-800/10 dark:bg-amber-950/40 text-amber-900 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                       }`}>
                         #{idx + 1}
                       </span>
                       <span className="truncate">{p.nombre}</span>
                     </span>
                     <div className="text-right shrink-0">
-                      <span className="font-black text-slate-900 mr-2">{p.cantidad} und</span>
-                      <span className="text-slate-400 font-medium">S/ {p.total.toFixed(2)}</span>
+                      <span className="font-black text-slate-900 dark:text-white mr-2">{p.cantidad} und</span>
+                      <span className="text-slate-400 dark:text-slate-500 font-medium">S/ {p.total.toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                     <div 
                       className="bg-brand-500 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${(p.cantidad / maxProductQty) * 100}%` }}
@@ -304,50 +304,50 @@ export default function AdminDashboardView() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <button
           onClick={() => setAdminSubView('PANEL')}
-          className="p-4 bg-white border border-slate-200 hover:border-brand-300 rounded-2xl flex items-center justify-between text-slate-800 hover:text-brand-700 transition-all cursor-pointer group shadow-xs"
+          className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-600 rounded-2xl flex items-center justify-between text-slate-800 dark:text-slate-200 hover:text-brand-700 dark:hover:text-brand-400 transition-all cursor-pointer group shadow-xs"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div className="text-left">
               <p className="text-xs font-black uppercase tracking-wider">Gestión de Servicio</p>
-              <p className="text-[10px] text-slate-400 font-medium">Configurar carta diaria y menú</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Configurar carta diaria y menú</p>
             </div>
           </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" />
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all" />
         </button>
 
         <button
           onClick={() => setAdminSubView('PRODUCTOS')}
-          className="p-4 bg-white border border-slate-200 hover:border-brand-300 rounded-2xl flex items-center justify-between text-slate-800 hover:text-brand-700 transition-all cursor-pointer group shadow-xs"
+          className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-600 rounded-2xl flex items-center justify-between text-slate-800 dark:text-slate-200 hover:text-brand-700 dark:hover:text-brand-400 transition-all cursor-pointer group shadow-xs"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
               <Award className="w-5 h-5" />
             </div>
             <div className="text-left">
               <p className="text-xs font-black uppercase tracking-wider">Catálogo de Productos</p>
-              <p className="text-[10px] text-slate-400 font-medium">Editar precios, fotos y platos</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Editar precios, fotos y platos</p>
             </div>
           </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" />
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all" />
         </button>
 
         <button
           onClick={() => setAdminSubView('REPORTES')}
-          className="p-4 bg-white border border-slate-200 hover:border-brand-300 rounded-2xl flex items-center justify-between text-slate-800 hover:text-brand-700 transition-all cursor-pointer group shadow-xs"
+          className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-600 rounded-2xl flex items-center justify-between text-slate-800 dark:text-slate-200 hover:text-brand-700 dark:hover:text-brand-400 transition-all cursor-pointer group shadow-xs"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div className="text-left">
               <p className="text-xs font-black uppercase tracking-wider">Reportes Detallados</p>
-              <p className="text-[10px] text-slate-400 font-medium">Descargar e imprimir auditoría</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Descargar e imprimir auditoría</p>
             </div>
           </div>
-          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" />
+          <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 dark:group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all" />
         </button>
       </div>
 

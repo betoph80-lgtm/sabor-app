@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Work+Sans:ital,wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", sans-serif;
@@ -31,18 +33,31 @@
   
   /* Redefine brand and violet colors (Vibrant Administrative Purple) */
   --color-brand-50: #f5f3ff;
-  --color-brand-100: #ddd6fe;
-  --color-brand-500: #7c3aed;
-  --color-brand-600: #6d28d9;
-  --color-brand-700: #5b21b6;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-brand-950: #2e1065;
   
   --color-violet-50: #f5f3ff;
-  --color-violet-100: #ddd6fe;
-  --color-violet-200: #c4b5fd;
-  --color-violet-400: #8b5cf6;
-  --color-violet-500: #7c3aed;
-  --color-violet-600: #6d28d9;
-  --color-violet-700: #5b21b6;
+  --color-violet-100: #ede9fe;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c4b5fd;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6d28d9;
+  --color-violet-800: #5b21b6;
+  --color-violet-900: #4c1d95;
+  --color-violet-950: #2e1065;
+
+  /* Redefine slate scales */
+  --color-slate-850: #131d31;
 
   /* Redefine emerald (Completed/Ready Restaurant Green) */
   --color-emerald-50: #ecfdf5;
@@ -70,9 +85,23 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+  
+  html.dark {
+    color-scheme: dark;
+    --color-background: #090d16;
+    --color-on-background: #f8fafc;
+  }
+
   body {
     @apply font-sans bg-background text-on-background antialiased selection:bg-brand-100 selection:text-brand-700;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  html.dark body {
+    @apply bg-slate-950 text-slate-100 selection:bg-brand-900 selection:text-brand-200;
   }
 
   /* Remove number input spinners/steppers for clean monetary and numeric inputs */
@@ -91,9 +120,17 @@
   .glass {
     @apply bg-white/75 backdrop-blur-lg border border-white/30 shadow-[0_4px_30px_rgba(0,0,0,0.02)];
   }
+
+  html.dark .glass {
+    @apply bg-slate-900/80 backdrop-blur-lg border border-slate-800/60 shadow-[0_4px_30px_rgba(0,0,0,0.4)];
+  }
   
   .soft-shadow {
     box-shadow: 0 12px 40px -12px rgba(106, 56, 212, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  html.dark .soft-shadow {
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
   }
 
   .material-btn {
@@ -128,12 +165,24 @@
   border-radius: 9999px;
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: #334155 transparent;
 }
 

@@ -97,10 +97,10 @@ export default function AdminProductosView() {
     <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
       
       {/* Header bar with controls */}
-      <div className="bg-white rounded-3xl p-5 md:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 block mb-1">Catálogo Maestro</span>
-          <h3 className="text-xl font-display font-black text-slate-800 tracking-tight leading-none">
+          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400 block mb-1">Catálogo Maestro</span>
+          <h3 className="text-xl font-display font-black text-slate-800 dark:text-white tracking-tight leading-none">
             Gestión de Productos ({products.length})
           </h3>
         </div>
@@ -108,14 +108,14 @@ export default function AdminProductosView() {
         <div className="flex items-center gap-2.5 w-full sm:w-auto">
           <button
             onClick={() => setAdminSubView('CATEGORIAS')}
-            className="flex-1 sm:flex-initial px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl text-[10px] font-black uppercase tracking-wider border border-indigo-150 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 sm:flex-initial px-4 py-3 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-2xl text-[10px] font-black uppercase tracking-wider border border-indigo-150 dark:border-indigo-800 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Settings className="w-4 h-4" /> Categorías
           </button>
           
           <button
             onClick={openCreateModal}
-            className="flex-1 sm:flex-initial px-5 py-3 bg-brand-600 hover:bg-brand-700 active:scale-98 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md shadow-brand-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 sm:flex-initial px-5 py-3 bg-brand-600 hover:bg-brand-700 active:scale-98 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md shadow-brand-200 dark:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Nuevo Producto
           </button>
@@ -124,7 +124,7 @@ export default function AdminProductosView() {
 
       {/* Category Tabs & Product List Grid */}
       <div className="space-y-4">
-        <div className="flex gap-1.5 p-1 bg-slate-100/80 backdrop-blur-xs rounded-2xl overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex gap-1.5 p-1 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-xs rounded-2xl overflow-x-auto no-scrollbar scroll-smooth">
           {categories.map(cat => (
             <button
               key={cat}
@@ -132,7 +132,7 @@ export default function AdminProductosView() {
                 setActiveCategory(cat);
               }}
               className={`flex-1 py-2.5 px-5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                activeCategory === cat ? 'bg-white text-brand-600 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-800'
+                activeCategory === cat ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               {cat} ({products.filter(p => p.categoria === cat).length})
@@ -140,14 +140,14 @@ export default function AdminProductosView() {
           ))}
         </div>
 
-        <div className="bg-slate-50 rounded-[32px] p-5 md:p-6 border border-slate-200/40 min-h-[350px]">
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-5 md:p-6 border border-slate-200/40 dark:border-slate-800 min-h-[350px]">
           {products.filter(p => p.categoria === activeCategory).length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[250px] text-slate-400 space-y-3">
-              <Utensils className="w-10 h-10 text-slate-300" />
-              <p className="text-xs font-black uppercase tracking-wider text-slate-400">Sin ítems en la categoría {activeCategory}</p>
+            <div className="flex flex-col items-center justify-center min-h-[250px] text-slate-400 dark:text-slate-500 space-y-3">
+              <Utensils className="w-10 h-10 text-slate-300 dark:text-slate-600" />
+              <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Sin ítems en la categoría {activeCategory}</p>
               <button
                 onClick={openCreateModal}
-                className="px-4 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="px-4 py-2 bg-brand-50 dark:bg-brand-950/60 hover:bg-brand-100 dark:hover:bg-brand-900/60 text-brand-700 dark:text-brand-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
               >
                 + Registrar en {activeCategory}
               </button>
@@ -160,10 +160,10 @@ export default function AdminProductosView() {
                 return (
                   <div 
                     key={p.id} 
-                    className="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-150/80 shadow-[0_2px_10px_rgba(0,0,0,0.015)] group hover:border-brand-300 hover:shadow-md transition-all duration-300 gap-3"
+                    className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-150/80 dark:border-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.015)] group hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-300 gap-3"
                   >
                     {/* Thumbnail Image or Fallback */}
-                    <div className="w-13 h-13 rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden shrink-0 flex items-center justify-center relative">
+                    <div className="w-13 h-13 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 overflow-hidden shrink-0 flex items-center justify-center relative">
                       {p.imagen ? (
                         <img 
                           src={p.imagen} 
@@ -175,31 +175,31 @@ export default function AdminProductosView() {
                           }}
                         />
                       ) : (
-                        <Utensils className="w-5 h-5 text-slate-300" />
+                        <Utensils className="w-5 h-5 text-slate-300 dark:text-slate-600" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="font-bold text-slate-800 text-xs md:text-sm truncate">{p.nombre}</p>
+                      <p className="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm truncate">{p.nombre}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-[8px] font-black tracking-wider uppercase border rounded-md px-2 py-0.5 leading-none font-sans ${theme.bg} ${theme.text}`}>
                           {p.categoria === 'MENÚ' ? p.tipo : p.categoria}
                         </span>
-                        <p className="text-[11px] font-black text-slate-700 font-mono">S/. {p.precio.toFixed(2)}</p>
+                        <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 font-mono">S/. {p.precio.toFixed(2)}</p>
                       </div>
                     </div>
 
                     <div className="flex gap-1 shrink-0 pl-1">
                       <button 
                         onClick={() => startEdit(p)}
-                        className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all cursor-pointer"
+                        className="p-2 text-slate-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/60 rounded-xl transition-all cursor-pointer"
                         title="Editar Producto"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteProduct(p.id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                        className="p-2 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-xl transition-all cursor-pointer"
                         title="Eliminar Producto"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -215,21 +215,21 @@ export default function AdminProductosView() {
 
       {/* FLOATING MODAL FORM FOR NEW / EDIT PRODUCT */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div 
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl border border-slate-100 space-y-6 relative animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 relative animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={closeModal}
-              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer z-10"
+              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer z-10"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div>
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 block mb-1">Catálogo Maestro</span>
-              <h3 className="text-xl font-display font-black text-slate-800 tracking-tight leading-none">
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400 block mb-1">Catálogo Maestro</span>
+              <h3 className="text-xl font-display font-black text-slate-800 dark:text-white tracking-tight leading-none">
                 {editingId ? 'Modificar Producto' : 'Alta de Alimento'}
               </h3>
             </div>
@@ -237,23 +237,23 @@ export default function AdminProductosView() {
             {editingId && editForm ? (
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Nombre</label>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Nombre</label>
                   <input 
                     type="text" 
                     value={editForm.nombre}
                     onChange={(e) => setEditForm({...editForm, nombre: e.target.value})}
                     required
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold focus:bg-white focus:border-brand-500 outline-none transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-brand-500 outline-none transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Categoría</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Categoría</label>
                     <select 
                       value={editForm.categoria}
                       onChange={(e) => setEditForm({...editForm, categoria: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white outline-none"
                     >
                       {categories.map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
@@ -261,25 +261,25 @@ export default function AdminProductosView() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Precio (S/.)</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Precio (S/.)</label>
                     <input 
                       type="number" 
                       step="0.10"
                       value={editForm.precio}
                       onChange={(e) => setEditForm({...editForm, precio: parseFloat(e.target.value) || 0})}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white outline-none"
                     />
                   </div>
                 </div>
 
                 {editForm.categoria === 'MENÚ' && (
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Clasificación de Menú</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Clasificación de Menú</label>
                     <select 
                       value={editForm.tipo}
                       onChange={(e) => setEditForm({...editForm, tipo: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white outline-none"
                     >
                       <option value="SOPA">SOPA / ENTRADA</option>
                       <option value="SEGUNDO">SEGUNDO / PLATO DE FONDO</option>
@@ -288,10 +288,10 @@ export default function AdminProductosView() {
                 )}
 
                 {/* REFERENTIAL IMAGE SECTION FOR EDIT */}
-                <div className="space-y-2.5 pt-1 border-t border-slate-100">
+                <div className="space-y-2.5 pt-1 border-t border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                      <ImageIcon className="w-3.5 h-3.5 text-brand-600" /> Imagen Referencial
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> Imagen Referencial
                     </label>
                     {editForm.imagen && (
                       <button 
@@ -306,7 +306,7 @@ export default function AdminProductosView() {
 
                   {/* Image Preview Box if available */}
                   {editForm.imagen ? (
-                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 group">
                       <img 
                         src={editForm.imagen} 
                         alt="Vista previa" 
@@ -326,7 +326,7 @@ export default function AdminProductosView() {
 
                   {/* Upload file + URL inputs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-brand-50/60 text-slate-600 hover:text-brand-700 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
+                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 hover:bg-brand-50/60 dark:hover:bg-brand-950/60 text-slate-600 dark:text-slate-300 hover:text-brand-700 dark:hover:text-brand-300 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
                       <Upload className="w-3.5 h-3.5" />
                       <span>Subir Foto</span>
                       <input 
@@ -344,14 +344,14 @@ export default function AdminProductosView() {
                         placeholder="Pegar URL de foto"
                         value={editForm.imagen || ''}
                         onChange={(e) => setEditForm({ ...editForm, imagen: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-[11px] font-bold text-slate-800 outline-none focus:border-brand-500 transition-all"
+                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-[11px] font-bold text-slate-800 dark:text-white outline-none focus:border-brand-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Preset Suggestions */}
                   <div className="space-y-1 pt-1">
-                    <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1">
                       <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Presets Rápidos:
                     </span>
                     <div className="flex flex-wrap gap-1">
@@ -360,7 +360,7 @@ export default function AdminProductosView() {
                           key={preset.label}
                           type="button"
                           onClick={() => setEditForm({ ...editForm, imagen: preset.url })}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-brand-100 hover:text-brand-700 text-slate-600 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-900/60 hover:text-brand-700 dark:hover:text-brand-300 text-slate-600 dark:text-slate-300 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
                         >
                           {preset.label}
                         </button>
@@ -373,13 +373,13 @@ export default function AdminProductosView() {
                   <button 
                     type="button" 
                     onClick={closeModal}
-                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all cursor-pointer"
+                    className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit" 
-                    className="flex-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all shadow-md shadow-brand-200 cursor-pointer"
+                    className="flex-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all shadow-md shadow-brand-200 dark:shadow-none cursor-pointer"
                   >
                     Guardar Cambios
                   </button>
@@ -388,27 +388,27 @@ export default function AdminProductosView() {
             ) : (
               <form onSubmit={handleAddProduct} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Nombre Completo del Producto</label>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Nombre Completo del Producto</label>
                   <input 
                     type="text" 
                     value={newProduct.nombre}
                     onChange={(e) => setNewProduct({...newProduct, nombre: e.target.value})}
                     placeholder="Ej. Seco de Cabrito, Ceviche de Trucha..."
                     required
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-brand-500 outline-none transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Categoría</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Categoría</label>
                     <select 
                       value={newProduct.categoria}
                       onChange={(e) => {
                         const cat = e.target.value;
                         setNewProduct({...newProduct, categoria: cat, precio: cat === 'MENÚ' ? 9 : newProduct.precio});
                       }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white outline-none"
                     >
                       {categories.map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
@@ -416,25 +416,25 @@ export default function AdminProductosView() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Precio Unitario (S/.)</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Precio Unitario (S/.)</label>
                     <input 
                       type="number" 
                       step="0.10"
                       value={newProduct.precio}
                       onChange={(e) => setNewProduct({...newProduct, precio: parseFloat(e.target.value) || 0})}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white outline-none"
                     />
                   </div>
                 </div>
 
                 {newProduct.categoria === 'MENÚ' && (
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Tipo de Plato (Menú)</label>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Tipo de Plato (Menú)</label>
                     <select 
                       value={newProduct.tipo}
                       onChange={(e) => setNewProduct({...newProduct, tipo: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white outline-none"
                     >
                       <option value="SOPA">SOPA / ENTRADA</option>
                       <option value="SEGUNDO">SEGUNDO / PLATO DE FONDO</option>
@@ -443,10 +443,10 @@ export default function AdminProductosView() {
                 )}
 
                 {/* REFERENTIAL IMAGE SECTION FOR CREATE */}
-                <div className="space-y-2.5 pt-1 border-t border-slate-100">
+                <div className="space-y-2.5 pt-1 border-t border-slate-100 dark:border-slate-800">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                      <ImageIcon className="w-3.5 h-3.5 text-brand-600" /> Imagen Referencial (Opcional)
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" /> Imagen Referencial (Opcional)
                     </label>
                     {newProduct.imagen && (
                       <button 
@@ -461,7 +461,7 @@ export default function AdminProductosView() {
 
                   {/* Image Preview Box if available */}
                   {newProduct.imagen ? (
-                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 group">
                       <img 
                         src={newProduct.imagen} 
                         alt="Vista previa" 
@@ -481,7 +481,7 @@ export default function AdminProductosView() {
 
                   {/* Upload file + URL inputs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 hover:bg-brand-50/60 text-slate-600 hover:text-brand-700 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
+                    <label className="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 hover:bg-brand-50/60 dark:hover:bg-brand-950/60 text-slate-600 dark:text-slate-300 hover:text-brand-700 dark:hover:text-brand-300 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
                       <Upload className="w-3.5 h-3.5" />
                       <span>Subir Foto</span>
                       <input 
@@ -499,14 +499,14 @@ export default function AdminProductosView() {
                         placeholder="Pegar URL de foto"
                         value={newProduct.imagen || ''}
                         onChange={(e) => setNewProduct({ ...newProduct, imagen: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-[11px] font-bold text-slate-800 outline-none focus:border-brand-500 transition-all"
+                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2.5 text-[11px] font-bold text-slate-800 dark:text-white outline-none focus:border-brand-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Preset Suggestions */}
                   <div className="space-y-1 pt-1">
-                    <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1">
                       <Sparkles className="w-2.5 h-2.5 text-amber-500" /> Presets Rápidos:
                     </span>
                     <div className="flex flex-wrap gap-1">
@@ -515,7 +515,7 @@ export default function AdminProductosView() {
                           key={preset.label}
                           type="button"
                           onClick={() => setNewProduct({ ...newProduct, imagen: preset.url })}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-brand-100 hover:text-brand-700 text-slate-600 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-900/60 hover:text-brand-700 dark:hover:text-brand-300 text-slate-600 dark:text-slate-300 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
                         >
                           {preset.label}
                         </button>
@@ -528,13 +528,13 @@ export default function AdminProductosView() {
                   <button 
                     type="button" 
                     onClick={closeModal}
-                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all cursor-pointer"
+                    className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit"
-                    className="flex-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl py-3.5 font-black uppercase tracking-widest text-[10px] shadow-md shadow-brand-100 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl py-3.5 font-black uppercase tracking-widest text-[10px] shadow-md shadow-brand-100 dark:shadow-none transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" /> Guardar
                   </button>

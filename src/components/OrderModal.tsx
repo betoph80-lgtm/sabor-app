@@ -255,15 +255,15 @@ export const OrderModal: React.FC<{
     return (
       <div
         key={p.id}
-        className={`flex items-center justify-between gap-2.5 sm:gap-3 py-2.5 px-3 sm:px-3.5 rounded-2xl border-2 transition-all duration-300 ${
+        className={`flex items-center justify-between gap-2.5 sm:gap-3 py-2 px-3 rounded-2xl border-2 transition-all duration-300 ${
           qty > 0
-            ? 'bg-brand-50/70 border-brand-500 ring-4 ring-brand-50/80 shadow-md shadow-brand-50/20'
-            : 'bg-slate-50/60 border-slate-100/50 hover:bg-slate-100/50 hover:border-slate-200/60'
+            ? 'bg-brand-50/70 dark:bg-brand-950/40 border-brand-500 ring-4 ring-brand-50/80 dark:ring-brand-950/40 shadow-md shadow-brand-50/20'
+            : 'bg-slate-50/60 dark:bg-slate-800/60 border-slate-100/50 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 hover:border-slate-200/60 dark:hover:border-slate-600'
         }`}
       >
         {/* Left: Thumbnail & Details */}
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-slate-100 border border-slate-200/80 overflow-hidden shrink-0 flex items-center justify-center relative">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 overflow-hidden shrink-0 flex items-center justify-center relative">
             {p.imagen ? (
               <img 
                 src={p.imagen} 
@@ -275,9 +275,9 @@ export const OrderModal: React.FC<{
                 }}
               />
             ) : (
-              <div className={`w-full h-full flex items-center justify-center text-xs font-black ${
-                p.categoria === 'MENÚ' ? 'bg-brand-100 text-brand-700' :
-                p.categoria === 'EXTRA' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'
+              <div className={`w-full h-full flex items-center justify-center text-[10px] font-black ${
+                p.categoria === 'MENÚ' ? 'bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300' :
+                p.categoria === 'EXTRA' ? 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
               }`}>
                 {p.categoria[0]}
               </div>
@@ -286,26 +286,26 @@ export const OrderModal: React.FC<{
 
           <div className="min-w-0 flex-1 pr-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className={`font-display font-black text-sm sm:text-base uppercase tracking-tight truncate max-w-[150px] xs:max-w-[200px] sm:max-w-none transition-colors duration-200 ${
-                qty > 0 ? 'text-brand-900' : 'text-slate-800'
+              <span className={`font-display font-bold text-xs uppercase tracking-tight truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none transition-colors duration-200 ${
+                qty > 0 ? 'text-brand-900 dark:text-brand-200 font-extrabold' : 'text-slate-800 dark:text-slate-100'
               }`}>
                 {p.nombre}
               </span>
-              {hasCustomPrice && <span className="text-brand-600 text-[10px] font-black" title="Precio adaptado hoy">★</span>}
+              {hasCustomPrice && <span className="text-brand-600 dark:text-brand-400 text-[9px] font-black" title="Precio adaptado hoy">★</span>}
             </div>
 
-            <div className="flex items-center gap-2.5 mt-0.5">
-              <span className="text-xs sm:text-sm font-mono font-bold text-slate-600">
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
                 S/ {displayedPrice.toFixed(2)}
               </span>
 
               {menuI && (
-                <span className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-extrabold uppercase tracking-wide border ${
+                <span className={`px-1.5 py-0.2 rounded-md text-[8.5px] sm:text-[9px] font-extrabold uppercase tracking-wider border ${
                   menuI.stockActual === 0
-                    ? 'bg-rose-50 text-rose-500 border-rose-100/50'
+                    ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 border-rose-100/50 dark:border-rose-900/50'
                     : menuI.stockActual < 5
-                      ? 'bg-amber-50 text-amber-600 border-amber-100/50'
-                      : 'bg-emerald-50 text-emerald-600 border-emerald-100/50'
+                      ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border-amber-100/50 dark:border-amber-900/50'
+                      : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border-emerald-100/50 dark:border-emerald-900/50'
                 }`}>
                   Stock: {menuI.stockActual}
                 </span>
@@ -317,10 +317,10 @@ export const OrderModal: React.FC<{
               <button
                 type="button"
                 onClick={() => openNoteModal(p)}
-                className="mt-1 inline-flex items-center gap-1.5 text-[10.5px] sm:text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-lg max-w-[220px] truncate hover:bg-amber-100 transition-colors"
+                className="mt-1 inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/80 px-2 py-0.5 rounded-lg max-w-[200px] truncate hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors"
                 title="Editar detalle"
               >
-                <FileText className="w-3 h-3 text-amber-600 shrink-0" />
+                <FileText className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span className="truncate">{itemNote}</span>
               </button>
             )}
@@ -328,33 +328,33 @@ export const OrderModal: React.FC<{
         </div>
 
         {/* Right: Quantity controls + Detail Button */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           
           {/* Note Button (Only when item is selected, saving horizontal space) */}
           {qty > 0 && (
             <button
               type="button"
               onClick={() => openNoteModal(p)}
-              className={`px-2.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1 transition-all active:scale-95 border ${
+              className={`px-2 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95 border cursor-pointer ${
                 itemNote
-                  ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 shadow-xs'
-                  : 'bg-white hover:bg-brand-50 border-slate-200 hover:border-brand-300 text-slate-600 hover:text-brand-700 shadow-xs'
+                  ? 'bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/50 border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 text-slate-600 dark:text-slate-300 hover:text-brand-700 dark:hover:text-brand-300 shadow-xs'
               }`}
               title={itemNote ? `Detalle: ${itemNote}` : "Añadir detalle / nota para cocina"}
             >
-              <FileText className={`w-4 h-4 ${itemNote ? 'text-amber-600' : 'text-brand-600'}`} />
+              <FileText className={`w-3.5 h-3.5 ${itemNote ? 'text-amber-600 dark:text-amber-400' : 'text-brand-600 dark:text-brand-400'}`} />
               <span className="hidden xs:inline">{itemNote ? 'Nota' : '+ Detalle'}</span>
             </button>
           )}
 
-          {/* Stepper with larger tap buttons & larger font-mono numbers */}
-          <div className="flex items-center bg-white rounded-xl p-0.5 shrink-0 border border-slate-200/80 shadow-xs transition-all duration-300 hover:border-brand-300">
+          {/* Stepper */}
+          <div className="flex items-center bg-white dark:bg-slate-800 rounded-xl p-0.5 shrink-0 border border-slate-200/70 dark:border-slate-700 shadow-sm transition-all duration-300 hover:border-brand-300">
             <button
               type="button"
               onClick={() => updateQuantity(p.id, -1)}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 active:scale-90 transition-transform bg-transparent cursor-pointer"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 active:scale-90 transition-transform bg-transparent cursor-pointer"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3.5 h-3.5" />
             </button>
             <input
               type="text"
@@ -362,15 +362,15 @@ export const OrderModal: React.FC<{
               pattern="[0-9]*"
               value={qty === 0 ? '' : qty}
               onChange={(e) => handleInputChange(p.id, e.target.value)}
-              className="font-mono font-black text-slate-900 w-8 sm:w-9 text-center text-sm sm:text-base outline-none bg-transparent"
+              className="font-display font-black text-slate-800 dark:text-slate-100 w-7 sm:w-8 text-center text-xs sm:text-sm outline-none bg-transparent"
               placeholder="0"
             />
             <button
               type="button"
               onClick={() => updateQuantity(p.id, 1)}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center active:scale-95 transition-transform shadow-xs hover:bg-brand-700 cursor-pointer"
+              className="w-7 h-7 rounded-lg bg-brand-600 hover:bg-brand-700 text-white flex items-center justify-center active:scale-95 transition-transform shadow-sm cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -380,24 +380,24 @@ export const OrderModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-0 sm:p-4 pt-1 sm:pt-4">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-0 sm:p-4 pt-1 sm:pt-4">
       <motion.div
         initial={{ y: '20px', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white w-full max-w-2xl sm:rounded-[32px] rounded-b-[24px] sm:rounded-t-[32px] shadow-2xl flex flex-col max-h-[96vh] sm:max-h-[92vh] overflow-hidden relative"
+        className="bg-white dark:bg-slate-900 w-full max-w-2xl sm:rounded-[32px] rounded-b-[24px] sm:rounded-t-[32px] shadow-2xl flex flex-col max-h-[96vh] sm:max-h-[92vh] overflow-hidden relative border border-slate-100 dark:border-slate-800"
       >
         {/* Header - Compact & Sticky */}
-        <div className="flex justify-between items-center bg-white px-4 py-3 sm:px-6 sm:py-3.5 border-b border-slate-100 shrink-0">
+        <div className="flex justify-between items-center bg-white dark:bg-slate-900 px-4 py-2.5 sm:px-6 sm:py-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg sm:text-xl font-display font-black text-slate-900 tracking-tight leading-none">{title}</h3>
+              <h3 className="text-base sm:text-xl font-display font-black text-slate-900 dark:text-white tracking-tight leading-none">{title}</h3>
               {mesas && onSaveEdit ? (
-                <div className="flex items-center gap-1 bg-brand-50 border border-brand-100/50 rounded-lg px-2.5 py-1 select-none">
-                  <span className="text-brand-500 text-[10px] font-black uppercase">Mesa:</span>
+                <div className="flex items-center gap-1 bg-brand-50 dark:bg-brand-950/60 border border-brand-100/50 dark:border-brand-900/50 rounded-lg px-2 py-0.5 select-none">
+                  <span className="text-brand-500 text-[8px] font-black uppercase">Mesa:</span>
                   <select
                     value={selectedMesaId}
                     onChange={(e) => setSelectedMesaId(e.target.value)}
-                    className="bg-transparent text-brand-700 text-[11px] font-extrabold uppercase outline-none cursor-pointer"
+                    className="bg-transparent text-brand-700 dark:text-brand-300 text-[9px] font-extrabold uppercase outline-none cursor-pointer"
                   >
                     {mesas
                       .filter(m => {
@@ -406,39 +406,39 @@ export const OrderModal: React.FC<{
                         return true;
                       })
                       .map(m => (
-                        <option key={m.id} value={m.id}>
+                        <option key={m.id} value={m.id} className="dark:bg-slate-900 dark:text-slate-200">
                           {m.nombre}
                         </option>
                       ))}
                     {mesaId === '13' && (
-                      <option value="13">
+                      <option value="13" className="dark:bg-slate-900 dark:text-slate-200">
                         Para Llevar
                       </option>
                     )}
                   </select>
                 </div>
               ) : (
-                <span className="text-brand-700 text-[11px] sm:text-xs font-black uppercase tracking-wider bg-brand-50 border border-brand-200/60 px-2.5 py-1 rounded-lg">{mesaName}</span>
+                <span className="text-brand-700 dark:text-brand-300 text-[9px] font-black uppercase tracking-wider bg-brand-50 dark:bg-brand-950/60 border border-brand-200/60 dark:border-brand-800/60 px-2 py-0.5 rounded-md">{mesaName}</span>
               )}
             </div>
           </div>
           <button 
             type="button"
             onClick={onClose} 
-            className="p-2 sm:p-2 bg-slate-50 hover:bg-rose-50 hover:text-rose-500 rounded-xl transition-colors border border-slate-200/60 cursor-pointer"
+            className="p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-500 rounded-xl transition-colors border border-slate-200/60 dark:border-slate-700 cursor-pointer"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-4 h-4 text-slate-400 dark:text-slate-300" />
           </button>
         </div>
 
         {/* Scrollable Body: Customer name & Products List */}
-        <div className="flex-1 overflow-y-auto px-3.5 sm:px-6 py-3 space-y-3 sm:space-y-3.5 no-scrollbar">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-2.5 space-y-2.5 sm:space-y-3 no-scrollbar">
           
           {/* Customer name box - Ultra Compact */}
-          <div className="bg-slate-50/80 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border border-slate-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-xl flex items-center justify-center text-brand-600 shrink-0 border border-slate-200/60 shadow-xs">
-                <User className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+          <div className="bg-slate-50/80 dark:bg-slate-800/80 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700/60">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center text-brand-600 dark:text-brand-400 shrink-0 border border-slate-200/60 dark:border-slate-700 shadow-xs">
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="flex-1 min-w-0">
                 <input
@@ -446,7 +446,7 @@ export const OrderModal: React.FC<{
                   value={clienteName}
                   onChange={(e) => setClienteName(e.target.value)}
                   placeholder="Identificar pedido / Nombre del comensal..."
-                  className="w-full bg-white border border-slate-200/80 rounded-xl py-2 px-3 font-bold text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 text-sm sm:text-base"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 rounded-lg py-1.5 px-2.5 font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs sm:text-sm"
                 />
               </div>
             </div>
@@ -469,12 +469,12 @@ export const OrderModal: React.FC<{
 
               return (
                 <React.Fragment key={cat}>
-                  <section className="space-y-1.5">
-                    <h4 className="text-xs sm:text-xs font-black text-slate-600 uppercase tracking-widest px-1 flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-brand-500"></div>
+                  <section className="space-y-1">
+                    <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
                       Entrada (Menú)
                     </h4>
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-1">
                       {soups.map(p => (
                         <div key={p.id}>
                           {renderProductRow(p)}
@@ -483,14 +483,14 @@ export const OrderModal: React.FC<{
                     </div>
                   </section>
 
-                  <section className="space-y-1.5">
+                  <section className="space-y-1">
                     <div className="flex items-center justify-between px-1">
-                      <h4 className="text-xs sm:text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-brand-500"></div>
+                      <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
                         Segundos del Menú
                       </h4>
                     </div>
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-1">
                       {mains.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
                     </div>
                   </section>
@@ -499,12 +499,12 @@ export const OrderModal: React.FC<{
             }
 
             return (
-              <section key={cat} className="space-y-1.5">
-                <h4 className="text-xs sm:text-xs font-black text-slate-600 uppercase tracking-widest px-1 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <section key={cat} className="space-y-1">
+                <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                   {cat}
                 </h4>
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1">
                   {catProducts.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
                 </div>
               </section>
@@ -513,11 +513,11 @@ export const OrderModal: React.FC<{
         </div>
 
         {/* ALWAYS VISIBLE FIXED FOOTER ACTIONS */}
-        <div className="bg-white/95 backdrop-blur-md px-3.5 py-3 sm:px-6 sm:py-3.5 border-t border-slate-200/80 shrink-0 flex gap-2.5 sm:gap-3 shadow-lg z-30">
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2.5 sm:px-6 sm:py-3.5 border-t border-slate-200/80 dark:border-slate-800 shrink-0 flex gap-2 sm:gap-3 shadow-lg z-30">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3.5 sm:py-4 bg-rose-50 hover:bg-rose-100 text-rose-600 font-display font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl sm:rounded-2xl border border-rose-200/70 transition-all active:scale-95 text-center cursor-pointer"
+            className="flex-1 py-3 sm:py-3.5 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-display font-black uppercase tracking-wider text-[10px] sm:text-xs rounded-xl sm:rounded-2xl border border-rose-200/70 dark:border-rose-900/70 transition-all active:scale-95 text-center cursor-pointer"
           >
             Cancelar
           </button>
@@ -525,7 +525,7 @@ export const OrderModal: React.FC<{
             type="button"
             onClick={handleAdd}
             disabled={!canConfirm}
-            className="flex-[2] py-3.5 sm:py-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-2 border-emerald-500 font-display font-black uppercase tracking-wider text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-sm disabled:opacity-40 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 transition-all active:scale-95 text-center cursor-pointer"
+            className="flex-[2] py-3 sm:py-3.5 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border-2 border-emerald-500 font-display font-black uppercase tracking-wider text-[10px] sm:text-xs rounded-xl sm:rounded-2xl shadow-sm disabled:opacity-40 disabled:border-slate-200 dark:disabled:border-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 transition-all active:scale-95 text-center cursor-pointer"
           >
             {onSaveEdit ? 'Guardar Cambios' : (totalSelected > 0 ? `Confirmar Pedido (${totalSelected})` : 'Confirmar Pedido')}
           </button>
@@ -539,18 +539,18 @@ export const OrderModal: React.FC<{
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white w-full max-w-md sm:rounded-[28px] rounded-t-[28px] p-5 sm:p-6 space-y-4 shadow-2xl overflow-hidden"
+                className="bg-white dark:bg-slate-900 w-full max-w-md sm:rounded-[28px] rounded-t-[28px] p-5 sm:p-6 space-y-4 shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800"
               >
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-100 dark:border-amber-900/60">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-display font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight">
+                      <h4 className="font-display font-black text-slate-900 dark:text-white text-sm sm:text-base uppercase tracking-tight">
                         Detalle para Cocina
                       </h4>
-                      <p className="text-[11px] font-extrabold text-brand-600 uppercase">
+                      <p className="text-[11px] font-extrabold text-brand-600 dark:text-brand-400 uppercase">
                         {noteModalProduct.nombre}
                       </p>
                     </div>
@@ -558,7 +558,7 @@ export const OrderModal: React.FC<{
                   <button
                     type="button"
                     onClick={() => setNoteModalProduct(null)}
-                    className="p-1.5 hover:bg-slate-100 rounded-xl text-slate-400"
+                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-300 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -566,7 +566,7 @@ export const OrderModal: React.FC<{
 
                 {/* Quick 1-tap chips */}
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-500 tracking-wider block mb-1.5">
+                  <label className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-400 tracking-wider block mb-1.5">
                     Atajos Rápidos (Toca para agregar):
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -577,10 +577,10 @@ export const OrderModal: React.FC<{
                           key={chip}
                           type="button"
                           onClick={() => toggleSuggestion(chip)}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all border cursor-pointer ${
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-xl transition-all border cursor-pointer ${
                             isSelected
-                              ? 'bg-amber-100 border-amber-300 text-amber-900 font-extrabold shadow-xs'
-                              : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                              ? 'bg-amber-100 dark:bg-amber-950/80 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-extrabold shadow-xs'
+                              : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                           }`}
                         >
                           {isSelected ? '✓ ' : '+ '}{chip}
@@ -592,7 +592,7 @@ export const OrderModal: React.FC<{
 
                 {/* Textarea for custom notes */}
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-500 tracking-wider block mb-1">
+                  <label className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-400 tracking-wider block mb-1">
                     Nota o Instrucción Específica:
                   </label>
                   <textarea
@@ -600,7 +600,7 @@ export const OrderModal: React.FC<{
                     value={tempNoteText}
                     onChange={(e) => setTempNoteText(e.target.value)}
                     placeholder="Ej. Sin cebolla, bien dorado, ensalada sin vinagreta..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-none"
                     autoFocus
                   />
                 </div>
@@ -611,16 +611,16 @@ export const OrderModal: React.FC<{
                     <button
                       type="button"
                       onClick={handleClearNote}
-                      className="px-3.5 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold uppercase text-xs tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="px-3.5 py-3 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl font-bold uppercase text-[10px] tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                       Limpiar
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={handleSaveNote}
-                    className="flex-1 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-display font-black uppercase text-xs sm:text-sm tracking-wider transition-all active:scale-95 shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-display font-black uppercase text-xs tracking-wider transition-all active:scale-95 shadow-md shadow-brand-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
                     Guardar Detalle

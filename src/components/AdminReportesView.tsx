@@ -88,14 +88,14 @@ export default function AdminReportesView() {
     <div className="space-y-6 animate-in fade-in duration-300 pb-12">
       
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200/80 p-6 rounded-[28px] shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 rounded-[28px] shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center shrink-0">
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-display font-black text-slate-900 uppercase tracking-tight">Reportes y Auditoría de Ventas</h2>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
+            <h2 className="text-xl font-display font-black text-slate-900 dark:text-white uppercase tracking-tight">Reportes y Auditoría de Ventas</h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-0.5">
               Consolidado de caja, pedidos e historial financiero
             </p>
           </div>
@@ -103,20 +103,20 @@ export default function AdminReportesView() {
 
         {/* Date and Print Controls */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-2xl">
-            <Calendar className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-2xl">
+            <Calendar className="w-4 h-4 text-slate-400 dark:text-slate-500" />
             <input 
               type="text"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-xs font-black text-slate-800 uppercase focus:outline-none w-24"
+              className="bg-transparent text-xs font-black text-slate-800 dark:text-slate-200 uppercase focus:outline-none w-24"
               placeholder="D/M/YYYY"
             />
           </div>
 
           <button
             onClick={handlePrint}
-            className="px-4 py-2 bg-slate-900 hover:bg-brand-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+            className="px-4 py-2 bg-slate-900 dark:bg-brand-600 hover:bg-brand-600 dark:hover:bg-brand-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-xs cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Imprimir</span>
@@ -127,28 +127,28 @@ export default function AdminReportesView() {
       {/* Financial Overview Cards for Selected Date */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-5">
         
-        <div className="bg-emerald-50/60 border border-emerald-100 p-5 rounded-3xl text-left">
-          <p className="text-[9px] font-black text-emerald-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+        <div className="bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 p-5 rounded-3xl text-left">
+          <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1">
             <Wallet className="w-3.5 h-3.5" /> Efectivo en Caja
           </p>
-          <p className="text-2xl font-display font-black text-emerald-950">S/ {totalEfectivo.toFixed(2)}</p>
+          <p className="text-2xl font-display font-black text-emerald-950 dark:text-emerald-200">S/ {totalEfectivo.toFixed(2)}</p>
         </div>
 
-        <div className="bg-sky-50/60 border border-sky-100 p-5 rounded-3xl text-left">
-          <p className="text-[9px] font-black text-sky-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+        <div className="bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/40 p-5 rounded-3xl text-left">
+          <p className="text-[9px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-1 flex items-center gap-1">
             <CreditCard className="w-3.5 h-3.5" /> Yape / Digital
           </p>
-          <p className="text-2xl font-display font-black text-sky-950">S/ {totalYape.toFixed(2)}</p>
+          <p className="text-2xl font-display font-black text-sky-950 dark:text-sky-200">S/ {totalYape.toFixed(2)}</p>
         </div>
 
-        <div className="bg-purple-50/60 border border-purple-100 p-5 rounded-3xl text-left">
-          <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+        <div className="bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 p-5 rounded-3xl text-left">
+          <p className="text-[9px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-1 flex items-center gap-1">
             <Users className="w-3.5 h-3.5" /> Cobro Abonos
           </p>
-          <p className="text-2xl font-display font-black text-purple-950">S/ {customerPaymentsToday.toFixed(2)}</p>
+          <p className="text-2xl font-display font-black text-purple-950 dark:text-purple-200">S/ {customerPaymentsToday.toFixed(2)}</p>
         </div>
 
-        <div className="bg-slate-900 text-white p-5 rounded-3xl text-left shadow-md">
+        <div className="bg-slate-900 dark:bg-slate-800 text-white p-5 rounded-3xl text-left shadow-md border dark:border-slate-700">
           <p className="text-[9px] font-black text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1">
             <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Total Recaudado Real
           </p>
@@ -158,23 +158,23 @@ export default function AdminReportesView() {
       </div>
 
       {/* Filters Toolbar */}
-      <div className="bg-white border border-slate-200/80 p-4 md:p-5 rounded-3xl space-y-4 shadow-xs">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 md:p-5 rounded-3xl space-y-4 shadow-xs">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-brand-600" />
-          <span className="text-xs font-black uppercase tracking-wider text-slate-800">Filtros de Búsqueda</span>
+          <Filter className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+          <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Filtros de Búsqueda</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input 
               type="text"
               placeholder="Buscar por N° Pedido, cliente, mesa..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
 
@@ -182,7 +182,7 @@ export default function AdminReportesView() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
           >
             <option value="TODOS">Todos los Estados</option>
             <option value="ABIERTO">Abiertos</option>
@@ -196,7 +196,7 @@ export default function AdminReportesView() {
           <select
             value={selectedPaymentMethod}
             onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
           >
             <option value="TODOS">Todos los Métodos de Pago</option>
             <option value="EFECTIVO">Efectivo</option>
@@ -208,7 +208,7 @@ export default function AdminReportesView() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
           >
             <option value="TODOS">Todas las Categorías</option>
             {categories.map(cat => (
@@ -220,30 +220,30 @@ export default function AdminReportesView() {
       </div>
 
       {/* Orders Table Container */}
-      <div className="bg-white border border-slate-200/80 rounded-[28px] overflow-hidden shadow-xs">
-        <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-display font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[28px] overflow-hidden shadow-xs">
+        <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <h3 className="font-display font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
             Detalle de Pedidos
-            <span className="bg-brand-50 text-brand-700 text-[10px] px-2.5 py-0.5 rounded-full font-black">
+            <span className="bg-brand-50 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300 text-[10px] px-2.5 py-0.5 rounded-full font-black">
               {filteredOrders.length} {filteredOrders.length === 1 ? 'pedido' : 'pedidos'}
             </span>
           </h3>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase">
             Suma Mostrada: S/ {filteredOrders.reduce((acc, o) => acc + o.total, 0).toFixed(2)}
           </p>
         </div>
 
         {filteredOrders.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 space-y-2">
-            <FileText className="w-10 h-10 mx-auto opacity-40 text-slate-400" />
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">No se encontraron pedidos con los filtros aplicados</p>
-            <p className="text-[11px] text-slate-400">Intente cambiar el rango de fecha o los términos de búsqueda.</p>
+          <div className="p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
+            <FileText className="w-10 h-10 mx-auto opacity-40 text-slate-400 dark:text-slate-600" />
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">No se encontraron pedidos con los filtros aplicados</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">Intente cambiar el rango de fecha o los términos de búsqueda.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/80 text-[9.5px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                <tr className="bg-slate-50/80 dark:bg-slate-850 text-[9.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800">
                   <th className="py-3.5 px-4 md:px-6">N° Pedido</th>
                   <th className="py-3.5 px-4">Hora</th>
                   <th className="py-3.5 px-4">Mesa / Cliente</th>
@@ -253,51 +253,51 @@ export default function AdminReportesView() {
                   <th className="py-3.5 px-4 md:px-6 text-right">Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                 {filteredOrders.map((order) => {
                   const itemsSummary = order.items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
                   return (
-                    <tr key={order.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3.5 px-4 md:px-6 font-display font-black text-slate-900 whitespace-nowrap">
+                    <tr key={order.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-3.5 px-4 md:px-6 font-display font-black text-slate-900 dark:text-white whitespace-nowrap">
                         {order.id}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {order.hora || '12:00'}
                       </td>
                       <td className="py-3.5 px-4">
-                        <p className="font-extrabold text-slate-800 leading-tight">
+                        <p className="font-extrabold text-slate-800 dark:text-slate-200 leading-tight">
                           {order.mesaId === '13' ? 'Para Llevar' : `Mesa ${order.mesaId}`}
                         </p>
-                        <p className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[120px]">
                           {order.cliente || 'Cliente'}
                         </p>
                       </td>
                       <td className="py-3.5 px-4 max-w-xs">
-                        <p className="text-slate-600 text-[11px] font-medium truncate" title={itemsSummary}>
+                        <p className="text-slate-600 dark:text-slate-300 text-[11px] font-medium truncate" title={itemsSummary}>
                           {itemsSummary}
                         </p>
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-xl ${
-                          order.metodoPago === 'EFECTIVO' ? 'bg-emerald-50 text-emerald-700' :
-                          order.metodoPago === 'YAPE' ? 'bg-sky-50 text-sky-700' : 'bg-purple-50 text-purple-700'
+                          order.metodoPago === 'EFECTIVO' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' :
+                          order.metodoPago === 'YAPE' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300' : 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300'
                         }`}>
                           {order.metodoPago || 'EFECTIVO'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-xl flex items-center gap-1 w-fit ${
-                          order.estado === 'COBRADO' ? 'bg-emerald-100 text-emerald-800' :
-                          order.estado === 'ENTREGADO' ? 'bg-blue-100 text-blue-800' :
-                          order.estado === 'CREDITO' ? 'bg-rose-100 text-rose-800' :
-                          order.estado === 'CANCELADO' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-800'
+                          order.estado === 'COBRADO' ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300' :
+                          order.estado === 'ENTREGADO' ? 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300' :
+                          order.estado === 'CREDITO' ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300' :
+                          order.estado === 'CANCELADO' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300'
                         }`}>
                           {order.estado === 'COBRADO' && <CheckCircle2 className="w-3 h-3" />}
                           {order.estado === 'ABIERTO' && <Clock className="w-3 h-3" />}
                           {order.estado}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 md:px-6 text-right font-display font-black text-slate-900 text-sm whitespace-nowrap">
+                      <td className="py-3.5 px-4 md:px-6 text-right font-display font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
                         S/ {order.total.toFixed(2)}
                       </td>
                     </tr>

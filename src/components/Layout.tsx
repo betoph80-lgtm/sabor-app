@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale, Bell } from 'lucide-react';
+import { useTheme } from '../ThemeContext.tsx';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale, Bell, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WaiterNotificationToast } from './WaiterNotificationToast.tsx';
 
@@ -19,6 +20,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     currentUser, identity, dbConnectedStatus, dbConnectionErrorMessage, 
     recheckDbConnection 
   } = useApp();
+  
+  const { theme, isDark, toggleTheme } = useTheme();
   
   const brandParts = (identity?.nombre || 'Sabor Abanquino').split(' ');
   const firstPart = brandParts.slice(0, -1).join(' ') || brandParts[0] || '';
@@ -108,15 +111,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const totalDrinkStock = drinkStock.reduce((acc, m) => acc + m.stockActual, 0);
 
   return (
-    <div className="flex flex-col h-screen bg-background text-slate-800 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-800 dark:text-slate-100 overflow-hidden font-sans transition-colors duration-200">
       {/* Waiter Live Notification Banners */}
       <WaiterNotificationToast />
 
       {/* Header / Navbar */}
-      <nav className="min-h-[72px] py-1 md:h-22 bg-white border-b border-slate-200/80 flex items-center justify-between px-2 xs:px-4 md:px-12 shrink-0 z-20 sticky top-0 shadow-sm">
+      <nav className="min-h-[72px] py-1 md:h-22 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-2 xs:px-4 md:px-10 shrink-0 z-20 sticky top-0 shadow-sm transition-colors duration-200">
         <div className="flex items-center gap-3 md:gap-4 shrink-0 group cursor-pointer">
           <div className="relative">
-            <div className="relative w-11 h-11 xs:w-12 xs:h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-200 p-1 transition-all duration-500 group-hover:scale-105 select-none">
+            <div className="relative w-11 h-11 xs:w-12 xs:h-12 md:w-14 md:h-14 bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 p-1 transition-all duration-500 group-hover:scale-105 select-none">
               <img 
                 src={identity?.logoUrl?.trim() ? identity.logoUrl : "/logo.png"} 
                 alt={identity?.nombre || "Logo"} 
@@ -129,25 +132,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
           <div className="flex flex-col text-left justify-center min-w-0">
-            <span className="text-xs xs:text-sm md:text-base font-display font-black tracking-wider uppercase text-slate-800 leading-none group-hover:text-brand-600 transition-colors duration-300 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-sm">
+            <span className="text-xs xs:text-sm md:text-base font-display font-black tracking-wider uppercase text-slate-800 dark:text-white leading-none group-hover:text-brand-500 transition-colors duration-300 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs md:max-w-sm">
               {identity?.nombre || "Sabor Abanquino"}
             </span>
             {identity?.eslogan && identity.eslogan.trim() !== '' && identity.eslogan.trim() !== '-' && (
-              <span className="text-[7.5px] xs:text-[8px] md:text-[9.5px] font-bold uppercase tracking-[0.18em] text-slate-400 mt-1 truncate max-w-[120px] xs:max-w-[185px] sm:max-w-xs block leading-none">
+              <span className="text-[7.5px] xs:text-[8px] md:text-[9.5px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-400 mt-1 truncate max-w-[120px] xs:max-w-[185px] sm:max-w-xs block leading-none">
                 {identity.eslogan}
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 xs:gap-3 bg-white border border-slate-200 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-brand-500 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
+        {/* Date Selector */}
+        <div className="flex items-center gap-1.5 xs:gap-3 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-2 xs:px-3 sm:px-5 py-1.5 xs:py-2.5 rounded-xl shadow-sm hover:border-brand-500 transition-all duration-300 relative group h-[36px] xs:h-[42px] sm:h-[46px]">
            <div className="flex items-center gap-1.5 xs:gap-3">
               <Calendar className="w-3.5 h-3.5 xs:w-4.5 xs:h-4.5 text-brand-500 hidden xs:block" />
-              <span className="text-[10px] xs:text-xs sm:text-sm font-sans sm:font-display font-bold text-slate-700 select-none">
+              <span className="text-[10px] xs:text-xs sm:text-sm font-sans sm:font-display font-bold text-slate-700 dark:text-slate-200 select-none">
                 {selectedDate}
               </span>
               {currentUser?.role === 'ADMIN' && (
-                <div className="relative flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6 rounded-md hover:bg-slate-100 transition-colors">
+                <div className="relative flex items-center justify-center w-5 h-5 xs:w-6 xs:h-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                   <Calendar className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
                   <input 
                     type="date" 
@@ -168,62 +172,81 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
            )}
         </div>
 
-        <div className="flex gap-2 xs:gap-4 sm:gap-10 items-center ml-auto">
-          <div className="flex items-center gap-2 xs:gap-4 md:gap-8 md:pr-12 md:border-r border-slate-200">
-            {/* Mobile logout button */}
-             <button 
-              onClick={logout}
-              className="xl:hidden p-2 xs:p-3 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
-            >
-              <LogOut className="w-4.5 h-4.5 xs:w-5 h-5" />
-             </button>
-            <div className="flex items-center max-w-[100px] xxs:max-w-[140px] xs:max-w-[240px] sm:max-w-[360px] md:max-w-2xl overflow-x-auto no-scrollbar py-1 scroll-smooth gap-1.5 xs:gap-2">
-                {[...soupStock, ...mainStock].map((m, index) => {
+        <div className="flex gap-2 xs:gap-4 sm:gap-6 items-center ml-auto">
+          {/* Quick Stock Indicator Strip */}
+          <div className="flex items-center gap-2 xs:gap-3 md:gap-4 md:pr-4 md:border-r border-slate-200 dark:border-slate-800">
+            <div className="flex items-center max-w-[90px] xxs:max-w-[130px] xs:max-w-[200px] sm:max-w-[320px] md:max-w-xl overflow-x-auto no-scrollbar py-1 scroll-smooth gap-1.5 xs:gap-2">
+                {[...soupStock, ...mainStock].map((m) => {
                   const product = products.find(prod => prod.id === m.productoId);
                   const isLow = m.stockActual < 5;
                   return (
                     <div 
                       key={m.id} 
-                      className={`flex flex-col justify-center px-1.5 xs:px-2.5 py-1 rounded-lg xs:rounded-xl border transition-all duration-300 shadow-sm min-w-[45px] xs:min-w-[75px] md:min-w-[90px] leading-none shrink-0 ${
+                      className={`flex flex-col justify-center px-1.5 xs:px-2.5 py-1 rounded-lg xs:rounded-xl border transition-all duration-300 shadow-2xs min-w-[45px] xs:min-w-[75px] md:min-w-[85px] leading-none shrink-0 ${
                         isLow 
-                          ? 'bg-rose-50 border-rose-200' 
-                          : 'bg-white border-slate-200/80 hover:bg-slate-50'
+                          ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/60' 
+                          : 'bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                       }`}
                       title={product?.nombre}
                     >
-                      <div className={`font-black uppercase text-[5.5px] xs:text-[7.5px] tracking-wide truncate max-w-[40px] xs:max-w-[70px] md:max-w-[85px] ${
-                        isLow ? 'text-rose-600' : 'text-slate-400'
+                      <div className={`font-black uppercase text-[5.5px] xs:text-[7.5px] tracking-wide truncate max-w-[40px] xs:max-w-[70px] md:max-w-[80px] ${
+                        isLow ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-400'
                       }`}>
                         {product?.nombre || 'Plato'}
                       </div>
                       <div className="flex items-baseline gap-0.5 mt-0.5 xs:mt-1">
-                        <span className={`font-display font-black text-[10px] xs:text-sm ${isLow ? 'text-rose-700' : 'text-slate-800'}`}>
+                        <span className={`font-display font-black text-[10px] xs:text-sm ${isLow ? 'text-rose-700 dark:text-rose-300' : 'text-slate-800 dark:text-white'}`}>
                           {m.stockActual}
                         </span>
-                        <span className="text-slate-400 font-semibold text-[7.5px] xs:text-[9.5px]">/{m.stockInicial}</span>
+                        <span className="text-slate-400 dark:text-slate-400 font-semibold text-[7.5px] xs:text-[9.5px]">/{m.stockInicial}</span>
                       </div>
                     </div>
                   );
                 })}
             </div>
           </div>
+
+          {/* Theme Toggle Button (Light / Dark) */}
+          <button
+            id="btn-global-theme-toggle"
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 p-2 xs:px-3 xs:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-amber-300 border border-slate-200 dark:border-slate-700 transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title={isDark ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
+          >
+            {isDark ? (
+              <>
+                <Sun className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-amber-400 animate-spin-slow" />
+                <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider text-slate-200">Claro</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-slate-700" />
+                <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider text-slate-700">Oscuro</span>
+              </>
+            )}
+          </button>
           
-          <div className="hidden xl:flex items-center gap-5 pl-4 group">
-            <div className="relative">
-              <div className="relative w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-brand-600 border border-slate-200 group-hover:scale-105 transition-transform duration-300">
-                <ChefHat className="w-8 h-8" />
+          {/* User Profile & Logout */}
+          <div className="flex items-center gap-2.5">
+            <div className="hidden xl:flex items-center gap-3 pl-2 group">
+              <div className="relative">
+                <div className="relative w-11 h-11 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-brand-600 dark:text-brand-400 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform duration-300">
+                  <ChefHat className="w-6 h-6" />
+                </div>
+              </div>
+              <div>
+                <p className="text-[9px] text-slate-400 dark:text-slate-400 uppercase font-black tracking-widest leading-none mb-1">{currentUser?.nombre || 'Acceso'}</p>
+                <p className="text-xs font-display font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">{currentUser?.role}</p>
               </div>
             </div>
-            <div>
-              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-none mb-1.5">{currentUser?.nombre || 'Acceso'}</p>
-              <p className="text-base font-display font-bold text-slate-900 uppercase tracking-tight">{currentUser?.role}</p>
-            </div>
+
             <button 
               onClick={logout}
-              className="p-3 ml-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+              className="p-2 xs:p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-800/40"
               title="Cerrar Sesión"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
@@ -231,28 +254,28 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar for Desktop (PC) */}
-        <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-[76px] px-2 py-4' : 'w-64 p-4'} bg-white border-r border-slate-200 shrink-0 h-full min-h-0 relative justify-between select-none shadow-sm z-10 transition-all duration-300`}>
+        <aside className={`hidden lg:flex flex-col ${isSidebarCollapsed ? 'w-[76px] px-2 py-4' : 'w-64 p-4'} bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 h-full min-h-0 relative justify-between select-none shadow-sm z-10 transition-all duration-300`}>
           {/* Navigation Items */}
           <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar flex-1 min-h-0 pr-1 pb-12 scroll-smooth">
             {isSidebarCollapsed ? (
-              <div className="flex items-center justify-center mb-3 pb-2 border-b border-slate-100">
+              <div className="flex items-center justify-center mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
                 <button 
                   onClick={() => setIsSidebarCollapsed(false)} 
-                  className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all cursor-pointer border border-slate-200/80 shadow-xs"
+                  className="p-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer border border-slate-200/80 dark:border-slate-700 shadow-xs"
                   title="Expandir Panel Lateral"
                 >
-                  <PanelLeftOpen className="w-5 h-5 text-brand-600" />
+                  <PanelLeftOpen className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-400 mb-2 px-3">
+              <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-400 mb-2 px-3">
                 <span>Módulos Activos</span>
                 <button 
                   onClick={() => setIsSidebarCollapsed(true)} 
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all cursor-pointer"
                   title="Minimizar Panel"
                 >
-                  <PanelLeftClose className="w-4.5 h-4.5 text-slate-500" />
+                  <PanelLeftClose className="w-4.5 h-4.5 text-slate-500 dark:text-slate-400" />
                 </button>
               </div>
             )}
@@ -293,10 +316,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       className={`flex flex-col items-center justify-center p-2.5 rounded-2xl transition-all duration-300 font-semibold relative group w-full cursor-pointer ${
                         isActive 
                           ? 'bg-brand-600 text-white shadow-sm' 
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
-                      <Icon className={`w-5 h-5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
+                      <Icon className={`w-5 h-5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 dark:text-slate-400 group-hover:scale-110 group-hover:text-slate-600 dark:group-hover:text-slate-200'}`} />
                       <span className="text-[7.5px] font-black uppercase tracking-tight mt-1 leading-none text-center truncate max-w-full">
                         {item.label}
                       </span>
@@ -304,7 +327,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
                     {/* Compact sub-module icons when ADMIN is expanded in collapsed mode */}
                     {isNavAdmin && isAdminExpanded && (
-                      <div className="flex flex-col items-center gap-1 my-1 py-1.5 border-y border-slate-200/80 w-full bg-slate-50/50 rounded-xl">
+                      <div className="flex flex-col items-center gap-1 my-1 py-1.5 border-y border-slate-200/80 dark:border-slate-800 w-full bg-slate-50/50 dark:bg-slate-850 rounded-xl">
                         {adminSubModules.map((sub) => {
                           const SubIcon = sub.icon;
                           const isSubActive = activeView === 'ADMIN' && adminSubView === sub.id;
@@ -319,7 +342,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                               className={`p-1.5 rounded-xl transition-all cursor-pointer ${
                                 isSubActive
                                   ? 'bg-brand-600 text-white shadow-xs'
-                                  : 'text-slate-400 hover:text-slate-800 hover:bg-slate-200/60'
+                                  : 'text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'
                               }`}
                             >
                               <SubIcon className="w-4 h-4" />
@@ -348,10 +371,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 font-semibold relative overflow-hidden group w-full cursor-pointer ${
                       isActive 
                         ? 'bg-brand-600 text-white shadow-sm' 
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
-                    <Icon className={`w-4.5 h-4.5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 group-hover:scale-110 group-hover:text-slate-600'}`} />
+                    <Icon className={`w-4.5 h-4.5 transition-transform duration-300 shrink-0 ${isActive ? 'scale-110' : 'text-slate-400 dark:text-slate-400 group-hover:scale-110 group-hover:text-slate-600 dark:group-hover:text-slate-200'}`} />
                     <span className="text-[11px] font-bold uppercase tracking-[0.14em]">{item.label}</span>
                     
                     {isNavAdmin && (
@@ -365,7 +388,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     )}
 
                     {!isActive && (
-                      <span className="absolute inset-0 bg-brand-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                      <span className="absolute inset-0 bg-brand-500/5 dark:bg-brand-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                     )}
                   </button>
 
@@ -375,7 +398,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="ml-3.5 pl-2.5 border-l-2 border-slate-200 space-y-0.5 py-1 my-0.5"
+                      className="ml-3.5 pl-2.5 border-l-2 border-slate-200 dark:border-slate-800 space-y-0.5 py-1 my-0.5"
                     >
                       {adminSubModules.map((sub) => {
                         const SubIcon = sub.icon;
@@ -389,11 +412,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                             }}
                             className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all w-full text-left cursor-pointer ${
                               isSubActive
-                                ? 'bg-brand-50 text-brand-700 font-extrabold shadow-xs border border-brand-200/80'
-                                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                                ? 'bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 font-extrabold shadow-xs border border-brand-200/80 dark:border-brand-800/60'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                             }`}
                           >
-                            <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-brand-600 scale-110' : 'text-slate-400'}`} />
+                            <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-brand-600 dark:text-brand-400 scale-110' : 'text-slate-400'}`} />
                             <span className="truncate">{sub.label}</span>
                           </button>
                         );
@@ -407,86 +430,86 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           {/* Sidebar Footer Info Card */}
           {isSidebarCollapsed ? (
-            <div className="bg-slate-50 border border-slate-200 p-2 rounded-2xl mt-2 flex flex-col items-center gap-1.5 shrink-0">
-              <div className="w-8 h-8 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0" title={currentUser?.role}>
+            <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 p-2 rounded-2xl mt-2 flex flex-col items-center gap-1.5 shrink-0">
+              <div className="w-8 h-8 bg-brand-100 dark:bg-brand-950/80 text-brand-700 dark:text-brand-400 rounded-xl flex items-center justify-center shrink-0" title={currentUser?.role}>
                 <ChefHat className="w-4 h-4" />
               </div>
               <div className="text-center" title={`Caja Total: S/ ${totalCajaGlobal.toFixed(2)}`}>
-                <span className="text-[7.5px] font-black text-brand-700 bg-brand-50 border border-brand-200 px-1 py-0.5 rounded block font-mono">
+                <span className="text-[7.5px] font-black text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/40 border border-brand-200 dark:border-brand-800 px-1 py-0.5 rounded block font-mono">
                   S/{Math.round(totalCajaGlobal)}
                 </span>
               </div>
               <div className="text-center" title="Pedidos Abiertos">
-                <span className="text-[8.5px] font-black text-brand-700 bg-brand-100/80 px-1.5 py-0.5 rounded-md block font-mono">
+                <span className="text-[8.5px] font-black text-brand-700 dark:text-brand-300 bg-brand-100/80 dark:bg-brand-900/60 px-1.5 py-0.5 rounded-md block font-mono">
                   {activeOrdersCount}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="bg-slate-50 border border-slate-200 p-3 rounded-2xl space-y-2 mt-2 shrink-0">
+            <div className="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl space-y-2 mt-2 shrink-0">
               {/* User Session & Status */}
               <div className="flex items-center justify-between gap-1.5">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center shrink-0">
+                  <div className="w-7 h-7 bg-brand-100 dark:bg-brand-950/80 text-brand-700 dark:text-brand-400 rounded-xl flex items-center justify-center shrink-0">
                     <ChefHat className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[8px] text-slate-400 uppercase font-black tracking-widest truncate leading-none mb-0.5">{currentUser?.nombre || 'Sesión'}</p>
-                    <p className="text-[11px] font-bold text-brand-700 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
+                    <p className="text-[11px] font-bold text-brand-700 dark:text-brand-300 uppercase tracking-tight truncate leading-none">{currentUser?.role}</p>
                   </div>
                 </div>
 
                 <span className={`px-2 py-0.5 rounded-lg text-[7.5px] font-black uppercase tracking-wider ${
                   currentCash?.estado === 'ABIERTA' 
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/80' 
+                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800' 
                     : currentCash?.estado === 'CERRADA'
-                      ? 'bg-slate-200 text-slate-700 border border-slate-300'
-                      : 'bg-rose-100 text-rose-800 border border-rose-200'
+                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
+                      : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
                 }`}>
                   {currentCash?.estado === 'ABIERTA' ? 'Abierta' : currentCash?.estado === 'CERRADA' ? 'Cerrada' : 'Sin Caja'}
                 </span>
               </div>
               
               {/* Resumen de Caja */}
-              <div className="space-y-1.5 border-t border-slate-200/80 pt-2">
+              <div className="space-y-1.5 border-t border-slate-200/80 dark:border-slate-800 pt-2">
                 {/* Caja Total Highlight */}
-                <div className="bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs flex justify-between items-center">
+                <div className="bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs flex justify-between items-center">
                   <div>
-                    <span className="text-[8px] font-black text-brand-600 uppercase tracking-wider block">Caja Total</span>
-                    <span className="text-[6.5px] text-slate-400 font-bold uppercase block">Efectivo + Yape + Base</span>
+                    <span className="text-[8px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-wider block">Caja Total</span>
+                    <span className="text-[6.5px] text-slate-400 uppercase block">Efectivo + Yape + Base</span>
                   </div>
-                  <span className="font-extrabold text-slate-900 font-display text-xs">
+                  <span className="font-extrabold text-slate-900 dark:text-white font-display text-xs">
                     S/ {totalCajaGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
 
                 {/* Subtotales: Efectivo Real y Total Yape */}
                 <div className="grid grid-cols-2 gap-1.5">
-                  <div className="bg-white/80 px-2 py-1 rounded-lg border border-slate-200/70">
-                    <span className="text-[7px] font-black text-emerald-600 uppercase tracking-wider block">Caja Real</span>
-                    <span className="font-bold text-slate-800 text-[10px] leading-tight block">
+                  <div className="bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-200/70 dark:border-slate-700">
+                    <span className="text-[7px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Caja Real</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-[10px] leading-tight block">
                       S/ {totalCajaEfectivo.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <span className="text-[6px] text-slate-400 font-medium uppercase block truncate">Efectivo + Base</span>
+                    <span className="text-[6px] text-slate-400 uppercase block truncate">Efectivo + Base</span>
                   </div>
-                  <div className="bg-white/80 px-2 py-1 rounded-lg border border-slate-200/70">
-                    <span className="text-[7px] font-black text-purple-600 uppercase tracking-wider block">Total Yape</span>
-                    <span className="font-bold text-slate-800 text-[10px] leading-tight block">
+                  <div className="bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-200/70 dark:border-slate-700">
+                    <span className="text-[7px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Total Yape</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-[10px] leading-tight block">
                       S/ {totalYapeGlobal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <span className="text-[6px] text-slate-400 font-medium uppercase block truncate">Yape / Plin</span>
+                    <span className="text-[6px] text-slate-400 uppercase block truncate">Yape / Plin</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center px-1 pt-0.5 text-[10px]">
-                  <span className="text-slate-500 font-medium text-[9.5px]">Pedidos Abiertos</span>
-                  <span className="font-extrabold text-brand-700 bg-brand-100/70 px-1.5 py-0.5 rounded-md text-[9px] font-mono">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium text-[9.5px]">Pedidos Abiertos</span>
+                  <span className="font-extrabold text-brand-700 dark:text-brand-300 bg-brand-100/70 dark:bg-brand-900/60 px-1.5 py-0.5 rounded-md text-[9px] font-mono">
                     {activeOrdersCount}
                   </span>
                 </div>
               </div>
               
-              <div className="text-[8px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200/60">
+              <div className="text-[8px] text-slate-400 uppercase tracking-wider flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800">
                 <span>Sabor Abanquino</span>
                 <span>v 2.5.0</span>
               </div>
@@ -495,7 +518,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-background relative">
+        <main className="flex-1 flex flex-col overflow-hidden bg-slate-100/70 dark:bg-slate-950 relative transition-colors duration-200">
           <div className="flex-1 overflow-auto no-scrollbar">
             <AnimatePresence mode="wait">
               <motion.div
@@ -512,7 +535,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
 
           {/* Mobile Bottom Navigation (Only visible on screens smaller than lg) */}
-          <nav className="lg:hidden bg-white border-t border-slate-200 flex justify-around items-center px-2 py-2 shrink-0 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+          <nav className="lg:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-around items-center px-2 py-2 shrink-0 safe-bottom shadow-[0_-4px_12px_rgba(0,0,0,0.05)] transition-colors duration-200">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = activeView === item.id;
@@ -521,7 +544,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   key={item.id}
                   onClick={() => setActiveView(item.id as any)}
                   className={`flex flex-col items-center justify-center w-full py-2 transition-all duration-300 relative ${
-                    isActive ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'
+                    isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
                   }`}
                 >
                   <Icon className={`w-6 h-6 mb-1 ${isActive ? 'scale-110 drop-shadow-sm' : ''} transition-all`} />
@@ -529,7 +552,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   {isActive && (
                     <motion.div
                       layoutId="activeTabMobile"
-                      className="absolute -top-1 w-10 h-1 bg-brand-600 rounded-full"
+                      className="absolute -top-1 w-10 h-1 bg-brand-600 dark:bg-brand-400 rounded-full"
                     />
                   )}
                 </button>
@@ -540,7 +563,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
 
       {/* Footer */}
-      <footer className="h-10 bg-slate-900 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium z-50 border-t border-slate-800">
+      <footer className="h-10 bg-slate-900 dark:bg-slate-950 text-slate-400 flex items-center px-6 text-[10px] justify-between shrink-0 font-medium z-50 border-t border-slate-800">
         <div>Personal en turno: <strong className="text-slate-200">{currentUser?.nombre || 'Ninguno'}</strong></div>
         <div className="flex gap-4 items-center">
           <span 

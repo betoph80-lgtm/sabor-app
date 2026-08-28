@@ -252,28 +252,28 @@ export default function AdminAperturaCierreView() {
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-300">
       
       {/* Sub-module Header with Title and Range Export */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 md:p-8 rounded-[32px] border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white dark:bg-slate-900 p-5 md:p-8 rounded-[32px] border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-600 shadow-sm border border-brand-100 shrink-0">
+          <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-50 dark:bg-brand-950/80 rounded-2xl flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-800 shrink-0">
             <Wallet className="w-6 h-6 md:w-7 md:h-7" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight">
+            <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
               Apertura y Cierre de Caja
             </h1>
-            <p className="text-slate-400 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-0.5">
+            <p className="text-slate-400 dark:text-slate-500 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mt-0.5">
               Control de jornada diaria, arqueo de caja y auditoría • Fecha: {selectedDate}
             </p>
           </div>
         </div>
 
         {/* Date range filter & Full Excel Download */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-50 border border-slate-200/80 p-3 rounded-2xl w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 p-3 rounded-2xl w-full lg:w-auto">
           <div className="grid grid-cols-2 gap-2 shrink-0">
             <div className="flex flex-col gap-1">
-              <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest pl-1 select-none">DESDE</span>
-              <div className="relative flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-1.5 h-[38px] hover:border-brand-300 transition-all cursor-pointer">
-                <span className="text-[11px] font-sans font-black text-slate-900 select-none">
+              <span className="text-[8.5px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1 select-none">DESDE</span>
+              <div className="relative flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 h-[38px] hover:border-brand-300 dark:hover:border-brand-500 transition-all cursor-pointer">
+                <span className="text-[11px] font-sans font-black text-slate-900 dark:text-white select-none">
                   {(() => {
                     if (!desdeDate) return '';
                     const [y, m, d] = desdeDate.split('-');
@@ -290,9 +290,9 @@ export default function AdminAperturaCierreView() {
               </div>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest pl-1 select-none">HASTA</span>
-              <div className="relative flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-1.5 h-[38px] hover:border-brand-300 transition-all cursor-pointer">
-                <span className="text-[11px] font-sans font-black text-slate-900 select-none">
+              <span className="text-[8.5px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1 select-none">HASTA</span>
+              <div className="relative flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 h-[38px] hover:border-brand-300 dark:hover:border-brand-500 transition-all cursor-pointer">
+                <span className="text-[11px] font-sans font-black text-slate-900 dark:text-white select-none">
                   {(() => {
                     if (!hastaDate) return '';
                     const [y, m, d] = hastaDate.split('-');
@@ -322,26 +322,26 @@ export default function AdminAperturaCierreView() {
 
       {/* Main Cash Status Banner */}
       {!currentCash && (
-        <div className="bg-rose-50 border-2 border-rose-100 rounded-[32px] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-100 dark:border-rose-900/60 rounded-[32px] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="flex items-center gap-5">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200 shrink-0">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200 dark:shadow-rose-950/50 shrink-0">
               <AlertCircle className="w-7 h-7 md:w-8 md:h-8" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-                <h3 className="text-xl md:text-2xl font-black text-rose-900 uppercase tracking-tight italic">
+                <h3 className="text-xl md:text-2xl font-black text-rose-900 dark:text-rose-200 uppercase tracking-tight italic">
                   Caja Cerrada / Sin Apertura
                 </h3>
               </div>
-              <p className="text-rose-600/80 text-xs font-bold uppercase tracking-widest mt-1">
+              <p className="text-rose-600/80 dark:text-rose-400 text-xs font-bold uppercase tracking-widest mt-1">
                 Abre caja e ingresa el fondo base inicial para operar en {selectedDate}
               </p>
             </div>
           </div>
           <button 
             onClick={() => setShowOpenModal(true)}
-            className="w-full md:w-auto px-8 py-4.5 bg-rose-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-8 py-4.5 bg-rose-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-rose-200 dark:shadow-rose-950/50 hover:bg-rose-700 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
           >
             <Wallet className="w-4 h-4" />
             <span>Abrir Caja de Hoy</span>
@@ -350,20 +350,20 @@ export default function AdminAperturaCierreView() {
       )}
 
       {currentCash && currentCash.estado === 'ABIERTA' && (
-        <div className="bg-emerald-50 border-2 border-emerald-100 rounded-[32px] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-100 dark:border-emerald-900/60 rounded-[32px] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
           <div className="flex items-center gap-5">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 shrink-0">
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-950/50 shrink-0">
               <Check className="w-7 h-7 md:w-8 md:h-8" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <h3 className="text-xl md:text-2xl font-black text-emerald-900 uppercase tracking-tight">
+                <h3 className="text-xl md:text-2xl font-black text-emerald-900 dark:text-emerald-200 uppercase tracking-tight">
                   Caja Abierta • {currentCash.horaApertura}
                 </h3>
               </div>
               <div className="flex items-center gap-3 mt-1 flex-wrap">
-                <p className="text-emerald-700 text-xs font-bold uppercase tracking-wider">
+                <p className="text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
                   Monto Base: <span className="font-extrabold font-mono">S/ {currentCash.montoApertura.toFixed(2)}</span> | Fecha: {selectedDate}
                 </p>
                 <button
@@ -371,7 +371,7 @@ export default function AdminAperturaCierreView() {
                     setEditOpeningAmount(currentCash.montoApertura.toString());
                     setShowEditOpenModal(true);
                   }}
-                  className="px-2.5 py-1 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all"
+                  className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer"
                   title="Editar monto base de apertura"
                 >
                   <Edit2 className="w-3 h-3" />
@@ -385,7 +385,7 @@ export default function AdminAperturaCierreView() {
               setCashCounted(totalCajaEfectivo.toFixed(2));
               setShowCloseModal(true);
             }}
-            className="w-full md:w-auto px-8 py-4.5 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-black transition-all active:scale-95 shadow-xl shadow-slate-200 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full md:w-auto px-8 py-4.5 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-black dark:hover:bg-slate-700 transition-all active:scale-95 shadow-xl shadow-slate-200 dark:shadow-none cursor-pointer flex items-center justify-center gap-2"
           >
             <Clock className="w-4 h-4" />
             <span>Cerrar Caja Final</span>
@@ -395,35 +395,35 @@ export default function AdminAperturaCierreView() {
 
       {currentCash && currentCash.estado === 'CERRADA' && currentCash.efectivoFisico !== undefined && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-6 rounded-[28px] border border-slate-200/80 flex flex-col items-center text-center shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Efectivo Calculado en Sistema</p>
-            <p className="font-display font-black text-slate-800 text-3xl tracking-tight">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 flex flex-col items-center text-center shadow-sm">
+            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Efectivo Calculado en Sistema</p>
+            <p className="font-display font-black text-slate-800 dark:text-white text-3xl tracking-tight">
               S/ {(currentCash.montoApertura + currentCash.ingresosEfectivo).toFixed(2)}
             </p>
-            <span className="text-[8px] font-bold text-slate-400 uppercase mt-1">Base + Ventas y Cobros Efectivo</span>
+            <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-1">Base + Ventas y Cobros Efectivo</span>
           </div>
 
-          <div className="bg-white p-6 rounded-[28px] border border-brand-200 flex flex-col items-center text-center shadow-sm ring-4 ring-brand-50/50">
-            <p className="text-[9px] font-black text-brand-600 uppercase tracking-widest mb-1.5">Efectivo Físico Contado</p>
-            <p className="font-display font-black text-brand-700 text-3xl tracking-tight">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-brand-200 dark:border-brand-800 flex flex-col items-center text-center shadow-sm ring-4 ring-brand-50/50 dark:ring-brand-950/40">
+            <p className="text-[9px] font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1.5">Efectivo Físico Contado</p>
+            <p className="font-display font-black text-brand-700 dark:text-brand-300 text-3xl tracking-tight">
               S/ {currentCash.efectivoFisico.toFixed(2)}
             </p>
-            <span className="text-[8px] font-bold text-brand-400 uppercase mt-1">Conteo reportado al cierre</span>
+            <span className="text-[8px] font-bold text-brand-400 dark:text-brand-500 uppercase mt-1">Conteo reportado al cierre</span>
           </div>
 
-          <div className="bg-white p-6 rounded-[28px] border border-slate-200/80 flex flex-col items-center text-center shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Diferencia de Cuadre</p>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 flex flex-col items-center text-center shadow-sm">
+            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Diferencia de Cuadre</p>
             <p className={`font-display font-black text-3xl tracking-tight ${
-              currentCash.diferencia === 0 ? 'text-slate-400' : currentCash.diferencia! > 0 ? 'text-emerald-500' : 'text-rose-500'
+              currentCash.diferencia === 0 ? 'text-slate-400 dark:text-slate-500' : currentCash.diferencia! > 0 ? 'text-emerald-500' : 'text-rose-500'
             }`}>
               {currentCash.diferencia! > 0 ? '+' : ''}{currentCash.diferencia?.toFixed(2)}
             </p>
             <span className={`text-[8.5px] font-black uppercase mt-1 px-2.5 py-0.5 rounded-full ${
               currentCash.diferencia === 0 
-                ? 'bg-slate-100 text-slate-600' 
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' 
                 : currentCash.diferencia! > 0 
-                  ? 'bg-emerald-50 text-emerald-700' 
-                  : 'bg-rose-50 text-rose-700'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300' 
+                  : 'bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300'
             }`}>
               {currentCash.diferencia === 0 ? 'Cuadre Perfecto' : currentCash.diferencia! > 0 ? 'Sobrante en Caja' : 'Faltante en Caja'}
             </span>
@@ -432,16 +432,16 @@ export default function AdminAperturaCierreView() {
       )}
 
       {currentCash && currentCash.estado === 'CERRADA' && (
-        <div className="bg-slate-100 border-2 border-slate-200 rounded-[32px] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="bg-slate-100 dark:bg-slate-850 border-2 border-slate-200 dark:border-slate-800 rounded-[32px] p-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-slate-400 rounded-2xl flex items-center justify-center text-white shrink-0">
+            <div className="w-12 h-12 bg-slate-400 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-white shrink-0">
               <Clock className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-700 uppercase tracking-tight">
+              <h3 className="text-base font-black text-slate-700 dark:text-white uppercase tracking-tight">
                 Jornada Finalizada • Cerrada a las {currentCash.horaCierre || '-'}
               </h3>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                 Monto de Cierre Total: S/ {currentCash.montoCierre.toFixed(2)} | Fecha: {selectedDate}
               </p>
             </div>
@@ -449,13 +449,13 @@ export default function AdminAperturaCierreView() {
           {isTodaySelected ? (
             <button 
               onClick={() => reopenCash()}
-              className="flex items-center gap-2 px-6 py-3.5 bg-brand-600 text-white rounded-2xl font-black uppercase text-xs tracking-wider hover:bg-brand-700 transition-all active:scale-95 shadow-lg shadow-brand-100 cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3.5 bg-brand-600 text-white rounded-2xl font-black uppercase text-xs tracking-wider hover:bg-brand-700 transition-all active:scale-95 shadow-lg shadow-brand-100 dark:shadow-none cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Reabrir Caja para {selectedDate}</span>
             </button>
           ) : (
-            <div className="px-6 py-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest">
+            <div className="px-6 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest">
               Registro Histórico Cerrado
             </div>
           )}
@@ -465,77 +465,77 @@ export default function AdminAperturaCierreView() {
       {/* Financial Metrics Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Caja Total */}
-        <div className="bg-white p-5 md:p-6 rounded-[28px] border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-600">Caja Total</span>
-            <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">Caja Total</span>
+            <div className="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-950/80 text-brand-600 dark:text-brand-400 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-base font-bold text-slate-400">S/</span>
-            <span className="text-3xl md:text-4xl font-display font-black text-slate-900 tracking-tight">
+            <span className="text-3xl md:text-4xl font-display font-black text-slate-900 dark:text-white tracking-tight">
               {totalCajaGlobal.toFixed(2)}
             </span>
           </div>
-          <p className="text-[8px] text-slate-400 font-bold uppercase mt-2">
+          <p className="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-2">
             Efectivo + Yape + Fondo Base
           </p>
         </div>
 
         {/* Caja Real (Efectivo) */}
-        <div className="bg-white p-5 md:p-6 rounded-[28px] border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600">Caja Real (Efectivo)</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Caja Real (Efectivo)</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <Coins className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-base font-bold text-slate-400">S/</span>
-            <span className="text-3xl md:text-4xl font-display font-black text-emerald-700 tracking-tight">
+            <span className="text-3xl md:text-4xl font-display font-black text-emerald-700 dark:text-emerald-400 tracking-tight">
               {totalCajaEfectivo.toFixed(2)}
             </span>
           </div>
-          <p className="text-[8px] text-slate-400 font-bold uppercase mt-2">
+          <p className="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-2">
             Fondo Base (S/ {baseCaja.toFixed(2)}) + Efectivo
           </p>
         </div>
 
         {/* Total Yape / Plin */}
-        <div className="bg-white p-5 md:p-6 rounded-[28px] border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-600">Total Yape / Plin</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400">Total Yape / Plin</span>
+            <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-base font-bold text-slate-400">S/</span>
-            <span className="text-3xl md:text-4xl font-display font-black text-purple-700 tracking-tight">
+            <span className="text-3xl md:text-4xl font-display font-black text-purple-700 dark:text-purple-400 tracking-tight">
               {totalYapeGlobal.toFixed(2)}
             </span>
           </div>
-          <p className="text-[8px] text-slate-400 font-bold uppercase mt-2">
+          <p className="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-2">
             Ventas y cobros electrónicos
           </p>
         </div>
 
         {/* Créditos y Fiar */}
-        <div className="bg-white p-5 md:p-6 rounded-[28px] border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 p-5 md:p-6 rounded-[28px] border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-600">Créditos / Fiados</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">Créditos / Fiados</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-base font-bold text-slate-400">S/</span>
-            <span className="text-3xl md:text-4xl font-display font-black text-amber-700 tracking-tight">
+            <span className="text-3xl md:text-4xl font-display font-black text-amber-700 dark:text-amber-400 tracking-tight">
               {totalCreditoVendido.toFixed(2)}
             </span>
           </div>
-          <p className="text-[8px] text-slate-400 font-bold uppercase mt-2">
+          <p className="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-2">
             {creditOrdersCount} comandas pendientes de cobro
           </p>
         </div>
@@ -544,65 +544,65 @@ export default function AdminAperturaCierreView() {
       {/* Comandas Breakdown and Cash Detail */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Comandas Summary */}
-        <div className="bg-white p-6 rounded-[32px] border border-slate-200/80 shadow-sm space-y-4">
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-brand-600" />
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-brand-600 dark:text-brand-400" />
             <span>Composición de Comandas</span>
           </h3>
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-2xl">
-              <span className="text-xs font-bold text-slate-600 uppercase">Órdenes Totales Creadas</span>
-              <span className="font-display font-black text-slate-900 text-base">{salesTodayCount}</span>
+            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">Órdenes Totales Creadas</span>
+              <span className="font-display font-black text-slate-900 dark:text-white text-base">{salesTodayCount}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100">
-              <span className="text-xs font-bold text-emerald-800 uppercase">Órdenes Pagadas</span>
-              <span className="font-display font-black text-emerald-700 text-base">{paidOrdersCount}</span>
+            <div className="flex justify-between items-center p-3 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-900/50">
+              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase">Órdenes Pagadas</span>
+              <span className="font-display font-black text-emerald-700 dark:text-emerald-400 text-base">{paidOrdersCount}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-amber-50/60 rounded-2xl border border-amber-100">
-              <span className="text-xs font-bold text-amber-800 uppercase">Órdenes al Crédito / Fiar</span>
-              <span className="font-display font-black text-amber-700 text-base">{creditOrdersCount}</span>
+            <div className="flex justify-between items-center p-3 bg-amber-50/60 dark:bg-amber-950/40 rounded-2xl border border-amber-100 dark:border-amber-900/50">
+              <span className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase">Órdenes al Crédito / Fiar</span>
+              <span className="font-display font-black text-amber-700 dark:text-amber-400 text-base">{creditOrdersCount}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-blue-50/60 rounded-2xl border border-blue-100">
-              <span className="text-xs font-bold text-blue-800 uppercase">Órdenes Abiertas en Mesa</span>
-              <span className="font-display font-black text-blue-700 text-base">{openOrdersCount}</span>
+            <div className="flex justify-between items-center p-3 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/50">
+              <span className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase">Órdenes Abiertas en Mesa</span>
+              <span className="font-display font-black text-blue-700 dark:text-blue-400 text-base">{openOrdersCount}</span>
             </div>
           </div>
         </div>
 
         {/* Financial Flow Breakdown */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-[32px] border border-slate-200/80 shadow-sm space-y-4">
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <Coins className="w-4 h-4 text-emerald-600" />
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>Desglose Detallado de Ingresos de Hoy</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ingresos por Ventas de Comandas</p>
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 space-y-2">
+              <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ingresos por Ventas de Comandas</p>
+              <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
                 <span>Efectivo:</span>
-                <span className="font-mono text-emerald-700">S/ {totalEfectivoVentas.toFixed(2)}</span>
+                <span className="font-mono text-emerald-700 dark:text-emerald-400">S/ {totalEfectivoVentas.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+              <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
                 <span>Yape / Plin:</span>
-                <span className="font-mono text-purple-700">S/ {totalYapeVentas.toFixed(2)}</span>
+                <span className="font-mono text-purple-700 dark:text-purple-400">S/ {totalYapeVentas.toFixed(2)}</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobros y Abonos a Cuentas Clientes</p>
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 space-y-2">
+              <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Cobros y Abonos a Cuentas Clientes</p>
+              <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
                 <span>Efectivo Cobrado:</span>
-                <span className="font-mono text-emerald-700">S/ {totalEfectivoCobros.toFixed(2)}</span>
+                <span className="font-mono text-emerald-700 dark:text-emerald-400">S/ {totalEfectivoCobros.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+              <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
                 <span>Yape Cobrado:</span>
-                <span className="font-mono text-purple-700">S/ {totalYapeCobros.toFixed(2)}</span>
+                <span className="font-mono text-purple-700 dark:text-purple-400">S/ {totalYapeCobros.toFixed(2)}</span>
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-900 text-white rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div className="p-4 bg-slate-900 dark:bg-slate-950 text-white rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3 border border-slate-800">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Saldo en Caja Física Disponible</p>
               <p className="text-xs text-slate-300 font-medium">Efectivo total en gaveta (Base + Ventas + Cobros)</p>
@@ -619,75 +619,75 @@ export default function AdminAperturaCierreView() {
       {/* Historical Register of Cash Controls */}
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-slate-400" />
+          <h2 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4 text-slate-400 dark:text-slate-500" />
             <span>Historial de Jornadas y Cajas Registradas</span>
           </h2>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
             {cashControls.length} Jornadas Registradas
           </span>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden overflow-x-auto no-scrollbar">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden overflow-x-auto no-scrollbar">
           <table className="w-full text-left border-collapse min-w-[760px]">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200/80">
-                <th className="px-5 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Fecha</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Estado</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Base Apertura</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Efectivo</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Yape/Plin</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Físico Contado</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Diferencia</th>
-                <th className="px-4 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Horarios</th>
+              <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800">
+                <th className="px-5 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Fecha</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Estado</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Base Apertura</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Efectivo</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Yape/Plin</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Físico Contado</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Diferencia</th>
+                <th className="px-4 py-4 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Horarios</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs font-semibold">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
               {cashControls.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-slate-400 uppercase text-xs font-bold">
+                  <td colSpan={8} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 uppercase text-xs font-bold">
                     No hay registros de control de caja
                   </td>
                 </tr>
               ) : (
                 cashControls.map((c) => (
-                  <tr key={c.id || c.fecha} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-3.5 font-bold text-slate-800">
+                  <tr key={c.id || c.fecha} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="px-5 py-3.5 font-bold text-slate-800 dark:text-slate-200">
                       {c.fecha}
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       <span className={`px-2.5 py-1 rounded-full text-[8.5px] font-black uppercase tracking-wider ${
                         c.estado === 'ABIERTA' 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                          : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800' 
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                       }`}>
                         {c.estado}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-600">
+                    <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-600 dark:text-slate-400">
                       S/ {c.montoApertura.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-emerald-700">
+                    <td className="px-4 py-3.5 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">
                       S/ {c.ingresosEfectivo.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-purple-700">
+                    <td className="px-4 py-3.5 text-right font-mono font-bold text-purple-700 dark:text-purple-400">
                       S/ {c.ingresosYape.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-900">
+                    <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white">
                       {c.efectivoFisico !== undefined ? `S/ ${c.efectivoFisico.toFixed(2)}` : '-'}
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       {c.diferencia !== undefined ? (
                         <span className={`font-mono font-bold text-xs ${
-                          c.diferencia === 0 ? 'text-slate-400' : c.diferencia > 0 ? 'text-emerald-600' : 'text-rose-600'
+                          c.diferencia === 0 ? 'text-slate-400 dark:text-slate-500' : c.diferencia > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}>
                           {c.diferencia > 0 ? '+' : ''}{c.diferencia.toFixed(2)}
                         </span>
                       ) : (
-                        <span className="text-slate-300">-</span>
+                        <span className="text-slate-300 dark:text-slate-600">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-center text-[10px] text-slate-500 font-mono">
+                    <td className="px-4 py-3.5 text-center text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                       {c.horaApertura} {c.horaCierre ? `• ${c.horaCierre}` : ''}
                     </td>
                   </tr>
@@ -706,14 +706,14 @@ export default function AdminAperturaCierreView() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-[40px] w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6"
+              className="bg-white dark:bg-slate-900 rounded-[40px] w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6 border border-slate-100 dark:border-slate-800"
             >
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-brand-100">
+                <div className="w-16 h-16 bg-brand-50 dark:bg-brand-950/80 text-brand-600 dark:text-brand-400 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-brand-100 dark:border-brand-800">
                   <User className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight italic">Apertura de Jornada</h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.1em]">Ingresa el fondo inicial de caja</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic">Apertura de Jornada</h3>
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-[0.1em]">Ingresa el fondo inicial de caja</p>
               </div>
 
               <div className="space-y-4">
@@ -723,7 +723,7 @@ export default function AdminAperturaCierreView() {
                     autoFocus
                     type="text"
                     inputMode="decimal"
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-[28px] py-6 pl-16 pr-6 text-2xl font-display font-bold focus:border-brand-500 focus:bg-white outline-none transition-all text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800/80 border-2 border-slate-100 dark:border-slate-700 rounded-[28px] py-6 pl-16 pr-6 text-2xl font-display font-bold focus:border-brand-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all text-slate-800 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0.00"
                     value={openingAmount}
                     onFocus={(e) => e.target.select()}
@@ -745,13 +745,13 @@ export default function AdminAperturaCierreView() {
                       setShowOpenModal(false);
                       setOpeningAmount('0');
                     }}
-                    className="w-full py-5 bg-brand-600 text-white rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-brand-100 hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
+                    className="w-full py-5 bg-brand-600 text-white rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-brand-100 dark:shadow-none hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
                   >
                     Iniciar Operaciones
                   </button>
                   <button 
                     onClick={() => setShowOpenModal(false)}
-                    className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors cursor-pointer"
+                    className="w-full py-4 text-slate-400 dark:text-slate-500 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -770,14 +770,14 @@ export default function AdminAperturaCierreView() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-[40px] w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6"
+              className="bg-white dark:bg-slate-900 rounded-[40px] w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6 border border-slate-100 dark:border-slate-800"
             >
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-brand-100">
+                <div className="w-16 h-16 bg-brand-50 dark:bg-brand-950/80 text-brand-600 dark:text-brand-400 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-brand-100 dark:border-brand-800">
                   <Coins className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight italic">Modificar Apertura</h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.1em]">Actualiza el fondo inicial de caja</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic">Modificar Apertura</h3>
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-[0.1em]">Actualiza el fondo inicial de caja</p>
               </div>
 
               <div className="space-y-4">
@@ -787,7 +787,7 @@ export default function AdminAperturaCierreView() {
                     autoFocus
                     type="text"
                     inputMode="decimal"
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-[28px] py-6 pl-16 pr-6 text-2xl font-display font-bold focus:border-brand-500 focus:bg-white outline-none transition-all text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800/80 border-2 border-slate-100 dark:border-slate-700 rounded-[28px] py-6 pl-16 pr-6 text-2xl font-display font-bold focus:border-brand-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all text-slate-800 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0.00"
                     value={editOpeningAmount}
                     onFocus={(e) => e.target.select()}
@@ -811,13 +811,13 @@ export default function AdminAperturaCierreView() {
                       await updateCashOpening(amount);
                       setShowEditOpenModal(false);
                     }}
-                    className="w-full py-5 bg-brand-600 text-white rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-brand-100 hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
+                    className="w-full py-5 bg-brand-600 text-white rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-brand-100 dark:shadow-none hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
                   >
                     Guardar Cambios
                   </button>
                   <button 
                     onClick={() => setShowEditOpenModal(false)}
-                    className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors cursor-pointer"
+                    className="w-full py-4 text-slate-400 dark:text-slate-500 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -836,34 +836,34 @@ export default function AdminAperturaCierreView() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[40px] w-full max-w-md shadow-2xl overflow-hidden p-8 space-y-6"
+              className="bg-white dark:bg-slate-900 rounded-[40px] w-full max-w-md shadow-2xl overflow-hidden p-8 space-y-6 border border-slate-100 dark:border-slate-800"
             >
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-slate-100 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-slate-200">
-                  <Clock className="w-8 h-8 text-slate-800" />
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-slate-200 dark:border-slate-700">
+                  <Clock className="w-8 h-8 text-slate-800 dark:text-white" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight italic">Cierre de Jornada</h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.1em]">Ingresa el conteo de efectivo físico</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight italic">Cierre de Jornada</h3>
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-[0.1em]">Ingresa el conteo de efectivo físico</p>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Calculado en Sistema (Efectivo)</p>
-                  <p className="text-2xl font-display font-bold text-slate-900 tracking-tight">S/ {totalCajaEfectivo.toFixed(2)}</p>
-                  <p className="text-[7.5px] text-slate-400 font-bold uppercase mt-1">
+                <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 text-center">
+                  <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Calculado en Sistema (Efectivo)</p>
+                  <p className="text-2xl font-display font-bold text-slate-900 dark:text-white tracking-tight">S/ {totalCajaEfectivo.toFixed(2)}</p>
+                  <p className="text-[7.5px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1">
                     Base: {baseCaja.toFixed(2)} + Ventas y Cobros Efectivo: {(totalEfectivoVentas + totalEfectivoCobros).toFixed(2)}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Efectivo Físico Contado</label>
+                  <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">Efectivo Físico Contado</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">S/</span>
                     <input 
                       autoFocus
                       type="text"
                       inputMode="decimal"
-                      className="w-full bg-slate-100 border border-slate-200 rounded-2xl py-4 pl-10 pr-4 text-2xl font-display font-bold outline-none focus:bg-white focus:border-brand-500 transition-all text-slate-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-10 pr-4 text-2xl font-display font-bold outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-brand-500 transition-all text-slate-800 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       value={cashCounted}
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => {
@@ -877,7 +877,7 @@ export default function AdminAperturaCierreView() {
                 </div>
 
                 {Number(cashCounted) !== totalCajaEfectivo && Number(cashCounted) > 0 && (
-                  <div className={`p-4 rounded-2xl border flex items-center gap-3 ${Number(cashCounted) > totalCajaEfectivo ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-rose-50 border-rose-100 text-rose-800'}`}>
+                  <div className={`p-4 rounded-2xl border flex items-center gap-3 ${Number(cashCounted) > totalCajaEfectivo ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-100 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/80 border-rose-100 dark:border-rose-800 text-rose-800 dark:text-rose-200'}`}>
                     <AlertCircle className="w-5 h-5 shrink-0" />
                     <p className="text-[10px] font-bold uppercase tracking-tight leading-tight">
                       Diferencia: S/ {(Number(cashCounted) - totalCajaEfectivo).toFixed(2)} 
@@ -890,7 +890,7 @@ export default function AdminAperturaCierreView() {
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button 
                   onClick={() => setShowCloseModal(false)}
-                  className="py-4 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-colors"
+                  className="py-4 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-300 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -899,7 +899,7 @@ export default function AdminAperturaCierreView() {
                     closeCash(Number(cashCounted) || 0);
                     setShowCloseModal(false);
                   }}
-                  className="py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-slate-200 hover:bg-black transition-all active:scale-95"
+                  className="py-4 bg-slate-900 dark:bg-brand-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-slate-200 dark:shadow-none hover:bg-black dark:hover:bg-brand-700 transition-all active:scale-95 cursor-pointer"
                 >
                   Confirmar Cierre
                 </button>

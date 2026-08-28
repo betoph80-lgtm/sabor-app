@@ -77,10 +77,10 @@ export const MeseroView: React.FC = () => {
       )}
 
       {/* Floor Plan Header and Status chips */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[28px] md:rounded-[40px] border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-[28px] md:rounded-[40px] border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="text-left">
-          <span className="text-[8px] md:text-[9.5px] font-black uppercase tracking-[0.25em] text-brand-600 mb-1.5 block">Distribución en tiempo real</span>
-          <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 tracking-tight leading-none">Salón Principal</h2>
+          <span className="text-[8px] md:text-[9.5px] font-black uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400 mb-1.5 block">Distribución en tiempo real</span>
+          <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 dark:text-white tracking-tight leading-none">Salón Principal</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-2 px-3.5 py-2 bg-emerald-500 text-white rounded-full text-[10px] md:text-xs font-bold border-none shadow-[0_4px_12px_rgba(16,185,129,0.25)] transition-all selection:bg-transparent select-none">
@@ -153,18 +153,18 @@ export const MeseroView: React.FC = () => {
                   <div className="w-full h-full flex flex-col justify-between text-center overflow-hidden">
                     {/* Top Ticket metadata */}
                     <div className="flex flex-col select-none w-full">
-                      <p className={`text-[7px] xs:text-[8px] md:text-[9px] font-extrabold uppercase tracking-tight leading-none ${
+                      <p className={`text-[5.5px] xs:text-[6.5px] md:text-[8px] font-extrabold uppercase tracking-tight leading-none ${
                         mesa.id === '13' ? 'text-brand-100' : 'text-rose-100'
                       }`}>
                         PEDIDO: #{(activeOrder?.id || '').split('-').pop()}
                       </p>
-                      <p className={`text-[6.5px] xs:text-[7.5px] md:text-[8px] font-semibold leading-none mt-0.5 ${
+                      <p className={`text-[5px] xs:text-[6.0px] md:text-[7px] font-semibold leading-none mt-0.5 ${
                         mesa.id === '13' ? 'text-brand-200/90' : 'text-rose-200/90'
                       }`}>
-                        {activeOrder?.hora}
+                        A LAS {activeOrder?.hora}
                       </p>
                       <div className="flex items-center justify-center gap-1 mt-0.5 select-none w-full leading-none">
-                        <span className="text-[7px] xs:text-[8px] md:text-[8.5px] font-black uppercase text-white truncate max-w-[90%]">
+                        <span className="text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase text-white truncate max-w-[80%]">
                           {activeOrder?.cliente || 'CONSU. FINAL'}
                         </span>
                       </div>
@@ -172,7 +172,7 @@ export const MeseroView: React.FC = () => {
 
                     {/* Big table label */}
                     <div className="relative flex items-center justify-center my-0.5 shrink-0">
-                      <div className="font-display font-black leading-none uppercase text-lg xs:text-xl sm:text-2xl md:text-3xl text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.2)] transition-transform duration-300 group-hover:scale-110">
+                      <div className="font-display font-black leading-none uppercase text-base xs:text-lg sm:text-xl md:text-2.5xl text-white drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.2)] transition-transform duration-300 group-hover:scale-110">
                         {label}
                       </div>
                     </div>
@@ -187,7 +187,7 @@ export const MeseroView: React.FC = () => {
                     </div>
 
                     {/* Footer - who took the order */}
-                    <div className={`text-[6.5px] xs:text-[7.5px] md:text-[8px] font-black uppercase tracking-wider truncate max-w-full leading-none border-t pt-1 mt-0.5 shrink-0 ${
+                    <div className={`text-[5.5px] xs:text-[6.5px] md:text-[7.5px] font-black uppercase tracking-wider truncate max-w-full leading-none border-t pt-1 mt-0.5 shrink-0 ${
                       mesa.id === '13' ? 'text-brand-100 border-brand-400/30' : 'text-rose-100 border-rose-400/30'
                     }`}>
                       {activeOrder?.usuarioNombre?.split(' ')[0] || 'ADMINISTRADOR'}
@@ -197,13 +197,13 @@ export const MeseroView: React.FC = () => {
               })() : (
                 <>
                   <div className={`font-display font-black leading-none uppercase px-1 text-center select-none text-white transition-all duration-300 group-hover:scale-110 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.2)] ${
-                    label.length > 3 ? 'text-sm md:text-base tracking-tight' : 'text-2xl md:text-3.5xl'
+                    label.length > 3 ? 'text-xs md:text-base tracking-tight' : 'text-xl md:text-3.5xl'
                   }`}>
                     {label}
                   </div>
                   
                   {mesa.id !== '13' && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-emerald-600/55 border border-emerald-400/30 rounded-full text-[7.5px] md:text-[8.5px] font-black text-emerald-50 uppercase tracking-wider whitespace-nowrap select-none">
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-emerald-600/55 border border-emerald-400/30 rounded-full text-[6.5px] md:text-[8px] font-black text-emerald-50 uppercase tracking-wider whitespace-nowrap select-none">
                       {mesa.sillas || 0} sil.
                     </div>
                   )}
@@ -220,7 +220,7 @@ export const MeseroView: React.FC = () => {
       {selectedMesa && !showOrderModal && (
         <div className="space-y-6">
           <div className="flex justify-end items-center px-2 md:px-4">
-             <button onClick={() => setSelectedMesa(null)} className="p-2 md:p-3 bg-white soft-shadow text-slate-400 hover:text-rose-500 rounded-xl md:rounded-2xl border border-slate-100 transition-colors">
+             <button onClick={() => setSelectedMesa(null)} className="p-2 md:p-3 bg-white dark:bg-slate-900 soft-shadow text-slate-400 hover:text-rose-500 rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 transition-colors">
                <X className="w-4 h-4 md:w-5 md:h-5" />
              </button>
           </div>
@@ -232,17 +232,17 @@ export const MeseroView: React.FC = () => {
                   key={activeOrder.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-[32px] md:rounded-[40px] p-4 md:p-10 soft-shadow border border-slate-50 space-y-4 md:space-y-8 relative overflow-hidden"
+                  className="bg-white dark:bg-slate-900 rounded-[32px] md:rounded-[40px] p-4 md:p-10 soft-shadow border border-slate-50 dark:border-slate-800 space-y-4 md:space-y-8 relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-brand-50 rounded-bl-[100px] -z-0 opacity-40 translate-x-8 -translate-y-8" />
+                  <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-brand-50 dark:bg-brand-950/40 rounded-bl-[100px] -z-0 opacity-40 translate-x-8 -translate-y-8" />
                   
                   <div className="relative z-10 flex justify-between items-start">
                     <div className="flex items-center gap-3 md:gap-6">
-                      <div className="w-12 h-12 md:w-20 md:h-20 bg-brand-600 text-white rounded-xl md:rounded-[26px] flex items-center justify-center text-xl md:text-3xl font-display font-bold shadow-xl shadow-brand-100">
+                      <div className="w-12 h-12 md:w-20 md:h-20 bg-brand-600 text-white rounded-xl md:rounded-[26px] flex items-center justify-center text-xl md:text-3xl font-display font-bold shadow-xl shadow-brand-100 dark:shadow-none">
                         {getMesaLabel(mesasMap.get(selectedMesa!) || { id: selectedMesa, nombre: selectedMesa, estado: 'LIBRE' } as Mesa)}
                       </div>
                       <div>
-                        <h2 className="text-lg md:text-2xl font-display font-bold text-brand-500 leading-tight">
+                        <h2 className="text-lg md:text-2xl font-display font-bold text-brand-500 dark:text-brand-400 leading-tight">
                           {mesasMap.get(selectedMesa!)?.nombre || selectedMesa}
                           {mesaOrders.length > 1 && <span className="ml-2">- Pedido #{orderIdx + 1}</span>}
                         </h2>
@@ -260,27 +260,27 @@ export const MeseroView: React.FC = () => {
                           key={item.id} 
                           className={`flex items-center justify-between p-3 md:p-6 rounded-2xl md:rounded-[24px] border transition-all ${
                             isServed 
-                              ? 'bg-emerald-50/50 border-emerald-100' 
-                              : 'bg-white border-brand-100 border-2 border-dashed'
+                              ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/40' 
+                              : 'bg-white dark:bg-slate-800/80 border-brand-100 dark:border-brand-900/60 border-2 border-dashed'
                           }`}
                         >
                           <div className="flex items-center gap-3 md:gap-5 min-w-0">
                             <div className={`shrink-0 w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-2xl flex items-center justify-center ${
-                              isServed ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white shadow-lg shadow-brand-100 animate-pulse'
+                              isServed ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white shadow-lg shadow-brand-100 dark:shadow-none animate-pulse'
                             }`}>
                               {product?.tipo === 'SOPA' ? <Soup className="w-4 h-4 md:w-6 md:h-6" /> : <Meal className="w-4 h-4 md:w-6 md:h-6" />}
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                 <p className="font-bold text-slate-900 leading-tight text-sm md:text-lg truncate">{product?.nombre}</p>
+                                 <p className="font-bold text-slate-900 dark:text-white leading-tight text-sm md:text-lg truncate">{product?.nombre}</p>
                                  {item.cantidad > 1 && (
-                                    <span className="shrink-0 bg-brand-50 text-brand-600 px-1.5 py-0.5 rounded-lg text-[9px] md:text-[11px] font-black uppercase">
+                                    <span className="shrink-0 bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 px-1.5 py-0.5 rounded-lg text-[9px] md:text-[11px] font-black uppercase">
                                        x{item.cantidad}
                                     </span>
                                  )}
                               </div>
                               <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] ${
-                                isServed ? 'text-emerald-500' : 'text-brand-500'
+                                isServed ? 'text-emerald-500 dark:text-emerald-400' : 'text-brand-500 dark:text-brand-400'
                               }`}>
                                 {isServed ? 'SERVIDO' : 'PREPARANDO'}
                               </span>
@@ -290,12 +290,12 @@ export const MeseroView: React.FC = () => {
                           {!isServed ? (
                             <button
                               onClick={() => updateItemStatus(activeOrder.id, item.id, 'SERVIDO')}
-                              className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white px-4 md:px-8 py-2 md:py-4 rounded-xl md:rounded-2xl text-[10px] md:text-sm font-bold uppercase tracking-widest soft-shadow transition-all active:scale-95"
+                              className="shrink-0 bg-brand-600 hover:bg-brand-700 text-white px-4 md:px-8 py-2 md:py-4 rounded-xl md:rounded-2xl text-[10px] md:text-sm font-bold uppercase tracking-widest soft-shadow transition-all active:scale-95 cursor-pointer"
                             >
                               Entregar
                             </button>
                           ) : (
-                            <div className="shrink-0 w-10 h-10 md:w-16 md:h-16 bg-white text-emerald-500 rounded-full flex items-center justify-center soft-shadow border border-emerald-50">
+                            <div className="shrink-0 w-10 h-10 md:w-16 md:h-16 bg-white dark:bg-slate-800 text-emerald-500 dark:text-emerald-400 rounded-full flex items-center justify-center soft-shadow border border-emerald-50 dark:border-emerald-900/40">
                               <Check className="w-6 h-6 md:w-10 md:h-10" />
                             </div>
                           )}
@@ -304,10 +304,10 @@ export const MeseroView: React.FC = () => {
                     })}
                   </div>
 
-                  <div className="relative z-10 pt-4 md:pt-10 border-t border-slate-50 flex flex-col xs:flex-row gap-4 md:gap-5 items-center justify-between font-display">
+                  <div className="relative z-10 pt-4 md:pt-10 border-t border-slate-100 dark:border-slate-800 flex flex-col xs:flex-row gap-4 md:gap-5 items-center justify-between font-display">
                     <div className="flex flex-col items-center xs:items-start leading-none">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total Pedido</p>
-                      <p className="text-2xl md:text-4xl font-black text-brand-900 tracking-tight">S/ {activeOrder.total.toFixed(2)}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mb-1">Total Pedido</p>
+                      <p className="text-2xl md:text-4xl font-black text-brand-900 dark:text-brand-300 tracking-tight">S/ {activeOrder.total.toFixed(2)}</p>
                     </div>
                     <div className="flex gap-2 min-w-full xs:min-w-0 md:gap-3 w-full xs:w-auto">
                       <button
@@ -317,7 +317,7 @@ export const MeseroView: React.FC = () => {
                           setShowOrderModal(true);
                         }}
                         disabled={isCashClosed}
-                        className={`flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-slate-900 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all soft-shadow active:scale-95 ${
+                        className={`flex-1 xs:flex-none py-3.5 md:py-4 px-6 md:px-8 bg-slate-900 dark:bg-slate-800 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-xl md:rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all soft-shadow active:scale-95 cursor-pointer ${
                           isCashClosed ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
@@ -337,11 +337,11 @@ export const MeseroView: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-[32px] p-8 md:p-12 soft-shadow border border-slate-50 text-center animate-in fade-in zoom-in-95">
-               <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 md:p-12 soft-shadow border border-slate-100 dark:border-slate-800 text-center animate-in fade-in zoom-in-95">
+               <div className="w-16 h-16 bg-rose-50 dark:bg-rose-950/50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Lock className="w-8 h-8" />
                </div>
-               <h3 className="font-display font-bold text-slate-800 text-lg uppercase tracking-tight">Mesa Ocupada</h3>
+               <h3 className="font-display font-bold text-slate-800 dark:text-white text-lg uppercase tracking-tight">Mesa Ocupada</h3>
                <p className="text-slate-400 text-xs font-medium mt-1">Este pedido fue generado por otro usuario y no tienes permisos para verlo.</p>
             </div>
           )}

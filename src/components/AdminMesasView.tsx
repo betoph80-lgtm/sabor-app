@@ -32,26 +32,26 @@ export default function AdminMesasView() {
     <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
       
       {/* Header bar */}
-      <div className="bg-white rounded-3xl p-5 md:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 block mb-1">
+          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400 block mb-1">
             Capacidad Logística
           </span>
-          <h3 className="text-xl font-display font-black text-slate-800 tracking-tight leading-none">
+          <h3 className="text-xl font-display font-black text-slate-800 dark:text-white tracking-tight leading-none">
             Mapa del Salón ({mesas.filter(m => m.id !== '13').length} Mesas)
           </h3>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto px-5 py-3 bg-brand-600 hover:bg-brand-700 active:scale-98 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md shadow-brand-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full sm:w-auto px-5 py-3 bg-brand-600 hover:bg-brand-700 active:scale-98 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md shadow-brand-200 dark:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Nueva Mesa
         </button>
       </div>
 
       {/* Floor Plan Visualizer */}
-      <div className="bg-slate-50 rounded-[32px] p-6 md:p-8 border border-slate-200/40 min-h-[400px] flex flex-col justify-between space-y-6">
+      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-[32px] p-6 md:p-8 border border-slate-200/40 dark:border-slate-800 min-h-[400px] flex flex-col justify-between space-y-6">
         
         {/* Visual floor map grid showing actual chairs dynamically */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -64,8 +64,8 @@ export default function AdminMesasView() {
                 key={mesa.id} 
                 className={`group relative rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between min-h-[110px] ${
                   mesa.id === '13'
-                    ? 'bg-gradient-to-br from-indigo-50/60 to-white border-indigo-200 text-indigo-900 shadow-[0_4px_16px_rgba(99,102,241,0.04)] hover:shadow-md'
-                    : 'bg-white border-slate-200 hover:border-brand-300 text-slate-800 shadow-[0_4px_14px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)]'
+                    ? 'bg-gradient-to-br from-indigo-50/60 to-white dark:from-indigo-950/40 dark:to-slate-900 border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-300 shadow-[0_4px_16px_rgba(99,102,241,0.04)] hover:shadow-md'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 text-slate-800 dark:text-slate-100 shadow-[0_4px_14px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.04)]'
                 }`}
               >
                 {/* Header */}
@@ -77,7 +77,7 @@ export default function AdminMesasView() {
                   {mesa.id !== '13' && (
                     <button 
                       onClick={() => deleteMesa(mesa.id)}
-                      className="w-6 h-6 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-xs cursor-pointer"
+                      className="w-6 h-6 bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/80 hover:text-rose-700 dark:hover:text-rose-200 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-xs cursor-pointer"
                       title="Eliminar mesa"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -97,21 +97,21 @@ export default function AdminMesasView() {
                         />
                       ))}
                       {chairCount > 8 && (
-                        <span className="text-[7.5px] font-black text-brand-600 leading-none pl-0.5">
+                        <span className="text-[7.5px] font-black text-brand-600 dark:text-brand-400 leading-none pl-0.5">
                           +{chairCount - 8}
                         </span>
                       )}
                     </div>
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">
+                    <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
                       Capacidad: {chairCount} Sillas
                     </span>
                   </div>
                 ) : (
                   <div className="pt-2">
-                    <span className="text-[8.5px] font-black text-indigo-500 uppercase tracking-widest block">
+                    <span className="text-[8.5px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest block">
                       REPARTO EXTERNO
                     </span>
-                    <span className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
+                    <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mt-0.5">
                       Unidad Virtual de Empaque
                     </span>
                   </div>
@@ -122,8 +122,8 @@ export default function AdminMesasView() {
         </div>
 
         {/* Sub-legend */}
-        <div className="pt-4 border-t border-slate-200/40 flex items-center gap-2 text-slate-400">
-          <Sofa className="w-4 h-4 text-slate-400 shrink-0" />
+        <div className="pt-4 border-t border-slate-200/40 dark:border-slate-800 flex items-center gap-2 text-slate-400 dark:text-slate-500">
+          <Sofa className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
           <p className="text-[9.5px] font-bold uppercase tracking-wide leading-none">
             La visualización de mesa replica la distribución operativa de sillas de forma proporcional en tiempo real.
           </p>
@@ -133,45 +133,45 @@ export default function AdminMesasView() {
 
       {/* FLOATING MODAL FORM FOR NEW TABLE */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div 
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6 relative animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 relative animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+              className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div>
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 block mb-1">
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-600 dark:text-brand-400 block mb-1">
                 Capacidad Logística
               </span>
-              <h3 className="text-xl font-display font-black text-slate-800 tracking-tight leading-none">
+              <h3 className="text-xl font-display font-black text-slate-800 dark:text-white tracking-tight leading-none">
                 Alta de Mesa
               </h3>
-              <p className="text-[11px] text-slate-400 font-medium mt-1.5 leading-tight">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-1.5 leading-tight">
                 Configura nuevas mesas físicas o áreas de servicio.
               </p>
             </div>
 
             <form onSubmit={handleAddMesa} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Identificador / Nombre</label>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Identificador / Nombre</label>
                 <input 
                   type="text" 
                   value={newMesaName}
                   onChange={(e) => setNewMesaName(e.target.value)}
                   placeholder="Ej: Mesa 12, Terraza B..."
                   required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-brand-500 outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Número de Sillas / Capacidad</label>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-1">Número de Sillas / Capacidad</label>
                 <input 
                   type="number" 
                   min={0}
@@ -179,7 +179,7 @@ export default function AdminMesasView() {
                   value={newMesaSillas}
                   onChange={(e) => setNewMesaSillas(e.target.value)}
                   placeholder="Ej. 4"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 focus:bg-white focus:border-brand-500 outline-none transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs md:text-sm font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:border-brand-500 outline-none transition-all"
                 />
               </div>
 
@@ -187,13 +187,13 @@ export default function AdminMesasView() {
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all cursor-pointer"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl py-3.5 font-black uppercase text-[10px] tracking-wider transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="flex-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl py-3.5 font-black uppercase tracking-wider text-[10px] shadow-md shadow-brand-100 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl py-3.5 font-black uppercase tracking-wider text-[10px] shadow-md shadow-brand-100 dark:shadow-none active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" /> Registrar Mesa
                 </button>
