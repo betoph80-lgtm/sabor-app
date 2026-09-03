@@ -312,7 +312,7 @@ export default function AdminAperturaCierreView() {
           <button 
             onClick={exportFullDatabaseExcel}
             disabled={isExporting}
-            className="flex items-center justify-center gap-1.5 px-4.5 h-[38px] sm:mt-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-350 disabled:text-slate-400 text-white rounded-xl font-black uppercase text-[9.5px] tracking-wider transition-all active:scale-95 shadow-md shadow-emerald-100/50 group shrink-0 cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-4.5 h-[38px] sm:mt-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-500 text-white rounded-xl font-black uppercase text-[9.5px] tracking-wider transition-all active:scale-95 shadow-md shadow-emerald-100/50 group shrink-0 cursor-pointer"
           >
             <Download className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce' : 'group-hover:scale-110 transition-transform'}`} />
             {isExporting ? 'Exportando...' : 'Descargar Excel'}

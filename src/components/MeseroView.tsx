@@ -15,10 +15,13 @@ export const MeseroView: React.FC = () => {
   const { 
     mesas, orders, createOrder, products, currentMenu, 
     updateItemStatus, addItemsToOrder, selectedDate, 
-    isTodaySelected, cashControls, currentUser, navigateToCajaWithOrder 
+    isTodaySelected, cashControls, currentUser, navigateToCajaWithOrder,
+    checkOrderPrerequisites, setActiveView, setAdminSubView
   } = useApp();
   const [selectedMesa, setSelectedMesa] = useState<string | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
+
+  const prereq = checkOrderPrerequisites();
 
   const productsMap = React.useMemo(() => {
     const map = new Map<string, typeof products[0]>();
@@ -76,6 +79,51 @@ export const MeseroView: React.FC = () => {
         </div>
       )}
 
+      {/* Missing Prerequisites Alert Banner */}
+      {!isCashClosed && !prereq.ok && (
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 p-4 md:p-5 rounded-[24px] md:rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500 text-white rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-lg shrink-0 shadow-md shadow-amber-200 dark:shadow-none">
+              ⚠️
+            </div>
+            <div>
+              <h3 className="font-display font-black text-amber-950 dark:text-amber-200 uppercase tracking-tight text-xs md:text-sm">
+                No se pueden registrar pedidos
+              </h3>
+              <p className="text-amber-800 dark:text-amber-300 text-xs font-bold leading-relaxed mt-0.5">
+                {prereq.message}
+              </p>
+            </div>
+          </div>
+          {currentUser?.role === 'ADMIN' && (
+            <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
+              {prereq.missingMenu && (
+                <button
+                  onClick={() => {
+                    setActiveView('ADMIN');
+                    setAdminSubView('PANEL');
+                  }}
+                  className="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                >
+                  Elegir Menú del Día
+                </button>
+              )}
+              {prereq.missingCash && (
+                <button
+                  onClick={() => {
+                    setActiveView('ADMIN');
+                    setAdminSubView('APERTURA_CIERRE');
+                  }}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider transition-all shadow-xs cursor-pointer"
+                >
+                  Aperturar Caja
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Floor Plan Header and Status chips */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-[28px] md:rounded-[40px] border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="text-left">
@@ -125,10 +173,20 @@ export const MeseroView: React.FC = () => {
                   return;
                 }
 
-                setSelectedMesa(mesa.id);
-                if (!isOccupied || mesa.id === '13') {
-                  setShowOrderModal(true);
+                // If table is occupied, opening view is always permitted
+                if (isOccupied && mesa.id !== '13') {
+                  setSelectedMesa(mesa.id);
+                  return;
                 }
+
+                // Taking a new order (free table or Para Llevar)
+                if (!prereq.ok) {
+                  alert(prereq.message);
+                  return;
+                }
+
+                setSelectedMesa(mesa.id);
+                setShowOrderModal(true);
               }}
               title={
                 isOccupied && (currentUser?.role === 'ADMIN' || currentUser?.role === 'CAJA' || (currentUser?.role as string) === 'CAJERO')
@@ -313,6 +371,10 @@ export const MeseroView: React.FC = () => {
                       <button
                         onClick={() => {
                           if (isCashClosed) return;
+                          if (!prereq.ok) {
+                            alert(prereq.message);
+                            return;
+                          }
                           setSelectedMesa(selectedMesa);
                           setShowOrderModal(true);
                         }}

@@ -173,8 +173,8 @@ const AdminPanel = () => {
 
                       {/* Resumen transaccional */}
                       <div className="space-y-3">
-                         <h4 className="text-[9px] font-black text-slate-450 uppercase tracking-widest pl-1 text-left">Composición de Comandas</h4>
-                         <div className="bg-slate-50 dark:bg-slate-850 border border-slate-150 dark:border-slate-800 p-4 rounded-xl space-y-2.5">
+                         <h4 className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1 text-left">Composición de Comandas</h4>
+                         <div className="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2.5">
                             <div className="flex justify-between text-xs">
                                <span className="text-slate-500 dark:text-slate-400 font-black uppercase tracking-tight text-[10px]">Total de Órdenes creadas:</span>
                                <span className="font-sans font-black text-slate-800 dark:text-white">{salesToday.length}</span>

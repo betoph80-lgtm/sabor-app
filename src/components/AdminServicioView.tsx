@@ -22,8 +22,8 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <Utensils className="w-5 h-5 text-brand-600 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Pizarra de Disponibilidad diaria</span>
-            <h3 className="text-base font-display font-black text-slate-900 uppercase tracking-wider hidden sm:block">Almuerzos en Venta</h3>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400">Pizarra de Disponibilidad diaria</span>
+            <h3 className="text-base font-display font-black text-slate-900 dark:text-white uppercase tracking-wider hidden sm:block">Almuerzos en Venta</h3>
           </div>
         </div>
 
@@ -47,7 +47,7 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
           {products.filter(p => p.categoria === activeCategory).length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[250px] space-y-2 text-slate-400 dark:text-slate-500">
               <Utensils className="w-9 h-9 text-slate-300 dark:text-slate-600" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-450 dark:text-slate-500">Sin platos en catálogo</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Sin platos en catálogo</p>
               <span className="text-[8.5px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">Regístralos primero en la pestaña "Productos"</span>
             </div>
           ) : (
@@ -63,7 +63,7 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                     className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 relative text-left outline-none cursor-pointer ${
                       isInMenu 
                         ? 'bg-gradient-to-br from-brand-50/80 to-white dark:from-brand-950/40 dark:to-slate-900 border-brand-400 dark:border-brand-600 shadow-[0_4px_16px_rgba(109,40,217,0.06)]' 
-                        : 'bg-white dark:bg-slate-900 border-slate-150 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 hover:shadow-sm'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -97,16 +97,16 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                     {isInMenu ? (
                       <CheckCircle2 className="w-5.5 h-5.5 text-brand-600 dark:text-brand-400 shrink-0" />
                     ) : (
-                      <div className="w-5.5 h-5.5 rounded-full border-2 border-slate-150 dark:border-slate-700 shrink-0" />
+                      <div className="w-5.5 h-5.5 rounded-full border-2 border-slate-200 dark:border-slate-700 shrink-0" />
                     )}
                   </button>
 
                   {/* Stock and custom pricing configure forms inside sliding boxes */}
                   {isInMenu && (
-                    <div className="mx-2 bg-white/70 dark:bg-slate-900/80 border border-brand-100 dark:border-brand-900/50 rounded-2xl p-3.5 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in slide-in-from-top-1.5 duration-300">
+                    <div className="mx-2 bg-white/90 dark:bg-slate-900/90 border border-brand-100 dark:border-brand-900/50 rounded-2xl p-3.5 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in slide-in-from-top-1.5 duration-300">
                       
                       <div className="flex items-center gap-2.5">
-                        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none shrink-0">Roscas / Stock Inicial</span>
+                        <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none shrink-0">Roscas / Stock Inicial</span>
                         <div className="flex-1">
                           <input 
                             type="number"
@@ -121,13 +121,13 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                                   updateMenuItemStock(product.id, val, undefined, currentPrice);
                               }
                             }}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-750 rounded-lg px-2 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 outline-none text-center focus:border-brand-400 transition-colors"
+                            className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-white rounded-lg px-2 py-1.5 text-xs font-black text-slate-800 dark:text-white outline-none text-center focus:border-brand-500 dark:focus:border-brand-400 focus:ring-1 focus:ring-brand-500/20 transition-colors"
                           />
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none shrink-0">Precio Personalizado (S/.)</span>
+                        <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none shrink-0">Precio Personalizado (S/.)</span>
                         <div className="flex-1">
                           <input 
                             type="number"
@@ -142,7 +142,7 @@ export default function AdminServicioView({ setShowReport: _setShowReport }: Adm
                               const currentStockActual = menuItem?.stockActual ?? 25;
                               updateMenuItemStock(product.id, currentStock, currentStockActual, priceVal);
                             }}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-750 rounded-lg px-2 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 outline-none text-center focus:border-brand-400 transition-colors"
+                            className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:text-slate-900 dark:focus:text-white rounded-lg px-2 py-1.5 text-xs font-black text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none text-center focus:border-brand-500 dark:focus:border-brand-400 focus:ring-1 focus:ring-brand-500/20 transition-colors"
                           />
                         </div>
                       </div>

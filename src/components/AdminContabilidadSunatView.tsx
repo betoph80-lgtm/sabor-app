@@ -842,7 +842,7 @@ export const AdminContabilidadSunatView: React.FC = () => {
               </div>
 
               {/* Resumen Tributario Breakdown */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-150 dark:border-slate-700/60 space-y-2 mt-4">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/60 space-y-2 mt-4">
                 <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Resumen Tributario (SUNAT)</p>
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">

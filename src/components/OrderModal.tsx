@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Minus, X, User, FileText, Sparkles, Check, Trash2, MessageSquarePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderItem, Product, MenuItem, Mesa } from '../types';
@@ -77,6 +77,7 @@ export const OrderModal: React.FC<{
   });
 
   const [clienteName, setClienteName] = useState(initialClienteName);
+  const [activeTab, setActiveTab] = useState<string>('ALL');
 
   // State for the dedicated Note/Detail popup
   const [noteModalProduct, setNoteModalProduct] = useState<Product | null>(null);
@@ -204,14 +205,108 @@ export const OrderModal: React.FC<{
   };
 
   // Categories list
-  const categories = Array.from(new Set(products.map(p => p.categoria))) as string[];
+  const categories = useMemo(() => Array.from(new Set(products.map(p => p.categoria))) as string[], [products]);
 
   // Custom sorting to keep MENU first, then others
-  const sortedCategories = categories.sort((a, b) => {
-    if (a === 'MENÚ') return -1;
-    if (b === 'MENÚ') return 1;
-    return a.localeCompare(b);
-  });
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      if (a === 'MENÚ') return -1;
+      if (b === 'MENÚ') return 1;
+      return a.localeCompare(b);
+    });
+  }, [categories]);
+
+  // Products available in currentMenu or initialItems
+  const availableProducts = useMemo(() => {
+    return products.filter(p =>
+      currentMenu.some(m => m.productoId === p.id) ||
+      (initialItems && initialItems.some(item => item.productoId === p.id))
+    );
+  }, [products, currentMenu, initialItems]);
+
+  const menuProducts = useMemo(() => availableProducts.filter(p => p.categoria === 'MENÚ'), [availableProducts]);
+  const soups = useMemo(() => menuProducts.filter(p => p.tipo === 'SOPA'), [menuProducts]);
+  const mains = useMemo(() => menuProducts.filter(p => p.tipo === 'SEGUNDO'), [menuProducts]);
+  const otherMenu = useMemo(() => menuProducts.filter(p => p.tipo !== 'SOPA' && p.tipo !== 'SEGUNDO'), [menuProducts]);
+
+  const otherCategories = useMemo(() => sortedCategories.filter(c => c !== 'MENÚ'), [sortedCategories]);
+
+  // Minimalist Category Tabs (Fichas) calculation with real-time selection counters
+  const categoryTabs = useMemo(() => {
+    const tabs: { id: string; label: string; count: number; totalAvailable: number }[] = [];
+
+    // Ficha 'TODOS'
+    const totalCount = Object.keys(quantities).reduce((acc, id) => {
+      const isAvail = availableProducts.some(p => p.id === id);
+      return isAvail ? acc + (quantities[id] || 0) : acc;
+    }, 0);
+
+    tabs.push({
+      id: 'ALL',
+      label: 'Todos',
+      count: totalCount,
+      totalAvailable: availableProducts.length,
+    });
+
+    // Ficha Entradas (si hay sopas/entradas disponibles)
+    if (soups.length > 0) {
+      tabs.push({
+        id: 'ENTRADA',
+        label: 'Entradas',
+        count: soups.reduce((acc, p) => acc + (quantities[p.id] || 0), 0),
+        totalAvailable: soups.length,
+      });
+    }
+
+    // Ficha Segundos (si hay segundos disponibles)
+    if (mains.length > 0) {
+      tabs.push({
+        id: 'SEGUNDO',
+        label: 'Segundos',
+        count: mains.reduce((acc, p) => acc + (quantities[p.id] || 0), 0),
+        totalAvailable: mains.length,
+      });
+    }
+
+    // Ficha Menú (si hay ítems de menú sin tipo específico)
+    if (otherMenu.length > 0) {
+      tabs.push({
+        id: 'MENU_OTROS',
+        label: 'Menú',
+        count: otherMenu.reduce((acc, p) => acc + (quantities[p.id] || 0), 0),
+        totalAvailable: otherMenu.length,
+      });
+    } else if (menuProducts.length > 0 && soups.length === 0 && mains.length === 0) {
+      tabs.push({
+        id: 'MENÚ',
+        label: 'Menú',
+        count: menuProducts.reduce((acc, p) => acc + (quantities[p.id] || 0), 0),
+        totalAvailable: menuProducts.length,
+      });
+    }
+
+    // Fichas para otras categorías (Bebidas, Extras, Postres, etc.)
+    otherCategories.forEach(cat => {
+      const catProds = availableProducts.filter(p => p.categoria === cat);
+      if (catProds.length > 0) {
+        let label = cat;
+        if (cat.toUpperCase() === 'BEBIDA') label = 'Bebidas';
+        else if (cat.toUpperCase() === 'EXTRA') label = 'Extras';
+        else if (cat.toUpperCase() === 'POSTRE') label = 'Postres';
+
+        tabs.push({
+          id: cat,
+          label,
+          count: catProds.reduce((acc, p) => acc + (quantities[p.id] || 0), 0),
+          totalAvailable: catProds.length,
+        });
+      }
+    });
+
+    return tabs;
+  }, [availableProducts, soups, mains, otherMenu, menuProducts, otherCategories, quantities]);
+
+  const currentActiveTab = categoryTabs.some(t => t.id === activeTab) ? activeTab : 'ALL';
 
   const totalSelected = Object.keys(quantities).reduce((acc, id) => acc + quantities[id], 0);
   const isNameChanged = clienteName.trim() !== initialClienteName.trim();
@@ -431,85 +526,187 @@ export const OrderModal: React.FC<{
           </button>
         </div>
 
-        {/* Scrollable Body: Customer name & Products List */}
-        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-2.5 space-y-2.5 sm:space-y-3 no-scrollbar">
-          
+        {/* Fixed Sub-header: Comensal & Minimalist Fichas (Categorías) */}
+        <div className="bg-slate-50/70 dark:bg-slate-800/50 px-3 sm:px-6 pt-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-2">
           {/* Customer name box - Ultra Compact */}
-          <div className="bg-slate-50/80 dark:bg-slate-800/80 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border border-slate-100 dark:border-slate-700/60">
+          <div className="bg-white dark:bg-slate-800 p-1.5 sm:p-2 rounded-xl border border-slate-200/80 dark:border-slate-700 shadow-2xs">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center text-brand-600 dark:text-brand-400 shrink-0 border border-slate-200/60 dark:border-slate-700 shadow-xs">
-                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <div className="w-6 h-6 sm:w-7 sm:h-7 bg-brand-50 dark:bg-brand-950/60 rounded-lg flex items-center justify-center text-brand-600 dark:text-brand-400 shrink-0 border border-brand-100/50 dark:border-brand-900/50">
+                <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </div>
               <div className="flex-1 min-w-0">
                 <input
+                  id="input-comensal-nombre"
                   type="text"
                   value={clienteName}
                   onChange={(e) => setClienteName(e.target.value)}
                   placeholder="Identificar pedido / Nombre del comensal..."
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 rounded-lg py-1.5 px-2.5 font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs sm:text-sm"
+                  className="w-full bg-transparent border-none py-1 px-1 font-bold text-slate-800 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs sm:text-sm"
                 />
               </div>
             </div>
           </div>
 
-          {/* Products by Category */}
-          {sortedCategories.map(cat => {
-            const catProducts = products.filter(p =>
-              p.categoria === cat && (
-                currentMenu.some(m => m.productoId === p.id) ||
-                (initialItems && initialItems.some(item => item.productoId === p.id))
-              )
-            );
+          {/* Minimalist Category Tabs / Fichas */}
+          {categoryTabs.length > 1 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 select-none">
+              {categoryTabs.map(tab => {
+                const isActive = currentActiveTab === tab.id;
+                const hasSelection = tab.count > 0;
 
-            if (catProducts.length === 0) return null;
+                return (
+                  <button
+                    key={tab.id}
+                    id={`tab-categoria-${tab.id.toLowerCase()}`}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-[10.5px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all duration-200 shrink-0 cursor-pointer ${
+                      isActive
+                        ? 'bg-brand-600 dark:bg-brand-500 text-white shadow-xs'
+                        : 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 shadow-2xs'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    {hasSelection && (
+                      <span
+                        className={`text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-[17px] text-center leading-tight ${
+                          isActive
+                            ? 'bg-white/25 text-white'
+                            : 'bg-emerald-500 text-white shadow-2xs'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-            if (cat === 'MENÚ') {
-              const soups = catProducts.filter(p => p.tipo === 'SOPA');
-              const mains = catProducts.filter(p => p.tipo === 'SEGUNDO');
+        {/* Scrollable Body: Products List */}
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-2.5 space-y-2.5 sm:space-y-3 no-scrollbar">
+          {/* Empty menu warning if no products matched */}
+          {availableProducts.length === 0 && (
+            <div className="flex flex-col items-center justify-center p-8 text-center space-y-3 bg-amber-50/70 dark:bg-amber-950/40 rounded-2xl border border-amber-200/80 dark:border-amber-800/80 my-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xl font-bold">
+                ⚠️
+              </div>
+              <h4 className="font-display font-black text-amber-950 dark:text-amber-200 uppercase text-xs sm:text-sm">
+                Falta elegir el menú del día
+              </h4>
+              <p className="text-amber-800 dark:text-amber-300 text-xs font-medium max-w-sm">
+                No hay platos habilitados en el menú para esta fecha. Active los platos en Almuerzos en Venta para poder realizar pedidos.
+              </p>
+            </div>
+          )}
 
-              return (
-                <React.Fragment key={cat}>
-                  <section className="space-y-1">
-                    <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
-                      Entrada (Menú)
-                    </h4>
-                    <div className="flex flex-col gap-1">
-                      {soups.map(p => (
-                        <div key={p.id}>
-                          {renderProductRow(p)}
-                        </div>
-                      ))}
-                    </div>
-                  </section>
+          {/* RENDER PRODUCTS ACCORDING TO ACTIVE TAB */}
+          {availableProducts.length > 0 && (
+            <>
+              {/* CASE 1: 'ALL' TAB */}
+              {currentActiveTab === 'ALL' && (
+                <>
+                  {soups.length > 0 && (
+                    <section className="space-y-1">
+                      <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
+                        Entrada (Menú)
+                      </h4>
+                      <div className="flex flex-col gap-1">
+                        {soups.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                      </div>
+                    </section>
+                  )}
 
-                  <section className="space-y-1">
-                    <div className="flex items-center justify-between px-1">
-                      <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  {mains.length > 0 && (
+                    <section className="space-y-1">
+                      <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
                         Segundos del Menú
                       </h4>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {mains.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
-                    </div>
-                  </section>
-                </React.Fragment>
-              );
-            }
+                      <div className="flex flex-col gap-1">
+                        {mains.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                      </div>
+                    </section>
+                  )}
 
-            return (
-              <section key={cat} className="space-y-1">
-                <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                  {cat}
-                </h4>
-                <div className="flex flex-col gap-1">
-                  {catProducts.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
-                </div>
-              </section>
-            );
-          })}
+                  {otherMenu.length > 0 && (
+                    <section className="space-y-1">
+                      <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
+                        Menú
+                      </h4>
+                      <div className="flex flex-col gap-1">
+                        {otherMenu.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                      </div>
+                    </section>
+                  )}
+
+                  {otherCategories.map(cat => {
+                    const catProducts = availableProducts.filter(p => p.categoria === cat);
+                    if (catProducts.length === 0) return null;
+
+                    return (
+                      <section key={cat} className="space-y-1">
+                        <h4 className="text-[9.5px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                          {cat}
+                        </h4>
+                        <div className="flex flex-col gap-1">
+                          {catProducts.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* CASE 2: SINGLE CATEGORY TAB SELECTED (Ultra-compact view, no long scrolling!) */}
+              {currentActiveTab === 'ENTRADA' && (
+                <section className="space-y-1">
+                  <div className="flex flex-col gap-1">
+                    {soups.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                  </div>
+                </section>
+              )}
+
+              {currentActiveTab === 'SEGUNDO' && (
+                <section className="space-y-1">
+                  <div className="flex flex-col gap-1">
+                    {mains.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                  </div>
+                </section>
+              )}
+
+              {currentActiveTab === 'MENU_OTROS' && (
+                <section className="space-y-1">
+                  <div className="flex flex-col gap-1">
+                    {otherMenu.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                  </div>
+                </section>
+              )}
+
+              {currentActiveTab === 'MENÚ' && (
+                <section className="space-y-1">
+                  <div className="flex flex-col gap-1">
+                    {menuProducts.map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                  </div>
+                </section>
+              )}
+
+              {otherCategories.includes(currentActiveTab) && (
+                <section className="space-y-1">
+                  <div className="flex flex-col gap-1">
+                    {availableProducts
+                      .filter(p => p.categoria === currentActiveTab)
+                      .map(p => <div key={p.id}>{renderProductRow(p)}</div>)}
+                  </div>
+                </section>
+              )}
+            </>
+          )}
         </div>
 
         {/* ALWAYS VISIBLE FIXED FOOTER ACTIONS */}

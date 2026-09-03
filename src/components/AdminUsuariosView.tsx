@@ -94,7 +94,7 @@ export default function AdminUsuariosView() {
             return (
               <div 
                 key={user.id} 
-                className="bg-white dark:bg-slate-900 rounded-[24px] p-5 border border-slate-150/80 dark:border-slate-800 shadow-xs hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-300 flex items-center justify-between group"
+                className="bg-white dark:bg-slate-900 rounded-[24px] p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-300 flex items-center justify-between group"
               >
                 <div className="flex items-center gap-4 min-w-0">
                   <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border shrink-0 font-display font-black text-xs ${theme.bg} ${theme.text} shadow-xs group-hover:scale-105 transition-all`}>

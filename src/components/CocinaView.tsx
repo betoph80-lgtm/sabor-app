@@ -179,10 +179,10 @@ export const CocinaView: React.FC = () => {
           type="button"
           onClick={testNotification}
           className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 cursor-pointer"
-          title="Probar sonido y vibración que recibe el mesero"
+          title="Probar sonido campana y locución por voz de la mesa y plato"
         >
           <Volume2 className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400 animate-bounce" />
-          <span>Probar Timbre y Vibración Mesero</span>
+          <span>Probar Timbre y Voz Mesero</span>
         </button>
 
         <span className="bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-100/50 dark:border-brand-900/50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider soft-shadow-sm flex items-center justify-center gap-1.5 selection:bg-transparent">

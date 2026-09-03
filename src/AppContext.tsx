@@ -8,7 +8,7 @@ import {
   Order, OrderStatus, Product, Mesa, MenuItem, PRODUCTOS_BASE, MESAS, 
   OrderItem, ItemStatus, Customer, CustomerTransaction, 
   DailyCashControl, Payment, PaymentMethod, AppUser, USUARIOS_BASE, Role, AdminSubView,
-  AppIdentity, WaiterNotification
+  AppIdentity, WaiterNotification, NotificationAudioMode
 } from './types';
 import { db, auth } from './firebase';
 import { 
@@ -17,7 +17,12 @@ import {
   getDoc, writeBatch, serverTimestamp, runTransaction 
 } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { triggerWaiterNotificationAlert } from './utils/notificationSound.ts';
+import { 
+  triggerWaiterNotificationAlert,
+  getSavedNotificationAudioMode,
+  setSavedNotificationAudioMode,
+  speakNotificationItem
+} from './utils/notificationSound.ts';
 
 enum OperationType {
   CREATE = 'create',
@@ -141,12 +146,16 @@ interface AppContextType {
   dismissNotification: (id: string) => void;
   clearAllNotifications: () => void;
   testNotification: () => void;
+  notificationAudioMode: NotificationAudioMode;
+  setNotificationAudioMode: (mode: NotificationAudioMode) => void;
+  speakNotification: (mesaNombre: string, platoNombre: string, cantidad?: number) => void;
   selectedCustomerIdForView: string | null;
   setSelectedCustomerIdForView: (id: string | null) => void;
   navigateToCustomerInCuentas: (customerId: string) => void;
   selectedOrderIdForCaja: string | null;
   setSelectedOrderIdForCaja: (id: string | null) => void;
   navigateToCajaWithOrder: (orderId: string) => void;
+  checkOrderPrerequisites: () => { ok: boolean; message: string | null; missingMenu: boolean; missingCash: boolean };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -247,6 +256,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [notifications, setNotifications] = useState<WaiterNotification[]>([]);
+  const [notificationAudioMode, setNotificationAudioModeState] = useState<NotificationAudioMode>(() => getSavedNotificationAudioMode());
+
+  const setNotificationAudioMode = (mode: NotificationAudioMode) => {
+    setNotificationAudioModeState(mode);
+    setSavedNotificationAudioMode(mode);
+  };
+
+  const speakNotification = (mesaNombre: string, platoNombre: string, cantidad?: number) => {
+    speakNotificationItem(mesaNombre, platoNombre, cantidad);
+  };
+
   const knownServedItemIds = React.useRef<Set<string>>(new Set());
   const isInitialOrdersLoad = React.useRef(true);
   const currentUserRef = React.useRef(currentUser);
@@ -265,7 +285,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const testNotification = () => {
-    triggerWaiterNotificationAlert();
     const testNotif: WaiterNotification = {
       id: `test-${Date.now()}`,
       orderId: 'TEST-001',
@@ -279,6 +298,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       tipo: 'INDIVIDUAL'
     };
+    triggerWaiterNotificationAlert([
+      {
+        mesaNombre: 'Mesa 1',
+        platoNombre: 'Lomo Saltado',
+        cantidad: 1
+      }
+    ], notificationAudioMode);
     setNotifications(prev => [testNotif, ...prev].slice(0, 20));
   };
 
@@ -396,6 +422,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [authInitialized]);
 
+  // Helper to determine if the currently logged-in user created the order/item
+  const isUserTheOrderCreator = (user: AppUser | null | undefined, order: Order, item: OrderItem): boolean => {
+    if (!user || !user.id) return false;
+
+    const currentUserId = String(user.id).trim();
+    const currentUserNombre = user.nombre ? String(user.nombre).trim().toLowerCase() : '';
+    const currentUserUsuario = user.usuario ? String(user.usuario).trim().toLowerCase() : '';
+
+    // 1. Direct ID match on specific item creator
+    if (item.usuarioId && item.usuarioId !== 'unknown' && item.usuarioId !== '') {
+      if (String(item.usuarioId).trim() === currentUserId) return true;
+    }
+
+    // 2. Direct ID match on order creator
+    if (order.usuarioId && order.usuarioId !== 'unknown' && order.usuarioId !== '') {
+      if (String(order.usuarioId).trim() === currentUserId) return true;
+    }
+
+    // 3. Match by name or username fallback for legacy orders
+    const itemUserNombre = item.usuarioNombre ? String(item.usuarioNombre).trim().toLowerCase() : '';
+    if (itemUserNombre && itemUserNombre !== 'desconocido' && itemUserNombre !== 'unknown') {
+      if (currentUserNombre && itemUserNombre === currentUserNombre) return true;
+      if (currentUserUsuario && itemUserNombre === currentUserUsuario) return true;
+    }
+
+    const orderUserNombre = order.usuarioNombre ? String(order.usuarioNombre).trim().toLowerCase() : '';
+    if (orderUserNombre && orderUserNombre !== 'desconocido' && orderUserNombre !== 'unknown') {
+      if (currentUserNombre && orderUserNombre === currentUserNombre) return true;
+      if (currentUserUsuario && orderUserNombre === currentUserUsuario) return true;
+    }
+
+    return false;
+  };
+
   // FILTRADO POR FECHA (Real-time para la fecha seleccionada)
   useEffect(() => {
     if (!authInitialized) return;
@@ -431,17 +491,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (!knownServedItemIds.current.has(key)) {
                 knownServedItemIds.current.add(key);
 
-                // Check if the notification is for the current logged-in waiter (or admin / kitchen supervisor)
-                const isTargetWaiter = 
-                  user?.role === 'ADMIN' || 
-                  (user?.id && (order.usuarioId === user.id || item.usuarioId === user.id)) ||
-                  (user?.role === 'MESERO' && (!order.usuarioId || order.usuarioId === user?.id || user?.nombre === order.usuarioNombre));
+                // STRICT: Sound and vibration alert ONLY for the user who generated this order / item
+                const isCreator = isUserTheOrderCreator(user, order, item);
 
-                if (isTargetWaiter) {
+                if (isCreator) {
                   alertTriggered = true;
                   const product = currentProducts.find(p => p.id === item.productoId);
                   const mesaObj = currentMesas.find(m => m.id === order.mesaId);
                   const mesaNombre = order.mesaId === '13' ? 'Para Llevar' : (mesaObj?.nombre || `Mesa ${order.mesaId}`);
+                  const creatorId = item.usuarioId && item.usuarioId !== 'unknown' ? item.usuarioId : (order.usuarioId || user?.id || 'unknown');
+                  const creatorName = item.usuarioNombre && item.usuarioNombre !== 'Desconocido' ? item.usuarioNombre : (order.usuarioNombre || user?.nombre || 'Mesero');
 
                   newlyServedNotifs.push({
                     id: `${order.id}-${item.id}-${Date.now()}`,
@@ -450,8 +509,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     mesaNombre,
                     platoNombre: product?.nombre || 'Plato Listo',
                     cantidad: item.cantidad,
-                    usuarioId: order.usuarioId,
-                    usuarioNombre: order.usuarioNombre || 'Mesero',
+                    usuarioId: creatorId,
+                    usuarioNombre: creatorName,
                     timestamp: Date.now(),
                     hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                     tipo: 'INDIVIDUAL'
@@ -463,7 +522,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
 
         if (alertTriggered && newlyServedNotifs.length > 0) {
-          triggerWaiterNotificationAlert();
+          triggerWaiterNotificationAlert(
+            newlyServedNotifs.map(n => ({
+              mesaNombre: n.mesaNombre,
+              platoNombre: n.platoNombre,
+              cantidad: n.cantidad
+            })),
+            notificationAudioMode
+          );
           setNotifications(prev => [...newlyServedNotifs, ...prev].slice(0, 20));
         }
       }
@@ -490,6 +556,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const currentCash = cashControls.find(c => c.fecha === selectedDate && (c.estado === 'ABIERTA' || c.estado === 'ABIERTO')) 
     || cashControls.find(c => c.fecha === selectedDate);
+
+  // Helper to validate whether an order can be made based on Menu del Día and Caja Aperturada
+  const checkOrderPrerequisites = (): { ok: boolean; message: string | null; missingMenu: boolean; missingCash: boolean } => {
+    const dailyMenuItems = currentMenu.filter(m => m.fecha === selectedDate && m.estado !== false);
+    const isMenuChosen = dailyMenuItems.length > 0;
+    const isCashOpen = Boolean(currentCash && (currentCash.estado === 'ABIERTA' || currentCash.estado === 'ABIERTO'));
+
+    if (!isMenuChosen && !isCashOpen) {
+      return { 
+        ok: false, 
+        message: 'Falta elegir el menú del día y aperturar caja', 
+        missingMenu: true, 
+        missingCash: true 
+      };
+    }
+    if (!isMenuChosen) {
+      return { 
+        ok: false, 
+        message: 'Falta elegir el menú del día', 
+        missingMenu: true, 
+        missingCash: false 
+      };
+    }
+    if (!isCashOpen) {
+      return { 
+        ok: false, 
+        message: 'Falta aperturar caja', 
+        missingMenu: false, 
+        missingCash: true 
+      };
+    }
+    return { ok: true, message: null, missingMenu: false, missingCash: false };
+  };
 
   // 🔥 MUTATIONS
   const addCategory = (name: string) => {
@@ -529,7 +628,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const createOrder = async (mesaId: string, cliente: string, itemData: Partial<OrderItem>[]) => {
-    // Check if cash is closed
+    // Check prerequisites: Menu del día and Caja aperturada
+    const prereq = checkOrderPrerequisites();
+    if (!prereq.ok && prereq.message) {
+      alert(prereq.message);
+      return;
+    }
+
+    // Check if cash is explicitly closed
     const cashStatus = cashControls.find(c => c.fecha === selectedDate);
     if (cashStatus?.estado === 'CERRADO' || cashStatus?.estado === 'CERRADA') {
       alert('La caja del día está cerrada. No se pueden realizar nuevos pedidos.');
@@ -1630,12 +1736,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       dismissNotification,
       clearAllNotifications,
       testNotification,
+      notificationAudioMode,
+      setNotificationAudioMode,
+      speakNotification,
       selectedCustomerIdForView,
       setSelectedCustomerIdForView,
       navigateToCustomerInCuentas,
       selectedOrderIdForCaja,
       setSelectedOrderIdForCaja,
-      navigateToCajaWithOrder
+      navigateToCajaWithOrder,
+      checkOrderPrerequisites
     }}>
       {children}
       <ConfirmModal 
@@ -1661,13 +1771,13 @@ const ConfirmModal: React.FC<{
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onCancel}/>
-      <div className="relative bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl border border-slate-100">
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[40px] p-8 shadow-2xl border border-slate-100 dark:border-slate-800">
         <div className="space-y-4 text-center">
-          <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">{title}</h3>
-          <p className="text-slate-500 text-sm font-medium leading-relaxed">{message}</p>
+          <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{title}</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">{message}</p>
           <div className="grid grid-cols-2 gap-3 pt-4">
-            <button onClick={onCancel} className="py-4 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase text-[10px]">Cancelar</button>
-            <button onClick={onConfirm} className="py-4 bg-rose-600 text-white rounded-2xl font-black uppercase text-[10px] shadow-lg shadow-rose-100">Confirmar</button>
+            <button onClick={onCancel} className="py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-2xl font-black uppercase text-[10px] cursor-pointer">Cancelar</button>
+            <button onClick={onConfirm} className="py-4 bg-rose-600 text-white rounded-2xl font-black uppercase text-[10px] shadow-lg shadow-rose-100 dark:shadow-none cursor-pointer">Confirmar</button>
           </div>
         </div>
       </div>

@@ -54,7 +54,7 @@ export default function AdminCategoriasView() {
             return (
               <div
                 key={cat}
-                className="bg-white dark:bg-slate-900 border border-slate-150/80 dark:border-slate-800 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:border-brand-300 dark:hover:border-brand-700 transition-all"
+                className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:border-brand-300 dark:hover:border-brand-700 transition-all"
               >
                 <div className="flex items-center gap-3.5">
                   <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
@@ -134,7 +134,7 @@ export default function AdminCategoriasView() {
                 />
               </div>
 
-              <div className="bg-amber-50/70 dark:bg-amber-950/40 border border-amber-150/60 dark:border-amber-900/50 rounded-2xl p-3.5 flex items-start gap-2.5 text-amber-800 dark:text-amber-300 text-[10.5px] leading-relaxed">
+              <div className="bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/50 rounded-2xl p-3.5 flex items-start gap-2.5 text-amber-800 dark:text-amber-300 text-[10.5px] leading-relaxed">
                 <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="font-bold">Categorías Protegidas:</strong> Las categorías base (MENÚ, EXTRA, BEBIDA) son esenciales para el sistema.

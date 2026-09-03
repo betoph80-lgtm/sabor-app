@@ -108,7 +108,7 @@ export default function AdminProductosView() {
         <div className="flex items-center gap-2.5 w-full sm:w-auto">
           <button
             onClick={() => setAdminSubView('CATEGORIAS')}
-            className="flex-1 sm:flex-initial px-4 py-3 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-2xl text-[10px] font-black uppercase tracking-wider border border-indigo-150 dark:border-indigo-800 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 sm:flex-initial px-4 py-3 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-2xl text-[10px] font-black uppercase tracking-wider border border-indigo-200 dark:border-indigo-800 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Settings className="w-4 h-4" /> Categorías
           </button>
@@ -160,7 +160,7 @@ export default function AdminProductosView() {
                 return (
                   <div 
                     key={p.id} 
-                    className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-150/80 dark:border-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.015)] group hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-300 gap-3"
+                    className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.015)] group hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-300 gap-3"
                   >
                     {/* Thumbnail Image or Fallback */}
                     <div className="w-13 h-13 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 overflow-hidden shrink-0 flex items-center justify-center relative">

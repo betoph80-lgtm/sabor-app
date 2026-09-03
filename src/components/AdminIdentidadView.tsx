@@ -135,7 +135,7 @@ export default function AdminIdentidadView() {
                 disabled={isSaving}
                 className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-center transition-all shadow-md items-center justify-center gap-2 flex ${
                   isSaving 
-                    ? 'bg-slate-150 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                     : 'bg-brand-600 text-white hover:bg-brand-700 active:scale-98 shadow-brand-100 dark:shadow-none cursor-pointer'
                 }`}
               >

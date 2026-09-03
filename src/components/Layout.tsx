@@ -6,7 +6,7 @@
 import React from 'react';
 import { useApp } from '../AppContext.tsx';
 import { useTheme } from '../ThemeContext.tsx';
-import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale, Bell, Sun, Moon } from 'lucide-react';
+import { Flower2, ChefHat, Wallet, User as UserIcon, LayoutDashboard, Database, ListTodo, Users as UsersIcon, Calendar, LogOut, Utensils, Tag, Tags, Compass, Settings, FileText, ChevronDown, ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen, Scale, Bell, Sun, Moon, Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WaiterNotificationToast } from './WaiterNotificationToast.tsx';
 
@@ -18,10 +18,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     activeView, setActiveView, adminSubView, setAdminSubView, orders, currentMenu, products, 
     customers, currentCash, selectedDate, setSelectedDate, logout, 
     currentUser, identity, dbConnectedStatus, dbConnectionErrorMessage, 
-    recheckDbConnection 
+    recheckDbConnection, notificationAudioMode, setNotificationAudioMode, speakNotification 
   } = useApp();
   
   const { theme, isDark, toggleTheme } = useTheme();
+
+  const cycleAudioMode = () => {
+    if (notificationAudioMode === 'VOICE') {
+      setNotificationAudioMode('BELL');
+    } else if (notificationAudioMode === 'BELL') {
+      setNotificationAudioMode('MUTE');
+    } else {
+      setNotificationAudioMode('VOICE');
+      speakNotification('Aviso', 'Voz activada');
+    }
+  };
   
   const brandParts = (identity?.nombre || 'Sabor Abanquino').split(' ');
   const firstPart = brandParts.slice(0, -1).join(' ') || brandParts[0] || '';
@@ -205,6 +216,44 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 })}
             </div>
           </div>
+
+          {/* Audio Notification Mode (Voice + Chime / Chime Only / Muted) */}
+          <button
+            id="btn-global-audio-toggle"
+            type="button"
+            onClick={cycleAudioMode}
+            className={`flex items-center gap-1.5 p-2 xs:px-3 xs:py-2 rounded-xl border transition-all active:scale-95 cursor-pointer shadow-2xs ${
+              notificationAudioMode === 'VOICE'
+                ? 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800/80'
+                : notificationAudioMode === 'BELL'
+                ? 'bg-brand-50 dark:bg-brand-950/50 hover:bg-brand-100 dark:hover:bg-brand-900/60 text-brand-700 dark:text-brand-300 border-brand-300 dark:border-brand-800/80'
+                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
+            }`}
+            title={
+              notificationAudioMode === 'VOICE'
+                ? 'Alertas: Locución por Voz y Timbre (Clic para cambiar a Solo Timbre)'
+                : notificationAudioMode === 'BELL'
+                ? 'Alertas: Solo Timbre (Clic para Silenciar)'
+                : 'Alertas: Silenciadas (Clic para activar Voz y Timbre)'
+            }
+          >
+            {notificationAudioMode === 'VOICE' ? (
+              <>
+                <Volume2 className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Voz</span>
+              </>
+            ) : notificationAudioMode === 'BELL' ? (
+              <>
+                <Bell className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-brand-600 dark:text-brand-400" />
+                <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider text-brand-700 dark:text-brand-300">Timbre</span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-4 h-4 xs:w-4.5 xs:h-4.5 text-slate-400 dark:text-slate-500" />
+                <span className="hidden sm:inline text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Mudo</span>
+              </>
+            )}
+          </button>
 
           {/* Theme Toggle Button (Light / Dark) */}
           <button

@@ -9,14 +9,28 @@ import { Bell, Check, X, Volume2, Sparkles, ChefHat } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const WaiterNotificationToast: React.FC = () => {
-  const { notifications, dismissNotification, currentUser, setActiveView } = useApp();
+  const { notifications, dismissNotification, currentUser, setActiveView, speakNotification } = useApp();
 
-  // Filter notifications relevant to current user (or show all if admin)
+  // Filter notifications strictly to the current logged-in user who created the order/item
   const visibleNotifications = React.useMemo(() => {
+    if (!currentUser || !currentUser.id) return [];
+
+    const currentUserId = String(currentUser.id).trim();
+    const currentUserNombre = currentUser.nombre ? String(currentUser.nombre).trim().toLowerCase() : '';
+    const currentUserUsuario = currentUser.usuario ? String(currentUser.usuario).trim().toLowerCase() : '';
+
     return notifications.filter(n => {
-      if (currentUser?.role === 'ADMIN') return true;
-      if (n.meseroId && currentUser?.id) return n.meseroId === currentUser.id;
-      return true;
+      // 1. Direct ID match
+      if (n.usuarioId && n.usuarioId !== 'unknown' && n.usuarioId !== '') {
+        if (String(n.usuarioId).trim() === currentUserId) return true;
+      }
+      // 2. Name or username match fallback
+      const notifUser = n.usuarioNombre ? String(n.usuarioNombre).trim().toLowerCase() : '';
+      if (notifUser && notifUser !== 'desconocido' && notifUser !== 'unknown') {
+        if (currentUserNombre && notifUser === currentUserNombre) return true;
+        if (currentUserUsuario && notifUser === currentUserUsuario) return true;
+      }
+      return false;
     });
   }, [notifications, currentUser]);
 
@@ -70,23 +84,36 @@ export const WaiterNotificationToast: React.FC = () => {
 
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
                 <span className="text-[9px] font-medium text-slate-400">
-                  Mesero: <strong className="text-slate-200">{notif.meseroNombre}</strong>
+                  Mesero: <strong className="text-slate-200">{notif.usuarioNombre || 'Tú'}</strong>
                 </span>
 
-                <button
-                  id={`btn-entendido-toast-${notif.id}`}
-                  type="button"
-                  onClick={() => {
-                    dismissNotification(notif.id);
-                    if (currentUser?.role === 'MESERO' || currentUser?.role === 'ADMIN') {
-                      setActiveView('MESERO');
-                    }
-                  }}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm"
-                >
-                  <Check className="w-3 h-3" />
-                  <span>Entendido</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    id={`btn-oir-toast-${notif.id}`}
+                    type="button"
+                    onClick={() => speakNotification(notif.mesaNombre, notif.platoNombre, notif.cantidad)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/10 hover:bg-white/20 active:scale-95 text-emerald-300 hover:text-white rounded-lg text-[9.5px] font-black uppercase tracking-wider transition-all cursor-pointer border border-white/5"
+                    title="Escuchar locución del plato y mesa"
+                  >
+                    <Volume2 className="w-3 h-3 text-emerald-400" />
+                    <span>Oír</span>
+                  </button>
+
+                  <button
+                    id={`btn-entendido-toast-${notif.id}`}
+                    type="button"
+                    onClick={() => {
+                      dismissNotification(notif.id);
+                      if (currentUser?.role === 'MESERO' || currentUser?.role === 'ADMIN') {
+                        setActiveView('MESERO');
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm"
+                  >
+                    <Check className="w-3 h-3" />
+                    <span>Entendido</span>
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

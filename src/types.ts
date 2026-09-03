@@ -149,6 +149,8 @@ export interface Order {
   timestamp: number;
 }
 
+export type NotificationAudioMode = 'VOICE' | 'BELL' | 'MUTE';
+
 export interface WaiterNotification {
   id: string;
   orderId: string;
